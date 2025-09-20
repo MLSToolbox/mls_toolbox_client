@@ -16,7 +16,7 @@ import { ButtonModule } from "primeng/button";
   ],
   imports: [
     CommonModule, 
-    RouterModule, // Necesario para routerLink
+    RouterModule,
     ButtonModule
   ],
   exports: [
