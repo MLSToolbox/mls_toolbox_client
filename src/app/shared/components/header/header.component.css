@@ -10,7 +10,7 @@
   padding: var(--spacing-5) var(--spacing-6);
   background-color: var(--color-bg-dark);
   color: var(--color-text-inverse);
-  min-height: 80px;
+  height: 80px;
 }
 
 /* Logo Section */

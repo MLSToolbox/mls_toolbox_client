@@ -1,58 +1,60 @@
 .whole {
-  background: buttonface;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  z-index: 10;
-  position: relative;
+    background: buttonface;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+    position: relative;
 }
 
 .container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: center;
-  background: buttonface;
-  border-bottom: 1px solid lightgray;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    background: buttonface;
+    border-bottom: 1px solid lightgray;
+    
 }
 
 .toggle-button {
-  width: 50px;
-  height: 50px;
-  background-color: transparent;
-  border: 0px;
-  color: gray;
+    width: 50px;
+    height: 50px;
+    background-color: transparent;
+    border: 0px;
+    color: gray;
 }
 
 .tools {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
+    flex: 1;
+    display: flex;
+    overflow: hidden;
 }
 
 .options {
-  width: 50px;
-  background-color: buttonface;
+    width: 50px;
+    background-color: buttonface;
 }
-.option-button {
-  width: 50px;
-  height: 50px;
-  border: none;
-  color: gray;
-  box-shadow: none;
-  transition: box-shadow 0.25s ease;
+.option-button{
+    width: 50px;
+    height: 50px;
+    border: none;
+    color: gray;
+    box-shadow: none;
+    transition: box-shadow .25s ease;
 
-  border-bottom: 1px solid lightgray;
-}
-
-.active {
-  box-shadow: inset 0px 0px 25px 0px rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid lightgray;
 }
 
-.tool {
-  flex: 1;
-  box-shadow: inset 0px 0px 10px 10px rgba(0, 0, 0, 0.02);
-  padding: 10px;
-  border-left: 1px solid lightgray;
-  overflow: hidden;
+.active{
+    box-shadow: inset 0px 0px 25px 0px rgba(0, 0, 0, .05);
+}
+
+
+.tool{
+    flex: 1;
+    box-shadow: inset 0px 0px 10px 10px rgba(0, 0, 0, .02);
+    padding: 10px;
+    border-left: 1px solid lightgray;
+    overflow: hidden;
 }

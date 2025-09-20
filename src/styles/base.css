@@ -1,13 +1,6 @@
-/* ===================================================================
-   MLS TOOLBOX - BASE STYLES
-   =================================================================== */
 
-/* Import Design Tokens */
 @import './design-tokens.css';
 
-/* ===================================================================
-   CSS RESET - Moderno y limpio
-   =================================================================== */
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -33,9 +26,7 @@ body {
   overflow-x: hidden;
 }
 
-/* ===================================================================
-   TYPOGRAPHY BASE
-   =================================================================== */
+
 h1, h2, h3, h4, h5, h6 {
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight);
@@ -55,9 +46,7 @@ p {
   color: var(--color-text-secondary);
 }
 
-/* ===================================================================
-   LINKS & BUTTONS BASE
-   =================================================================== */
+
 a {
   color: var(--color-primary);
   text-decoration: none;
@@ -68,33 +57,14 @@ a:hover {
   color: var(--color-primary-light);
 }
 
-/* ===================================================================
-   LAYOUT UTILITIES
-   =================================================================== */
+
 .container {
   width: 100%;
-  max-width: 1200px;
+  
   margin: 0 auto;
-  padding: 0 var(--spacing-6);
+  
 }
 
-/* Responsive containers */
-@media (min-width: 1440px) {
-  .container {
-    max-width: 1400px;
-  }
-}
-
-@media (min-width: 1920px) {
-  .container {
-    max-width: 1600px;
-    padding: 0 var(--spacing-8);
-  }
-}
-
-/* ===================================================================
-   RESPONSIVE UTILITIES
-   =================================================================== */
 .hidden { display: none !important; }
 .sr-only { 
   position: absolute !important;
@@ -108,9 +78,7 @@ a:hover {
   border: 0 !important;
 }
 
-/* ===================================================================
-   FOCUS STYLES - Para accesibilidad
-   =================================================================== */
+
 *:focus {
   outline: 2px solid var(--color-primary-light);
   outline-offset: 2px;
@@ -120,9 +88,7 @@ a:hover {
   outline: none;
 }
 
-/* ===================================================================
-   PRIMENG OVERRIDES - Consistencia con design tokens
-   =================================================================== */
+
 .p-button {
   background-color: var(--color-primary) !important;
   border-color: var(--color-primary) !important;
@@ -144,9 +110,7 @@ a:hover {
   color: var(--color-primary) !important;
 }
 
-/* ===================================================================
-   SCROLLBAR CUSTOM - Manteniendo tu estilo actual mejorado
-   =================================================================== */
+
 .p-submenu-list {
   max-height: calc(40px * 10);
   overflow-y: auto;

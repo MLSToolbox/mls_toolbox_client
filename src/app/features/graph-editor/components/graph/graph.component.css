@@ -1,37 +1,39 @@
 .container {
-  display: flex;
-  height: 100%;
-  flex: 1;
+    display: flex;
+    height: 100%;
+    flex: 1;
+    
 }
 
 .menu {
-  width: 50px;
-  background-color: white;
-  transition: width 0.5s ease; /* Add transition effect for smooth animation */
-  box-shadow: 10px 0px 20px 0px rgba(0, 0, 0, 0.1);
-  z-index: 1;
-  border-right: 1px solid lightgray;
+    width: 50px;
+    background-color: white;
+    transition: width 0.5s ease; /* Add transition effect for smooth animation */
+    box-shadow: 10px 0px 20px 0px rgba(0,0,0,0.1);
+    z-index: 1;
+    border-right: 1px solid lightgray;
+    padding: 0; 
+    margin: 0;
 }
-
 .panel {
-  flex: 1;
-  background-color: lightgray;
+    flex: 1;
+    background-color: lightgray;
 }
 
 .expanded {
-  width: 350px;
+    width: 350px;
 }
 
 .properties {
-  position: relative;
-  transition: all 0.5s ease;
-  width: 0;
-  overflow: hidden;
-  box-shadow: 10px 0px 20px 0px rgba(0, 0, 0, 0.1);
-  z-index: 1;
-  border-left: 1px solid lightgray;
+    position: relative;
+    transition: all .5s ease;
+    width: 0;
+    overflow: hidden;
+    box-shadow: 10px 0px 20px 0px rgba(0,0,0,0.1);
+    z-index: 1;
+    border-left: 1px solid lightgray;
 }
 
 .shown {
-  width: 350px;
+    width: 350px;
 }
