@@ -1,19 +1,5 @@
-/* ===================================================================
-   MLS TOOLBOX - MAIN STYLES
-   Import base styles that include design tokens and reset
-   =================================================================== */
 @import './styles/base.css';
 
-/* ===================================================================
-   GLOBAL LAYOUT
-   =================================================================== */
 html, body {
   height: 100%;
 }
-
-/* ===================================================================
-   APP-SPECIFIC OVERRIDES
-   Solo overrides específicos de la aplicación van aquí
-   =================================================================== */
-
-/* Cualquier estilo específico de tu aplicación irá aquí */
