@@ -1,0 +1,157 @@
+/* ===================================================================
+   CODE ASSESS ANALYSIS FORM - Radio Button Form (Diseño Figma)
+   =================================================================== */
+
+/* Frame-12: Analysis Form Container */
+.frame-12 {
+  position: absolute;
+  top: 667px;
+  left: 57px;
+  width: 373px;
+  height: 200px;
+  background-color: #0c0c0c;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Frame-13: Header Section */
+.frame-13 {
+  display: flex;
+  flex-direction: column;
+  width: 280px;
+  align-items: flex-start;
+  gap: 8px;
+  position: absolute;
+  top: 21px;
+  left: 21px;
+}
+
+/* Text Wrapper 10: Title */
+.text-wrapper-10 {
+  position: relative;
+  align-self: stretch;
+  margin-top: -1px;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 18px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+/* Text Wrapper 11: Description */
+.text-wrapper-11 {
+  position: relative;
+  align-self: stretch;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  color: #ffffff;
+  font-size: 14px;
+  letter-spacing: 0;
+  line-height: normal;
+  opacity: 0.7;
+}
+
+/* Frame-14: Radio Options Container */
+.frame-14 {
+  display: flex;
+  flex-direction: column;
+  width: 333px;
+  align-items: flex-start;
+  gap: 5px;
+  position: absolute;
+  top: 108px;
+  left: 21px;
+}
+
+/* Frame-15, Frame-17, Frame-18: Radio Option Rows */
+.frame-15,
+.frame-17,
+.frame-18 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  align-self: stretch;
+  width: 100%;
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.frame-15:hover,
+.frame-17:hover,
+.frame-18:hover {
+  background-color: rgba(191, 237, 84, 0.05);
+}
+
+/* Rectangle: Radio Button Circle */
+.rectangle {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border: 2px solid;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+/* Radio Button Inner Circle */
+.rectangle > div {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+/* Text Wrapper 12, 13, 14: Radio Labels */
+.text-wrapper-12,
+.text-wrapper-13,
+.text-wrapper-14 {
+  position: relative;
+  flex: 1;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  letter-spacing: 0;
+  line-height: normal;
+  transition: color 0.2s;
+}
+
+/* Focus States */
+.frame-15:focus-within,
+.frame-17:focus-within,
+.frame-18:focus-within {
+  outline: 2px solid #bfed54;
+  outline-offset: 2px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 1024px) {
+  .frame-12 {
+    position: relative;
+    top: 300px;
+    left: 0;
+    width: calc(100% - 32px);
+    max-width: 100%;
+    margin: 20px 16px;
+  }
+  
+  .frame-13 {
+    width: calc(100% - 42px);
+  }
+  
+  .frame-14 {
+    width: calc(100% - 42px);
+  }
+}
+
+@media (max-width: 768px) {
+  .frame-12 {
+    top: 320px;
+    margin: 16px 8px;
+  }
+}

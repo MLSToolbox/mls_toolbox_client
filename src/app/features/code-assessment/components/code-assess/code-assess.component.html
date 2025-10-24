@@ -1,100 +1,14 @@
 <div class="code-assess-layout">
-  <!-- Tool Header -->
-  <app-tool-header 
-    toolName="Code Assessment"
-    toolDescription="Automated code quality analysis and assessment for your applications"
-    iconClass="pi-chart-line">
-  </app-tool-header>
+  <!-- Sidebar Component -->
+  <app-code-assess-sidebar 
+    [isOpen]="sidebarOpen"
+    (toggleSidebar)="toggleSidebar()"
+  ></app-code-assess-sidebar>
 
-  <!-- Main Content -->
-  <div class="assessment-content">
-    <div class="container">
-      <!-- Upload Section -->
-      <div class="upload-section">
-        <h3>Upload Your Application</h3>
-        <p>Select a ZIP file containing your application code for automated assessment</p>
-        <input
-          id="app-file"
-          style="display: none"
-          type="file"
-          accept=".zip"
-          (change)="onFileLoad($event)"
-          #fileinput
-        />
-        <p-button
-          [disabled]="uploadedFile != undefined"
-          (click)="fileinput.click()"
-          class="action-button"
-        >
-          <i class="pi pi-upload" style="margin-right: 8px;"></i>
-          Select ZIP File
-        </p-button>
-      </div>
+  <!-- Header Component -->
+  <app-code-assess-header></app-code-assess-header>
 
-      <!-- File Details Section -->
-      <div *ngIf="uploadedFile" class="uploaded-file">
-        <h4>Uploaded File Details</h4>
-        <p-table [value]="uploadedFile" [tableStyle]="{ 'min-width': '100%' }">
-          <ng-template pTemplate="header">
-            <tr>
-              <th>Name</th>
-              <th>Size (kB)</th>
-              <th>Last Modified</th>
-              <th>Type</th>
-              <th style="width: 120px;">Actions</th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-product>
-            <tr>
-              <td>{{ product.name }}</td>
-              <td>{{ product.size }}</td>
-              <td>{{ product.lastModifiedDate }}</td>
-              <td>{{ product.type }}</td>
-              <td>
-                <p-button
-                  [disabled]="fetching"
-                  type="button"
-                  severity="danger"
-                  size="small"
-                  (onClick)="deleteFile()"
-                >
-                  <i class="pi pi-trash"></i>
-                </p-button>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-        
-        <p-button
-          [disabled]="fetching"
-          (click)="uploadFile()"
-          class="action-button"
-        >
-          <div *ngIf="!fetching" style="display: flex; align-items: center; gap: 8px;">
-            <i class="pi pi-play"></i>
-            Run Code Assessment
-          </div>
-          <div *ngIf="fetching" class="loading-text">
-            Running Assessment...
-          </div>
-        </p-button>
-      </div>
-
-      <!-- Results Section -->
-      <div *ngIf="response" class="response">
-        <h2 style="margin-bottom: var(--spacing-6);">
-          <i class="pi pi-chart-line" style="margin-right: 8px;"></i>
-          Assessment Results
-        </h2>
-        <div *ngFor="let test of response | keyvalue" style="margin-bottom: var(--spacing-6);">
-          <h2>{{ test.key }}</h2>
-          <app-code-assess-response
-            [response]="[test.value]"
-            [testId]="test.key"
-            [uploadedFile]="uploadedFile![0]"
-          ></app-code-assess-response>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Main Content Component (with Hero, Form, Explorer) -->
+  <app-code-assess-content></app-code-assess-content>
 </div>
+

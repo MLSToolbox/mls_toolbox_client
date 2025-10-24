@@ -58,7 +58,11 @@ testem.log
 /typings
 /reports
 /src/translations/template.*
-# /src/environments/.env.*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
 
 # System Files
 .DS_Store

@@ -4,10 +4,12 @@ export const environment = {
   // API Configuration
   api: {
     baseUrl: "https://your-production-api.com", // TODO: Actualizar con URL real
+    codeAnalysisBaseUrl: "https://your-production-api.com", // TODO: Actualizar con URL real del servicio de análisis
     timeout: 15000,
     endpoints: {
       codeGenerator: "/api/create_app",
       codeAssessment: "/api/rate_app",
+      uploadZip: "/api/upload-zip",
       getConfig: "/api/get_config",
       getEditor: "/api/get_editor",
       getBaseEditor: "/api/get_base_editor",

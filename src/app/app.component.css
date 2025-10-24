@@ -9,26 +9,31 @@
 }
 
 .main-content {
-  height: calc(100vh - 80px); /* Restamos la altura del header */
+  height: 100vh;
   overflow-y: auto;
   background-color: var(--color-bg-secondary);
 }
 
+/* Cuando el header está visible */
+:host:has(app-header) .main-content {
+  height: calc(100vh - 80px); /* Restamos la altura del header */
+}
+
 /* Responsive adjustments */
 @media (max-width: 1440px) {
-  .main-content {
+  :host:has(app-header) .main-content {
     height: calc(100vh - 70px);
   }
 }
 
 @media (max-width: 1024px) {
-  .main-content {
+  :host:has(app-header) .main-content {
     height: calc(100vh - 60px);
   }
 }
 
 @media (min-width: 1920px) {
-  .main-content {
+  :host:has(app-header) .main-content {
     height: calc(100vh - 90px);
   }
 }

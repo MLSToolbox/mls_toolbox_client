@@ -1,0 +1,93 @@
+<!-- Mobile Menu Button (solo visible en móviles) -->
+<button 
+  (click)="onToggle()"
+  class="fixed top-4 left-4 z-[60] lg:hidden bg-gray-800 text-white p-3 rounded-lg hover:bg-gray-700 active:bg-gray-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+  [attr.aria-expanded]="isOpen"
+  [attr.aria-label]="isOpen ? 'Close menu' : 'Open menu'"
+>
+  <svg class="w-6 h-6 transition-transform duration-200" [class.rotate-90]="isOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path *ngIf="!isOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+    <path *ngIf="isOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+</button>
+
+<!-- Overlay for mobile (cuando el sidebar está abierto) -->
+<div 
+  *ngIf="isOpen"
+  (click)="closeSidebar()"
+  [@fadeInOut]
+  class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden transition-opacity duration-300 backdrop-blur-sm"
+  aria-hidden="true"
+  role="button"
+  tabindex="0"
+  (keydown.escape)="closeSidebar()"
+></div>
+
+<!-- Sidebar Navigation - Frame (siguiendo diseño Figma) -->
+<aside 
+  [class.translate-x-0]="isOpen"
+  class="frame fixed left-0 top-0 h-screen w-[201px] bg-[#131212] rounded-2xl overflow-hidden flex flex-col z-50 transition-transform duration-300 -translate-x-full lg:translate-x-0 lg:ml-[13px] lg:mt-[17px] lg:h-[989px]"
+  role="navigation" 
+  aria-label="Main navigation"
+>
+  <!-- Sidebar Header - div -->
+  <div class="div inline-flex items-center justify-center gap-[10px] p-[10px] absolute top-[7px] left-2">
+    <img 
+      class="icon w-[31px] h-[31px] object-cover aspect-square" 
+      src="assets/horizontal_favicon1.png" 
+      alt="MLSTOOLBOX logo" 
+    />
+    <div class="text-wrapper font-semibold text-white text-base tracking-normal leading-normal whitespace-nowrap">
+      MLSTOOLBOX
+    </div>
+  </div>
+
+  <!-- Sidebar Indicator - frame-2 (barra verde de indicador) -->
+  <div class="frame-2 absolute top-[143px] left-2 w-0.5 h-6 bg-[#bfed54] rounded-xl"></div>
+
+  <!-- Navigation Links - frame-3 -->
+  <nav class="frame-3 inline-flex flex-col items-start justify-center gap-10 absolute top-[143px] left-[15px]" aria-label="Main menu">
+    <!-- Home Icon -->
+    <a 
+      href="/home" 
+      (click)="closeSidebar()"
+      class="flex items-center gap-3 group p-2 -m-2 rounded-lg hover:bg-white/5 active:bg-white/10 transition-all duration-200"
+      title="Home"
+    >
+      <img class="img relative w-6 h-6 group-hover:scale-110 transition-transform" src="/assets/home-6.svg" alt="" />
+    </a>
+
+    <!-- Code Generator Icon -->
+    <a 
+      href="/pipeline_generator" 
+      (click)="closeSidebar()"
+      class="flex items-center gap-3 group p-2 -m-2 rounded-lg hover:bg-white/5 active:bg-white/10 transition-all duration-200"
+      title="Code generator"
+    >
+      <img class="img relative w-6 h-6 group-hover:scale-110 transition-transform" src="/assets/category-6.svg" alt="" />
+    </a>
+
+    <!-- About Icon -->
+    <a 
+      href="/about" 
+      (click)="closeSidebar()"
+      class="flex items-center gap-3 group p-2 -m-2 rounded-lg hover:bg-white/5 active:bg-white/10 transition-all duration-200"
+      title="About"
+    >
+      <img class="img relative w-6 h-6 group-hover:scale-110 transition-transform" src="/assets/tick-2.svg" alt="" />
+    </a>
+  </nav>
+
+  <!-- Navigation Text Labels -->
+  <div class="text-wrapper-2 absolute top-[146px] left-[58px] font-medium text-white text-base tracking-normal leading-normal whitespace-nowrap">
+    <a href="/home" (click)="closeSidebar()" class="hover:opacity-80 hover:text-[#bfed54] transition-all duration-200">Home</a>
+  </div>
+  
+  <div class="text-wrapper-3 absolute top-[213px] left-[56px] font-medium text-white text-base tracking-normal leading-normal whitespace-nowrap">
+    <a href="/pipeline_generator" (click)="closeSidebar()" class="hover:opacity-80 hover:text-[#bfed54] transition-all duration-200">Code generator</a>
+  </div>
+  
+  <div class="text-wrapper-4 absolute top-[275px] left-[56px] font-medium text-white text-base tracking-normal leading-normal whitespace-nowrap">
+    <a href="/about" (click)="closeSidebar()" class="hover:opacity-80 hover:text-[#bfed54] transition-all duration-200">About</a>
+  </div>
+</aside>

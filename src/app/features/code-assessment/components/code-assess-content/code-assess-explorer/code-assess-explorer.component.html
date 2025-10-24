@@ -1,0 +1,67 @@
+<!-- Frame-16: Project Explorer (siguiendo diseño Figma) -->
+<div class="frame-16 absolute top-[367px] left-[286px] w-[362px] h-[373px] overflow-hidden">
+  
+  <!-- Image: Explorer Placeholder/Asset -->
+  <div class="image-container relative w-[362px] h-[373px]">
+    
+    <!-- Empty State -->
+    <div *ngIf="!hasProject" class="empty-state flex flex-col items-center justify-center w-full h-full gap-4 bg-[#0c0c0c] rounded-2xl border-2 border-dashed border-gray-700">
+      <img 
+        class="folder-icon w-24 h-24 opacity-40" 
+        src="assets/folder-icon.svg" 
+        alt=""
+        aria-hidden="true"
+      />
+      <p class="empty-text font-normal text-gray-400 text-center text-sm px-6">
+        Upload a project to view its structure
+      </p>
+    </div>
+    
+    <!-- Project Preview State -->
+    <div *ngIf="hasProject" class="project-preview flex flex-col w-full h-full bg-[#0c0c0c] rounded-2xl p-6 gap-4">
+      
+      <!-- Header -->
+      <div class="preview-header flex items-center gap-3 pb-4 border-b border-gray-800">
+        <img 
+          class="zip-icon w-8 h-8" 
+          src="assets/zip-file-icon.svg" 
+          alt=""
+          aria-hidden="true"
+        />
+        <div class="file-info flex flex-col flex-1">
+          <div class="file-name font-semibold text-white text-sm truncate">
+            {{ projectFileName }}
+          </div>
+          <div class="file-size font-normal text-gray-400 text-xs">
+            {{ projectFileSize }}
+          </div>
+        </div>
+        <div class="status-badge bg-[#bfed54] text-[#0c0101] text-xs font-semibold px-3 py-1 rounded-full">
+          Ready
+        </div>
+      </div>
+      
+      <!-- Project Structure Preview -->
+      <div class="structure-preview flex-1 overflow-auto">
+        <div class="structure-title font-semibold text-white text-sm mb-3">
+          Project Structure
+        </div>
+        
+        <!-- Placeholder for future tree view -->
+        <div class="tree-placeholder flex items-center justify-center h-[200px] border border-gray-800 rounded-lg">
+          <p class="text-gray-500 text-sm">
+            Structure analysis in progress...
+          </p>
+        </div>
+      </div>
+      
+      <!-- Footer Info -->
+      <div class="preview-footer flex items-center justify-between text-xs text-gray-400 pt-3 border-t border-gray-800">
+        <span>Analyzing files...</span>
+        <span class="text-[#bfed54]">● Processing</span>
+      </div>
+    </div>
+    
+  </div>
+  
+</div>

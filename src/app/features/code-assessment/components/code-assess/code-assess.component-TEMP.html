@@ -1,0 +1,30 @@
+<!-- TEMPORAL: Versión simple para debugging -->
+<div style="background: white; padding: 20px; min-height: 100vh;">
+  <h1 style="color: black;">Code Assessment - PÁGINA DE PRUEBA</h1>
+  <p style="color: black;">Si ves esto, el routing funciona correctamente.</p>
+  
+  <div class="code-assess-layout">
+    <!-- Sidebar Component -->
+    <app-code-assess-sidebar 
+      [isOpen]="sidebarOpen"
+      (toggleSidebar)="toggleSidebar()"
+    ></app-code-assess-sidebar>
+
+    <!-- Header Component -->
+    <app-code-assess-header
+      [isAnalyzing]="isAnalyzing"
+      [hasFile]="selectedFile !== null"
+      (runAnalysis)="onRunAnalysis()"
+    ></app-code-assess-header>
+
+    <!-- Main Content Component (with Hero, Form, Explorer) -->
+    <app-code-assess-content
+      [isAnalyzing]="isAnalyzing"
+      [fileName]="selectedFileName"
+      [fileSize]="selectedFileSize"
+      [treeStructure]="treeStructure"
+      (fileUpload)="onFileUpload($event)"
+      (analysisTypeChange)="onAnalysisTypeChange($event)"
+    ></app-code-assess-content>
+  </div>
+</div>

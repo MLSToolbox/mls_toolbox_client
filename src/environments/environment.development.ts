@@ -4,16 +4,19 @@ export const environment = {
   // API Configuration
   api: {
     baseUrl: "http://localhost:5000",
+    codeAnalysisBaseUrl: "http://localhost:5060",
     timeout: 10000,
     endpoints: {
       codeGenerator: "/api/create_app",
       codeAssessment: "/api/rate_app",
+      uploadZip: "/api/upload-zip",
       getConfig: "/api/get_config",
       getEditor: "/api/get_editor",
       getBaseEditor: "/api/get_base_editor",
       getAvailableEditor: "/api/get_available_editor",
     },
   },
+  
 
   // Feature Flags
   features: {
