@@ -1,0 +1,88 @@
+<!-- FPC Metrics Section -->
+<div class="metric-section">
+  <div class="metric-header flex items-center gap-2 mb-4">
+    <div class="metric-badge bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold">FPC</div>
+    <h4 class="text-white font-semibold text-base">File Pipeline Cohesion</h4>
+  </div>
+  
+  <!-- Cohesion Level -->
+  <div class="metric-item bg-[#252525] rounded-lg p-4 mb-3">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-gray-400 text-sm">Cohesion Level</span>
+      <span 
+        class="cohesion-badge px-3 py-1 rounded-full text-xs font-bold"
+        [ngClass]="{
+          'bg-green-500 text-white': data.cohesion_level === 'high',
+          'bg-yellow-500 text-black': data.cohesion_level === 'medium',
+          'bg-red-500 text-white': data.cohesion_level === 'low'
+        }"
+      >
+        {{ data.cohesion_level | uppercase }}
+      </span>
+    </div>
+  </div>
+  
+  <!-- Stages Detected -->
+  <div class="metric-item bg-[#252525] rounded-lg p-4 mb-3">
+    <div class="text-gray-400 text-sm mb-2">Detected Stages</div>
+    <div class="flex flex-wrap gap-2">
+      <span 
+        *ngFor="let stage of data.stages_detected"
+        class="stage-tag bg-[#3a3a3a] text-[#bfed54] px-3 py-1 rounded-md text-xs font-mono"
+      >
+        {{ stage }}
+      </span>
+      <span *ngIf="data.stages_detected.length === 0" class="text-gray-500 text-xs italic">
+        No stages detected
+      </span>
+    </div>
+    <div class="mt-2 text-xs text-gray-500">
+      {{ data.unique_stages }} unique stage(s)
+    </div>
+  </div>
+  
+  <!-- Phases Detected -->
+  <div class="metric-item bg-[#252525] rounded-lg p-4 mb-3">
+    <div class="text-gray-400 text-sm mb-2">Detected Phases</div>
+    <div class="flex flex-wrap gap-2">
+      <span 
+        *ngFor="let phase of data.phases_detected"
+        class="phase-tag bg-[#3a3a3a] text-purple-400 px-3 py-1 rounded-md text-xs font-mono"
+      >
+        {{ phase }}
+      </span>
+      <span *ngIf="data.phases_detected.length === 0" class="text-gray-500 text-xs italic">
+        No phases detected
+      </span>
+    </div>
+    <div class="mt-2 text-xs text-gray-500">
+      {{ data.unique_phases }} unique phase(s)
+    </div>
+  </div>
+  
+  <!-- Function Stages -->
+  <div class="metric-item bg-[#252525] rounded-lg p-4">
+    <div class="text-gray-400 text-sm mb-3">Function Stage Mapping</div>
+    <div class="function-list space-y-2">
+      <div 
+        *ngFor="let funcStage of data.function_stages | keyvalue"
+        class="function-item bg-[#1a1a1a] rounded p-3"
+      >
+        <div class="function-name text-[#4ade80] text-xs font-mono mb-1">
+          {{ funcStage.key }}
+        </div>
+        <div class="function-stages flex flex-wrap gap-1">
+          <span 
+            *ngFor="let stage of funcStage.value"
+            class="bg-[#3a3a3a] text-gray-300 px-2 py-0.5 rounded text-xs font-mono"
+          >
+            {{ stage }}
+          </span>
+          <span *ngIf="funcStage.value.length === 0" class="text-gray-600 text-xs italic">
+            No stages
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

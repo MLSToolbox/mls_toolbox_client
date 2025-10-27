@@ -7,9 +7,9 @@
  * Tipo de métrica según el nivel de análisis
  */
 export enum MetricType {
-  FILE_LEVEL = 'file',      // Métricas a nivel de archivo/módulo (ej: FPC)
-  PACKAGE_LEVEL = 'package', // Métricas a nivel de paquete/directorio (ej: PFP)
- 
+  FILE_LEVEL = 'file',           // Métricas a nivel de archivo/módulo (ej: FPC)
+  PACKAGE_LEVEL = 'pkg',         // Métricas a nivel de paquete/directorio (ej: PFP)
+  PROJECT_LEVEL = 'project'      // Métricas a nivel de proyecto completo
 }
 
 /**
