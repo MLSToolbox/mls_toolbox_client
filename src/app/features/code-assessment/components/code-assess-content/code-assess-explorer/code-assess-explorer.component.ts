@@ -7,7 +7,9 @@ import {
   PurityLevel,
   FPCFileDetails,
   PFPPackageDetails,
-  CodeAnalysisService
+  CodeAnalysisService,
+  MetricNodeDetails,
+  MetricRegistryService
 } from '@app/core';
 
 interface FileTreeNode {
@@ -21,6 +23,13 @@ interface FileTreeNode {
   selected?: boolean;
   level?: number;
   qualityColor?: 'green' | 'yellow' | 'red' | null;
+  
+  // Sistema de métricas múltiples (nuevo)
+  metrics?: {
+    [metricId: string]: MetricNodeDetails;
+  };
+  
+  // Mantener compatibilidad temporal con código existente
   fpcData?: FPCFileDetails;
   pfpData?: PFPPackageDetails;
 }
@@ -45,7 +54,13 @@ export class CodeAssessExplorerComponent implements OnChanges {
   selectedNode: FileTreeNode | null = null;
   showMetricDetails: boolean = false;
   
-  constructor(private codeAnalysisService: CodeAnalysisService) {}
+  // Métrica actualmente seleccionada para mostrar (por defecto la primera disponible)
+  activeMetricId: string | null = null;
+  
+  constructor(
+    private codeAnalysisService: CodeAnalysisService,
+    public metricRegistry: MetricRegistryService
+  ) {}
   
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['analysisData'] && this.analysisData) {
@@ -346,25 +361,74 @@ export class CodeAssessExplorerComponent implements OnChanges {
   
 
   showNodeMetrics(node: FileTreeNode, event: MouseEvent): void {
-    
     event.stopPropagation();
     
-  
-    if (node.fpcData || node.pfpData) {
+    // Verificar si el nodo tiene métricas (nuevo sistema o legacy)
+    if (node.metrics || node.fpcData || node.pfpData) {
       this.selectedNode = node;
       this.showMetricDetails = true;
       
+      // Establecer la primera métrica disponible como activa
+      this.activeMetricId = this.getAvailableMetrics(node)[0] || null;
     }
   }
   
- 
   closeMetricDetails(): void {
     this.showMetricDetails = false;
     this.selectedNode = null;
+    this.activeMetricId = null;
   }
   
-
   hasMetrics(node: FileTreeNode): boolean {
-    return !!(node.fpcData || node.pfpData);
+    return !!(node.metrics || node.fpcData || node.pfpData);
+  }
+  
+  /**
+   * Obtiene las IDs de todas las métricas disponibles para un nodo
+   */
+  getAvailableMetrics(node: FileTreeNode): string[] {
+    const metricsIds: string[] = [];
+    
+    // Nuevo sistema de métricas
+    if (node.metrics) {
+      metricsIds.push(...Object.keys(node.metrics));
+    }
+    
+    // Legacy: FPC y PFP
+    if (node.fpcData && !metricsIds.includes('FPC')) {
+      metricsIds.push('FPC');
+    }
+    if (node.pfpData && !metricsIds.includes('PFP')) {
+      metricsIds.push('PFP');
+    }
+    
+    return metricsIds;
+  }
+  
+  /**
+   * Obtiene los datos de una métrica específica del nodo
+   */
+  getMetricData(node: FileTreeNode, metricId: string): MetricNodeDetails | FPCFileDetails | PFPPackageDetails | null {
+    // Intentar en el nuevo sistema
+    if (node.metrics?.[metricId]) {
+      return node.metrics[metricId];
+    }
+    
+    // Fallback a legacy
+    if (metricId === 'FPC' && node.fpcData) {
+      return node.fpcData;
+    }
+    if (metricId === 'PFP' && node.pfpData) {
+      return node.pfpData;
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Cambia la métrica activa mostrada en el panel
+   */
+  setActiveMetric(metricId: string): void {
+    this.activeMetricId = metricId;
   }
 }

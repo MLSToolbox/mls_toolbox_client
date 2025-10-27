@@ -3,9 +3,14 @@
  * Análisis a nivel de archivo/módulo
  */
 
+import { BaseMetricResult, MetricType, MetricCategory, QualityLevel, MetricNodeDetails } from './base-metric.models';
+
 export type CohesionLevel = 'high' | 'medium' | 'low';
 
-export interface FPCFileDetails {
+export interface FPCFileDetails extends Omit<MetricNodeDetails, 'quality_level'> {
+  path: string;
+  quality_level: CohesionLevel; // FPC usa minúsculas
+  score: number;
   cohesion_level: CohesionLevel;
   function_stages: { [functionName: string]: string[] };
   phases_detected: string[];
@@ -15,8 +20,10 @@ export interface FPCFileDetails {
   unique_stages: number;
 }
 
-export interface FPCResult {
-  analyzer_id: string;
+export interface FPCResult extends Omit<BaseMetricResult, 'message_count'> {
+  analyzer_id: 'FPC';
+  metric_type: MetricType.FILE_LEVEL;
+  metric_category: MetricCategory.COHESION;
   details: {
     files: { [filePath: string]: FPCFileDetails };
     summary: {
@@ -34,9 +41,5 @@ export interface FPCResult {
       uses_pipeline_metadata: boolean;
     };
   };
-  documentation: any;
-  message_count: { messages: string[] };
-  module_count: number;
-  score: number;
-  timestamp: string;
+  message_count: { messages: string[] }; // FPC tiene estructura diferente
 }

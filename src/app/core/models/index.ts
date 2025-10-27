@@ -3,6 +3,9 @@
  * Permite importar desde un solo lugar: import { Model } from '@app/core/models'
  */
 
+// Base metric models (foundation for all metrics)
+export * from './base-metric.models';
+
 // Analysis models
 export * from './analysis.models';
 

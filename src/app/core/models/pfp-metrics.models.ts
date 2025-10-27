@@ -3,9 +3,14 @@
  * Análisis a nivel de paquete/directorio
  */
 
-export type PurityLevel = 'High' | 'Moderate' | 'Low' | 'Very Low';
+import { BaseMetricResult, MetricType, MetricCategory, QualityLevel, MetricNodeDetails } from './base-metric.models';
 
-export interface PFPPackageDetails {
+export type PurityLevel = QualityLevel;
+
+export interface PFPPackageDetails extends MetricNodeDetails {
+  path: string;
+  quality_level: PurityLevel;
+  score: number;
   metrics: {
     ml_modules: number;
     ml_ratio: number;
@@ -26,8 +31,10 @@ export interface PFPPackageDetails {
   recommendations: string[];
 }
 
-export interface PFPResult {
-  analyzer_id: string;
+export interface PFPResult extends BaseMetricResult {
+  analyzer_id: 'PFP';
+  metric_type: MetricType.PACKAGE_LEVEL;
+  metric_category: MetricCategory.PURITY;
   details: {
     packages: { [packagePath: string]: PFPPackageDetails };
     summary: {
