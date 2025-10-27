@@ -1,197 +1,47 @@
 /* ===================================================================
-   CODE ASSESS HEADER - Diseño exacto de Figma
+   CODE ASSESS HEADER - Estilos mínimos necesarios
    =================================================================== */
 
-/* Frame-4: Header Container */
+/* Frame-4: Header Container (solo estilos no cubiertos por Tailwind) */
 .frame-4 {
-  position: absolute;
-  top: 17px;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-left: 113px; /* (227px sidebar)/2 para compensar y centrar */
-  width: 1200px;
-  height: 57px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background-color: #0f0f0f;
-  border-radius: 16px;
-  overflow: hidden;
-  padding: 0 24px;
+  background-color: var(--code-assess-header-bg);
+  border: 1px solid var(--code-assess-header-border);
+  box-shadow: var(--code-assess-card-shadow);
+  transition: background-color var(--transition-base), 
+              border-color var(--transition-base),
+              box-shadow var(--transition-base);
 }
 
-/* Text Wrapper 5: Code Assessment Title */
+/* Text Wrapper 5: Code Assessment Title (colores de tema) */
 .text-wrapper-5 {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  font-weight: 600;
-  font-size: 20px;
-  color: #ffffff;
-  letter-spacing: 0;
-  line-height: normal;
-  white-space: nowrap;
+  font-weight: 600; /* Semi-bold */
+  color: var(--code-assess-header-text);
+  transition: color var(--transition-base);
 }
 
-/* Frame-5: Run Analysis Button */
-.frame-5 {
-  display: flex;
-  height: 44px;
-  width: 220px;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 10px 24px;
-  background-color: #783ff2;
-  border-radius: 16px;
-  flex-shrink: 0;
-}
-
-.frame-5:hover {
-  background-color: #6835d1;
+/* Frame-5: Run Analysis Button (hover mejorado) */
+.frame-5:not(:disabled):hover {
+  background-color: var(--code-assess-btn-primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(120, 63, 242, 0.4);
 }
 
-.frame-5:active {
+.frame-5:not(:disabled):active {
   transform: translateY(0);
-}
-
-/* Play Arrow Icon */
-.play-arrow {
-  position: relative;
-  width: 24px;
-  height: 24px;
-  aspect-ratio: 1;
 }
 
 /* Text Wrapper 6: Button Text */
 .text-wrapper-6 {
-  position: relative;
-  width: fit-content;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  font-weight: 500;
-  color: #ffffff;
-  font-size: 16px;
-  letter-spacing: 0;
-  line-height: normal;
-  white-space: nowrap;
+  color: var(--code-assess-btn-primary-text);
+  transition: color var(--transition-base);
 }
 
-/* User: User Profile Section */
-.user {
-  display: inline-flex;
-  margin-top: 8px;
-  width: 131.31px;
-  height: 40px;
-  position: relative;
-  margin-left: 67px;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 0px 0.31px 0px 0px;
-  border-radius: 8px;
-}
-
-/* Text Wrapper 7: User Name */
-.text-wrapper-7 {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: fit-content;
-  z-index: 1;
-  font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  font-weight: 400;
-  color: #ffffff;
-  font-size: 14px;
-  letter-spacing: 0;
-  line-height: 20px;
-  white-space: nowrap;
-}
-
-/* Span Flex: Avatar Container */
-.span-flex {
-  display: flex;
-  width: 40px;
-  height: 40px;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  z-index: 0;
-  background-color: #9ca3af;
-  border-radius: 9999px;
-  overflow: hidden;
-}
-
-/* Element: Avatar Image */
-.element {
-  position: relative;
-  flex: 1;
-  max-width: 40px;
-  flex-grow: 1;
-  align-self: stretch;
-  object-fit: cover;
-}
-
-/* Mobile Responsive */
-@media (max-width: 1440px) {
+/* Asegurar que el header no interfiera con el contenido en mobile */
+@media (max-width: 1023px) {
   .frame-4 {
-    width: calc(100vw - 270px);
-    max-width: 1200px;
-    left: 50%;
-    margin-left: 113px;
-  }
-}
-
-@media (max-width: 1024px) {
-  .frame-4 {
-    position: fixed;
-    left: 0;
-    top: 0;
-    transform: none;
-    margin-left: 0;
-    width: 100%;
-    height: 60px;
-    padding: 8px 70px 8px 16px;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--code-assess-header-border);
     border-radius: 0;
-    z-index: 30;
-  }
-  
-  .text-wrapper-5 {
-    font-size: 18px;
-  }
-  
-  .frame-5 {
-    width: auto;
-    padding: 8px 16px;
-    height: 40px;
-    font-size: 14px;
-  }
-  
-  .play-arrow {
-    width: 20px;
-    height: 20px;
-  }
-  
-  .text-wrapper-6 {
-    font-size: 14px;
-  }
-}
-
-@media (max-width: 768px) {
-  .frame-4 {
-    padding: 8px 12px;
-  }
-  
-  .text-wrapper-5 {
-    font-size: 16px;
-  }
-  
-  .frame-5 {
-    padding: 6px 12px;
-    height: 36px;
-  }
-  
-  .text-wrapper-6 {
-    display: none;
   }
 }

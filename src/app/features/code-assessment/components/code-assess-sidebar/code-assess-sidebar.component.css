@@ -1,148 +1,48 @@
 /* ===================================================================
-   CODE ASSESS SIDEBAR - Diseño exacto de Figma
+   CODE ASSESS SIDEBAR - Estilos mínimos necesarios
    =================================================================== */
 
-/* Frame - Sidebar container */
+/* Frame - Sidebar container (solo estilos no cubiertos por Tailwind) */
 .frame {
-  position: absolute;
-  top: 17px;
-  left: 13px;
-  width: 201px;
-  height: 989px;
-  background-color: #131212;
-  border-radius: 16px;
-  overflow: hidden;
+  background-color: var(--code-assess-sidebar-bg);
+  border: 1px solid var(--code-assess-card-border);
+  box-shadow: var(--code-assess-card-shadow);
+  transition: background-color var(--transition-base), 
+              border-color var(--transition-base),
+              box-shadow var(--transition-base),
+              transform var(--transition-base);
 }
 
-/* Div - Header container */
-.div {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 10px;
-  position: absolute;
-  top: 7px;
-  left: 8px;
-}
-
-/* Icon - Logo */
-.icon {
-  position: relative;
-  width: 31px;
-  height: 31px;
-  aspect-ratio: 1;
-  object-fit: cover;
-}
-
-/* Text Wrapper - Logo Text */
-.text-wrapper {
-  position: relative;
-  width: fit-content;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  font-weight: 600;
-  color: #ffffff;
-  font-size: 16px;
-  letter-spacing: 0;
-  line-height: normal;
-  white-space: nowrap;
-}
-
-/* Frame-2 - Green indicator bar */
-.frame-2 {
-  position: absolute;
-  top: 143px;
-  left: 8px;
-  width: 2px;
-  height: 24px;
-  background-color: #bfed54;
-  border-radius: 12px;
-}
-
-/* Frame-3 - Icons container */
-.frame-3 {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 40px;
-  position: absolute;
-  top: 143px;
-  left: 15px;
-}
-
-/* Img - Icon size */
-.img {
-  position: relative;
-  width: 24px;
-  height: 24px;
-}
-
-/* Vector - Home icon parts */
-.vector {
-  position: absolute;
-  width: 62.5%;
-  height: 45.83%;
-  top: 37.08%;
-  left: 15.62%;
-}
-
-.vector-2 {
-  position: absolute;
-  width: 75%;
-  height: 24.15%;
-  top: 13.98%;
-  left: 9.38%;
+/* Asegurar altura correcta en desktop con márgenes */
+@media (min-width: 1024px) {
+  .frame {
+    height: calc(100vh - 34px) !important; /* 17px top + 17px bottom */
+  }
 }
 
 /* Text Wrapper 2 - Home text */
 .text-wrapper-2 {
-  position: absolute;
-  top: 146px;
-  left: 58px;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  font-weight: 500;
-  color: #ffffff;
-  font-size: 16px;
-  letter-spacing: 0;
-  line-height: normal;
-  white-space: nowrap;
+  color: var(--code-assess-sidebar-text);
+  transition: color var(--transition-base);
 }
 
 /* Text Wrapper 3 - Code generator text */
 .text-wrapper-3 {
-  position: absolute;
-  top: 213px;
-  left: 56px;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  font-weight: 500;
-  font-size: 16px;
-  color: #ffffff;
-  letter-spacing: 0;
-  line-height: normal;
-  white-space: nowrap;
+  color: var(--code-assess-sidebar-text-secondary);
+  transition: color var(--transition-base);
 }
 
 /* Text Wrapper 4 - About text */
 .text-wrapper-4 {
-  position: absolute;
-  top: 275px;
-  left: 56px;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  font-weight: 500;
-  color: #ffffff;
-  font-size: 16px;
-  letter-spacing: 0;
-  line-height: normal;
-  white-space: nowrap;
+  color: var(--code-assess-sidebar-text-secondary);
+  transition: color var(--transition-base);
 }
 
 /* Hover effects */
 .text-wrapper-2 a:hover,
 .text-wrapper-3 a:hover,
 .text-wrapper-4 a:hover {
-  opacity: 0.8;
-  transition: all 0.2s ease;
+  color: var(--code-assess-sidebar-active);
 }
 
 /* Active state for better feedback */
@@ -162,107 +62,11 @@
   border-radius: 4px;
 }
 
-/* Mobile responsive */
+/* Mobile responsive adjustments */
 @media (max-width: 1024px) {
   .frame {
-    position: fixed;
-    top: 0;
-    left: 0;
-    margin: 0;
-    height: 100vh;
-    width: 250px;
-    z-index: 50;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
   }
-  
-  /* Animar indicador verde en mobile */
-  .frame-2 {
-    transition: top 0.3s ease;
-  }
-  
-  /* Mejorar touch targets en mobile */
-  .frame-3 a {
-    padding: 8px;
-    margin: -8px;
-    border-radius: 8px;
-    transition: background-color 0.2s;
-  }
-  
-  .frame-3 a:active {
-    background-color: rgba(191, 237, 84, 0.1);
-  }
-  
-  /* Textos más legibles en mobile */
-  .text-wrapper-2,
-  .text-wrapper-3,
-  .text-wrapper-4 {
-    font-size: 15px;
-  }
-}
-
-@media (max-width: 768px) {
-  .frame {
-    width: 220px;
-  }
-  
-  /* Logo más compacto */
-  .div {
-    gap: 8px;
-    padding: 8px;
-  }
-  
-  .icon {
-    width: 28px;
-    height: 28px;
-  }
-  
-  .text-wrapper {
-    font-size: 14px;
-  }
-  
-  /* Espaciado reducido entre items */
-  .frame-3 {
-    gap: 32px;
-  }
-  
-  /* Textos más pequeños */
-  .text-wrapper-2,
-  .text-wrapper-3,
-  .text-wrapper-4 {
-    font-size: 14px;
-    left: 54px;
-  }
-  
-  /* Iconos ligeramente más pequeños */
-  .img {
-    width: 22px;
-    height: 22px;
-  }
-}
-
-/* Animación de entrada/salida en mobile */
-@media (max-width: 1024px) {
-  .frame {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  /* Estado cerrado */
-  .frame:not(.translate-x-0) {
-    transform: translateX(-100%);
-  }
-  
-  /* Estado abierto */
-  .frame.translate-x-0 {
-    transform: translateX(0);
-  }
-}
-
-/* Smooth scrolling para sidebar */
-.frame {
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: #bfed54 #131212;
 }
 
 /* Custom scrollbar para webkit browsers */

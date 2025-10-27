@@ -7,6 +7,7 @@ import { Component, EventEmitter, Input, Output, HostListener } from '@angular/c
 })
 export class CodeAssessSidebarComponent {
   @Input() isOpen = false;
+  @Input() isLightTheme = false; // Recibe el estado del tema
   @Output() toggleSidebar = new EventEmitter<void>();
 
   onToggle() {

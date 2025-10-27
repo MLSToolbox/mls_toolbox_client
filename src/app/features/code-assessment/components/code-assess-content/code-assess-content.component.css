@@ -11,9 +11,14 @@
   margin-left: 113px; /* (227px sidebar)/2 para compensar y centrar */
   width: 1188px;
   height: 916px;
-  background-color: #0f0e0e;
+  background-color: var(--code-assess-card-bg);
+  border: 1px solid var(--code-assess-card-border);
   border-radius: 16px;
   overflow: hidden;
+  box-shadow: var(--code-assess-card-shadow);
+   transition: background-color var(--transition-base), 
+              border-color var(--transition-base),
+              box-shadow var(--transition-base);
 }
 
 /* Frame-7: Background Layer */
@@ -23,8 +28,9 @@
   left: 37px;
   width: 1117px;
   height: 859px;
-  background-color: #232020;
+  background-color: var(--code-assess-bg-tertiary);
   border-radius: 16px;
+  transition: background-color var(--transition-base);
 }
 
 /* Mobile Responsive */

@@ -12,6 +12,7 @@ import { CodeAssessAnalysisFormComponent } from "./components/code-assess-conten
 import { CodeAssessExplorerComponent } from "./components/code-assess-content/code-assess-explorer/code-assess-explorer.component";
 import { KnobModule } from "primeng/knob";
 import { TableModule } from "primeng/table";
+import { TreeModule } from "primeng/tree";
 import { FormsModule } from "@angular/forms";
 import { ButtonModule } from "primeng/button";
 import { SharedModule } from "@app/shared/shared.module";
@@ -34,6 +35,7 @@ import { SharedModule } from "@app/shared/shared.module";
     ButtonModule,
     KnobModule,
     TableModule,
+    TreeModule,
     CodeAssessmentRoutingModule
   ],
 })

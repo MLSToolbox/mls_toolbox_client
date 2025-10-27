@@ -7,17 +7,22 @@
 
   <app-code-assess-hero
     (fileUpload)="onFileUpload($event)"
+    (analysisComplete)="onAnalysisUploadComplete($event)"
   ></app-code-assess-hero>
   
   
   <app-code-assess-analysis-form
-    (analysisTypeChange)="onAnalysisTypeChange($event)"
+    [sessionId]="sessionId"
+    [isAnalyzing]="isAnalyzing"
+    (startAnalysis)="onAnalysisFormTypeChange($event)"
   ></app-code-assess-analysis-form>
   
  
   <app-code-assess-explorer
     [projectFileName]="uploadedFileName"
     [projectFileSize]="uploadedFileSize"
+    [analysisData]="analysisResponse"
+    [analysisResults]="analysisResults"
   ></app-code-assess-explorer>
   
 </div>

@@ -26,7 +26,8 @@
 <!-- Sidebar Navigation - Frame (siguiendo diseño Figma) -->
 <aside 
   [class.translate-x-0]="isOpen"
-  class="frame fixed left-0 top-0 h-screen w-[201px] bg-[#131212] rounded-2xl overflow-hidden flex flex-col z-50 transition-transform duration-300 -translate-x-full lg:translate-x-0 lg:ml-[13px] lg:mt-[17px] lg:h-[989px]"
+  class="frame fixed left-0 top-0 w-[201px] bg-[#131212] rounded-2xl overflow-hidden flex flex-col z-50 transition-transform duration-300 -translate-x-full lg:translate-x-0 
+  h-[calc(100vh-34px)] lg:ml-[13px] lg:mt-[17px] lg:mb-[17px]"
   role="navigation" 
   aria-label="Main navigation"
 >
@@ -54,7 +55,11 @@
       class="flex items-center gap-3 group p-2 -m-2 rounded-lg hover:bg-white/5 active:bg-white/10 transition-all duration-200"
       title="Home"
     >
-      <img class="img relative w-6 h-6 group-hover:scale-110 transition-transform" src="/assets/home-6.svg" alt="" />
+      <img 
+        class="img relative w-6 h-6 group-hover:scale-110 transition-transform" 
+        [src]="isLightTheme ? '/assets/home-6-black.png' : '/assets/home-6.svg'" 
+        alt="" 
+      />
     </a>
 
     <!-- Code Generator Icon -->
@@ -64,7 +69,11 @@
       class="flex items-center gap-3 group p-2 -m-2 rounded-lg hover:bg-white/5 active:bg-white/10 transition-all duration-200"
       title="Code generator"
     >
-      <img class="img relative w-6 h-6 group-hover:scale-110 transition-transform" src="/assets/category-6.svg" alt="" />
+      <img 
+        class="img relative w-6 h-6 group-hover:scale-110 transition-transform" 
+        [src]="isLightTheme ? '/assets/category-6-black.png' : '/assets/category-6.svg'" 
+        alt="" 
+      />
     </a>
 
     <!-- About Icon -->
@@ -74,7 +83,11 @@
       class="flex items-center gap-3 group p-2 -m-2 rounded-lg hover:bg-white/5 active:bg-white/10 transition-all duration-200"
       title="About"
     >
-      <img class="img relative w-6 h-6 group-hover:scale-110 transition-transform" src="/assets/tick-2.svg" alt="" />
+      <img 
+        class="img relative w-6 h-6 group-hover:scale-110 transition-transform" 
+        [src]="isLightTheme ? '/assets/tick-2-black.svg' : '/assets/tick-2.svg'" 
+        alt="" 
+      />
     </a>
   </nav>
 

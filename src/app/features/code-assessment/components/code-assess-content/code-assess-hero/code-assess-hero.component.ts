@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Output } from '@angular/core';
-import { CodeAnalysisService } from '@app/core/services/code-analysis.service';
+import { CodeAnalysisService, AnalysisResponse } from '@app/core';
 
 @Component({
   selector: 'app-code-assess-hero',
@@ -8,6 +8,7 @@ import { CodeAnalysisService } from '@app/core/services/code-analysis.service';
 })
 export class CodeAssessHeroComponent {
   @Output() fileUpload = new EventEmitter<File>();
+  @Output() analysisComplete = new EventEmitter<AnalysisResponse>();
   
   isUploading = false;
 
@@ -49,6 +50,9 @@ export class CodeAssessHeroComponent {
         console.log('Archivos analizados:', response.data.auto_detected_pipeline.files_analyzed);
         console.log('Pipeline válido:', response.data.auto_detected_pipeline.is_valid_pipeline);
         console.log('Estructura del árbol:', response.data.tree_structure);
+        
+        // Emitir la respuesta completa al padre
+        this.analysisComplete.emit(response);
       },
       error: (error) => {
         this.isUploading = false;

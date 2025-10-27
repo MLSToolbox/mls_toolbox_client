@@ -66,11 +66,11 @@
           "configurations": {
             "production": {
               "buildTarget": "frontend:build:production",
-              "proxyConfig": "src/proxy.config.js"
+              "proxyConfig": "src/proxy.config.ts"
             },
             "development": {
               "buildTarget": "frontend:build:development",
-              "proxyConfig": "src/proxy.config.js"
+              "proxyConfig": "src/proxy.config.ts"
             }
           },
           "defaultConfiguration": "development"

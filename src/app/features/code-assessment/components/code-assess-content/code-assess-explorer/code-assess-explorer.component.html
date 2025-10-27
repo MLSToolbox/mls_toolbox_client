@@ -1,30 +1,25 @@
 <!-- Frame-16: Project Explorer (siguiendo diseño Figma) -->
-<div class="frame-16 absolute top-[367px] left-[286px] w-[362px] h-[373px] overflow-hidden">
+<div class="absolute top-[280px] left-[57px] w-[362px] h-[373px] overflow-hidden">
   
   <!-- Image: Explorer Placeholder/Asset -->
   <div class="image-container relative w-[362px] h-[373px]">
     
     <!-- Empty State -->
     <div *ngIf="!hasProject" class="empty-state flex flex-col items-center justify-center w-full h-full gap-4 bg-[#0c0c0c] rounded-2xl border-2 border-dashed border-gray-700">
-      <img 
-        class="folder-icon w-24 h-24 opacity-40" 
-        src="assets/folder-icon.svg" 
-        alt=""
-        aria-hidden="true"
-      />
+      
       <p class="empty-text font-normal text-gray-400 text-center text-sm px-6">
         Upload a project to view its structure
       </p>
     </div>
     
     <!-- Project Preview State -->
-    <div *ngIf="hasProject" class="project-preview flex flex-col w-full h-full bg-[#0c0c0c] rounded-2xl p-6 gap-4">
+    <div *ngIf="hasProject" class="project-preview flex flex-col w-full h-full bg-[#0c0c0c] rounded-2xl overflow-hidden">
       
       <!-- Header -->
-      <div class="preview-header flex items-center gap-3 pb-4 border-b border-gray-800">
+      <div class="preview-header flex items-center gap-3 px-6 py-4 border-b border-gray-800">
         <img 
           class="zip-icon w-8 h-8" 
-          src="assets/zip-file-icon.svg" 
+          src="assets/zip-file-icon.png" 
           alt=""
           aria-hidden="true"
         />
@@ -36,32 +31,399 @@
             {{ projectFileSize }}
           </div>
         </div>
-        <div class="status-badge bg-[#bfed54] text-[#0c0101] text-xs font-semibold px-3 py-1 rounded-full">
-          Ready
+        <div 
+          class="status-badge text-xs font-semibold px-3 py-1 rounded-full"
+          [ngClass]="hasTreeData ? 'bg-[#bfed54] text-[#0c0101]' : 'bg-yellow-500 text-black'"
+        >
+          {{ hasTreeData ? 'Ready' : 'Analyzing...' }}
         </div>
       </div>
       
       <!-- Project Structure Preview -->
-      <div class="structure-preview flex-1 overflow-auto">
-        <div class="structure-title font-semibold text-white text-sm mb-3">
-          Project Structure
+      <div class="structure-preview flex-1 flex flex-col overflow-hidden px-6 py-4">
+        <div class="structure-title font-semibold text-white text-sm mb-3 flex items-center justify-between">
+          <span>Project Structure</span>
+          <span *ngIf="filesAnalyzed > 0" class="text-xs text-gray-400 font-normal">
+            {{ filesAnalyzed }} files
+          </span>
         </div>
         
-        <!-- Placeholder for future tree view -->
-        <div class="tree-placeholder flex items-center justify-center h-[200px] border border-gray-800 rounded-lg">
-          <p class="text-gray-500 text-sm">
-            Structure analysis in progress...
-          </p>
+        <!-- Loading State -->
+        <div *ngIf="!hasTreeData" class="tree-placeholder flex items-center justify-center flex-1 border border-gray-800 rounded-lg">
+          <div class="flex flex-col items-center gap-2">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#bfed54]"></div>
+            <p class="text-gray-500 text-sm">
+              Analyzing structure...
+            </p>
+          </div>
+        </div>
+        
+        <!-- Custom Tree View -->
+        <div *ngIf="hasTreeData" class="tree-container flex-1 overflow-y-auto overflow-x-hidden">
+          <div class="tree-list">
+            <div 
+              *ngFor="let node of getVisibleNodes()"
+              class="tree-node flex items-center gap-2 py-1.5 px-2 rounded hover:bg-gray-800 transition-colors"
+              [style.padding-left]="getPaddingLeft(node.level || 0)"
+              (click)="toggleNode(node)"
+            >
+              <!-- Checkbox -->
+              <input 
+                type="checkbox" 
+                [checked]="node.selected"
+                class="checkbox w-4 h-4 rounded border-gray-600 focus:ring-[#bfed54] focus:ring-offset-0 cursor-pointer"
+                (click)="toggleSelection(node, $event)"
+                (change)="$event.stopPropagation()"
+              />
+              
+              <!-- Icon - Triangle for folders, simple file icon for files -->
+              <span 
+                class="icon text-xs select-none transition-transform duration-200"
+                [style.color]="getFolderIconColor(node)"
+                [class.cursor-pointer]="node.type === 'directory'"
+              >
+                {{ getIcon(node) }}
+              </span>
+              
+              <!-- Folder icon emoji (only for directories) -->
+              <span 
+                *ngIf="node.type === 'directory'"
+                class="folder-emoji text-base select-none"
+              >
+                {{ node.expanded ? '📂' : '📁' }}
+              </span>
+              
+              <!-- File icon emoji (only for files) -->
+              <span 
+                *ngIf="node.type === 'file'"
+                class="file-emoji text-base select-none opacity-60"
+              >
+                📄
+              </span>
+              
+              <!-- Name -->
+              <span 
+                class="node-name text-sm truncate flex-1 cursor-pointer"
+                [class.text-white]="node.type === 'directory'"
+                [class.text-gray-300]="node.type === 'file'"
+                [class.font-medium]="node.type === 'directory'"
+                [title]="node.name"
+              >
+                {{ node.name }}
+              </span>
+              
+              <!-- Quality Indicator (based on analysis results) -->
+              <span 
+                *ngIf="node.qualityColor"
+                class="quality-indicator cursor-pointer"
+                [ngClass]="{
+                  'quality-green': node.qualityColor === 'green',
+                  'quality-yellow': node.qualityColor === 'yellow',
+                  'quality-red': node.qualityColor === 'red'
+                }"
+                [title]="'Click to see ' + (node.type === 'file' ? 'module' : 'package') + ' metrics'"
+                (click)="showNodeMetrics(node, $event)"
+              ></span>
+              
+              <!-- Size (only for files) -->
+              <span 
+                *ngIf="node.type === 'file' && node.size" 
+                class="node-size text-xs text-gray-500 ml-auto tabular-nums"
+              >
+                {{ formatSize(node.size) }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
       
       <!-- Footer Info -->
-      <div class="preview-footer flex items-center justify-between text-xs text-gray-400 pt-3 border-t border-gray-800">
-        <span>Analyzing files...</span>
-        <span class="text-[#bfed54]">● Processing</span>
+      <div class="preview-footer flex items-center justify-between text-xs text-gray-400 px-6 py-3 border-t border-gray-800">
+        <span *ngIf="hasTreeData">
+          <i class="pi pi-check-circle text-green-500"></i> Analysis complete
+        </span>
+        <span *ngIf="!hasTreeData">
+          <i class="pi pi-spin pi-spinner"></i> Processing...
+        </span>
+        <span 
+          *ngIf="hasTreeData"
+          [ngClass]="isValidPipeline ? 'text-[#bfed54]' : 'text-orange-400'"
+        >
+          <i class="pi" [ngClass]="isValidPipeline ? 'pi-check' : 'pi-exclamation-triangle'"></i>
+          {{ isValidPipeline ? 'Valid Pipeline' : 'Pipeline Issues' }}
+        </span>
       </div>
     </div>
     
   </div>
   
+</div>
+
+<!-- Metric Details Panel (Slide-in from right) -->
+<div 
+  *ngIf="showMetricDetails && selectedNode"
+  class="metric-details-overlay fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-end"
+  (click)="closeMetricDetails()"
+>
+  <div 
+    class="metric-details-panel bg-[#1a1a1a] w-[500px] h-full shadow-2xl overflow-y-auto"
+    (click)="$event.stopPropagation()"
+  >
+    <!-- Header -->
+    <div class="panel-header sticky top-0 bg-[#252525] border-b border-gray-800 px-6 py-4 flex items-center justify-between z-10">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">{{ selectedNode.type === 'file' ? '📄' : '📁' }}</span>
+        <div>
+          <h3 class="text-white font-semibold text-lg">{{ selectedNode.name }}</h3>
+          <p class="text-gray-400 text-xs">{{ selectedNode.type === 'file' ? 'Module Metrics' : 'Package Metrics' }}</p>
+        </div>
+      </div>
+      <button 
+        class="close-btn text-gray-400 hover:text-white text-2xl leading-none transition-colors"
+        (click)="closeMetricDetails()"
+        title="Close"
+      >
+        ×
+      </button>
+    </div>
+    
+    <!-- Content -->
+    <div class="panel-content px-6 py-6">
+      
+      <!-- FPC Metrics (Module/File) -->
+      <div *ngIf="selectedNode.fpcData" class="metric-section mb-8">
+        <div class="metric-header flex items-center gap-2 mb-4">
+          <div class="metric-badge bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold">FPC</div>
+          <h4 class="text-white font-semibold text-base">Functional Pipeline Cohesion</h4>
+        </div>
+        
+        <!-- Cohesion Level -->
+        <div class="metric-item bg-[#252525] rounded-lg p-4 mb-3">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-gray-400 text-sm">Cohesion Level</span>
+            <span 
+              class="cohesion-badge px-3 py-1 rounded-full text-xs font-bold"
+              [ngClass]="{
+                'bg-green-500 text-white': selectedNode.fpcData.cohesion_level === 'high',
+                'bg-yellow-500 text-black': selectedNode.fpcData.cohesion_level === 'medium',
+                'bg-red-500 text-white': selectedNode.fpcData.cohesion_level === 'low'
+              }"
+            >
+              {{ selectedNode.fpcData.cohesion_level | uppercase }}
+            </span>
+          </div>
+        </div>
+        
+        <!-- Stages Detected -->
+        <div class="metric-item bg-[#252525] rounded-lg p-4 mb-3">
+          <div class="text-gray-400 text-sm mb-2">Detected Stages</div>
+          <div class="flex flex-wrap gap-2">
+            <span 
+              *ngFor="let stage of selectedNode.fpcData.stages_detected"
+              class="stage-tag bg-[#3a3a3a] text-[#bfed54] px-3 py-1 rounded-md text-xs font-mono"
+            >
+              {{ stage }}
+            </span>
+            <span *ngIf="selectedNode.fpcData.stages_detected.length === 0" class="text-gray-500 text-xs italic">
+              No stages detected
+            </span>
+          </div>
+          <div class="mt-2 text-xs text-gray-500">
+            {{ selectedNode.fpcData.unique_stages }} unique stage(s)
+          </div>
+        </div>
+        
+        <!-- Phases Detected -->
+        <div class="metric-item bg-[#252525] rounded-lg p-4 mb-3">
+          <div class="text-gray-400 text-sm mb-2">Detected Phases</div>
+          <div class="flex flex-wrap gap-2">
+            <span 
+              *ngFor="let phase of selectedNode.fpcData.phases_detected"
+              class="phase-tag bg-[#3a3a3a] text-purple-400 px-3 py-1 rounded-md text-xs font-mono"
+            >
+              {{ phase }}
+            </span>
+            <span *ngIf="selectedNode.fpcData.phases_detected.length === 0" class="text-gray-500 text-xs italic">
+              No phases detected
+            </span>
+          </div>
+          <div class="mt-2 text-xs text-gray-500">
+            {{ selectedNode.fpcData.unique_phases }} unique phase(s)
+          </div>
+        </div>
+        
+        <!-- Function Stages -->
+        <div class="metric-item bg-[#252525] rounded-lg p-4 mb-3">
+          <div class="text-gray-400 text-sm mb-3">Function Stage Mapping</div>
+          <div class="function-list space-y-2">
+            <div 
+              *ngFor="let funcStage of selectedNode.fpcData.function_stages | keyvalue"
+              class="function-item bg-[#1a1a1a] rounded p-3"
+            >
+              <div class="function-name text-[#4ade80] text-xs font-mono mb-1">
+                {{ funcStage.key }}
+              </div>
+              <div class="function-stages flex flex-wrap gap-1">
+                <span 
+                  *ngFor="let stage of funcStage.value"
+                  class="bg-[#3a3a3a] text-gray-300 px-2 py-0.5 rounded text-xs font-mono"
+                >
+                  {{ stage }}
+                </span>
+                <span *ngIf="funcStage.value.length === 0" class="text-gray-600 text-xs italic">
+                  No stages
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Source -->
+        <div class="metric-item bg-[#252525] rounded-lg p-4">
+          <div class="flex items-center justify-between">
+            <span class="text-gray-400 text-sm">Detection Source</span>
+            <span class="text-gray-300 text-xs font-mono">{{ selectedNode.fpcData.source }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- PFP Metrics (Package/Directory) -->
+      <div *ngIf="selectedNode.pfpData" class="metric-section">
+        <div class="metric-header flex items-center gap-2 mb-4">
+          <div class="metric-badge bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-bold">PFP</div>
+          <h4 class="text-white font-semibold text-base">Package Functional Purity</h4>
+        </div>
+        
+        <!-- Purity Score -->
+        <div class="metric-item bg-[#252525] rounded-lg p-4 mb-3">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-gray-400 text-sm">Purity Score</span>
+            <span class="text-white text-2xl font-bold">{{ (selectedNode.pfpData.metrics.pfp_score * 100).toFixed(1) }}%</span>
+          </div>
+          <div class="purity-bar bg-[#3a3a3a] rounded-full h-2 overflow-hidden">
+            <div 
+              class="purity-fill h-full transition-all duration-500"
+              [style.width.%]="selectedNode.pfpData.metrics.pfp_score * 100"
+              [ngClass]="{
+                'bg-green-500': selectedNode.pfpData.metrics.purity_level === 'High',
+                'bg-yellow-500': selectedNode.pfpData.metrics.purity_level === 'Moderate',
+                'bg-red-500': selectedNode.pfpData.metrics.purity_level === 'Low' || selectedNode.pfpData.metrics.purity_level === 'Very Low'
+              }"
+            ></div>
+          </div>
+          <div class="mt-2 text-center">
+            <span 
+              class="purity-badge px-3 py-1 rounded-full text-xs font-bold inline-block"
+              [ngClass]="{
+                'bg-green-500 text-white': selectedNode.pfpData.metrics.purity_level === 'High',
+                'bg-yellow-500 text-black': selectedNode.pfpData.metrics.purity_level === 'Moderate',
+                'bg-red-500 text-white': selectedNode.pfpData.metrics.purity_level === 'Low' || selectedNode.pfpData.metrics.purity_level === 'Very Low'
+              }"
+            >
+              {{ selectedNode.pfpData.metrics.purity_level }}
+            </span>
+          </div>
+        </div>
+        
+        <!-- ML Modules Info -->
+        <div class="metric-item bg-[#252525] rounded-lg p-4 mb-3">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <div class="text-gray-400 text-xs mb-1">ML Modules</div>
+              <div class="text-white text-xl font-bold">{{ selectedNode.pfpData.metrics.ml_modules }}</div>
+            </div>
+            <div>
+              <div class="text-gray-400 text-xs mb-1">Total Modules</div>
+              <div class="text-white text-xl font-bold">{{ selectedNode.pfpData.metrics.total_modules }}</div>
+            </div>
+          </div>
+          <div class="mt-3 pt-3 border-t border-gray-700">
+            <div class="text-gray-400 text-xs mb-1">ML Ratio</div>
+            <div class="text-[#bfed54] text-lg font-bold">{{ (selectedNode.pfpData.metrics.ml_ratio * 100).toFixed(1) }}%</div>
+          </div>
+        </div>
+        
+        <!-- Pipeline Stages -->
+        <div class="metric-item bg-[#252525] rounded-lg p-4 mb-3">
+          <div class="text-gray-400 text-sm mb-2">Pipeline Stages</div>
+          <div class="flex flex-wrap gap-2 mb-3">
+            <span 
+              *ngFor="let stage of selectedNode.pfpData.pipeline_stages.detected_stages"
+              class="stage-tag bg-[#3a3a3a] text-[#bfed54] px-3 py-1 rounded-md text-xs font-mono"
+            >
+              {{ stage }}
+            </span>
+          </div>
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-gray-500">{{ selectedNode.pfpData.pipeline_stages.stage_count }} stage(s)</span>
+            <span 
+              class="px-2 py-1 rounded"
+              [ngClass]="selectedNode.pfpData.pipeline_stages.is_focused ? 'bg-green-900 text-green-300' : 'bg-yellow-900 text-yellow-300'"
+            >
+              {{ selectedNode.pfpData.pipeline_stages.is_focused ? 'Focused' : 'Multi-stage' }}
+            </span>
+          </div>
+        </div>
+        
+        <!-- Quality Indicators -->
+        <div class="metric-item bg-[#252525] rounded-lg p-4">
+          <div class="text-gray-400 text-sm mb-3">Quality Indicators</div>
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-gray-300 text-xs">Has ML Content</span>
+              <span 
+                class="px-2 py-1 rounded text-xs font-bold"
+                [ngClass]="selectedNode.pfpData.quality_indicators.has_ml_content ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'"
+              >
+                {{ selectedNode.pfpData.quality_indicators.has_ml_content ? 'Yes' : 'No' }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-gray-300 text-xs">Pure Package</span>
+              <span 
+                class="px-2 py-1 rounded text-xs font-bold"
+                [ngClass]="selectedNode.pfpData.quality_indicators.is_pure_package ? 'bg-green-900 text-green-300' : 'bg-yellow-900 text-yellow-300'"
+              >
+                {{ selectedNode.pfpData.quality_indicators.is_pure_package ? 'Yes' : 'No' }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-gray-300 text-xs">Needs Refactoring</span>
+              <span 
+                class="px-2 py-1 rounded text-xs font-bold"
+                [ngClass]="selectedNode.pfpData.quality_indicators.needs_refactoring ? 'bg-red-900 text-red-300' : 'bg-green-900 text-green-300'"
+              >
+                {{ selectedNode.pfpData.quality_indicators.needs_refactoring ? 'Yes' : 'No' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div *ngIf="selectedNode.pfpData.recommendations && selectedNode.pfpData.recommendations.length > 0" 
+             class="metric-item bg-[#252525] rounded-lg p-4 mt-3">
+          <div class="flex items-center gap-2 mb-3">
+            <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div class="text-white font-semibold text-sm">Recommendations</div>
+          </div>
+          <div class="space-y-2">
+            <div 
+              *ngFor="let recommendation of selectedNode.pfpData.recommendations; let i = index"
+              class="recommendation-item bg-[#1e1e1e] border-l-4 p-3 rounded text-xs"
+              [ngClass]="{
+                'border-red-500': recommendation.includes('HIGH PRIORITY'),
+                'border-yellow-500': recommendation.includes('Consider'),
+                'border-blue-500': !recommendation.includes('HIGH PRIORITY') && !recommendation.includes('Consider')
+              }"
+            >
+              <div class="text-gray-300 leading-relaxed">{{ recommendation }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
 </div>

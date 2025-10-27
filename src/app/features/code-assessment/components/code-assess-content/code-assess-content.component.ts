@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { AnalysisResponse, AnalyzerType, ProjectAnalysisResponse } from '@app/core';
 
 @Component({
   selector: 'app-code-assess-content',
@@ -6,10 +7,18 @@ import { Component } from '@angular/core';
   styleUrl: './code-assess-content.component.css'
 })
 export class CodeAssessContentComponent {
+  @Input() sessionId: string = '';
+  @Input() isAnalyzing: boolean = false;
+  @Input() analysisResults: ProjectAnalysisResponse | null = null;
+  
+  @Output() analysisComplete = new EventEmitter<AnalysisResponse>();
+  @Output() analysisTypeChange = new EventEmitter<AnalyzerType[]>();
+  
   // Propiedades para manejar el estado del contenido
   uploadedFile: File | null = null;
   uploadedFileName: string = '';
   uploadedFileSize: string = '';
+  analysisResponse: AnalysisResponse | null = null;
 
   // Handler para cuando se sube un archivo
   onFileUpload(file: File) {
@@ -18,10 +27,22 @@ export class CodeAssessContentComponent {
     this.uploadedFileSize = this.formatFileSize(file.size);
     console.log('File uploaded:', file.name);
   }
+  
+  // Handler para cuando el análisis se completa (upload)
+  onAnalysisUploadComplete(response: AnalysisResponse) {
+    this.analysisResponse = response;
+    console.log('📊 Analysis complete in content component:', response);
+    
+    // Propagar al componente padre
+    this.analysisComplete.emit(response);
+  }
 
   // Handler para cuando se selecciona tipo de análisis
-  onAnalysisTypeChange(type: string) {
-    console.log('Analysis type selected:', type);
+  onAnalysisFormTypeChange(analyzers: AnalyzerType[]) {
+    console.log('Analysis type selected in content:', analyzers);
+    
+    // Propagar al componente padre
+    this.analysisTypeChange.emit(analyzers);
   }
 
   // Helper para formatear tamaño de archivo
