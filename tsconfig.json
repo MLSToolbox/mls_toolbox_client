@@ -9,7 +9,7 @@
       "@features/*": ["app/features/*"],
       "@shared/*": ["app/shared/*"],
       "@layout/*": ["app/layout/*"],
-      "@environments/*": ["environments/*"],
+      "@environment/*": ["environment/*"],
       "@assets/*": ["assets/*"]
     },
     "outDir": "./dist/out-tsc",

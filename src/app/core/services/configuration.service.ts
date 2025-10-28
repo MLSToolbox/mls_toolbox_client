@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
-import { environment } from "@environments/environment.development";
+import { environment } from "environment/environment";
 
 @Injectable({
   providedIn: "root",
@@ -17,7 +17,7 @@ export class ConfigurationService {
   }
 
   async initClass() {
-    const url = `${environment.api.baseUrl}${environment.api.endpoints.getConfig}`;
+    const url = `${environment.apiUrl}`;
 
     try {
       const response = await fetch(url, {
@@ -26,7 +26,7 @@ export class ConfigurationService {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",
         },
-        signal: AbortSignal.timeout(environment.api.timeout),
+        signal: AbortSignal.timeout(environment.apiTimeout),
       });
 
       if (!response.ok) {
@@ -47,24 +47,6 @@ export class ConfigurationService {
       // TODO: Implement proper error handling
       throw error;
     }
-  }
-
-  getOptions(key: string) {
-    if (key in this.options) return this.options[key];
-    return [];
-  }
-
-  getAllOptions() {
-    return this.options;
-  }
-
-  getAllOptionsOfOptions() {
-    return this.options_of_options;
-  }
-
-  getOptionsOfOptions(key: string) {
-    if (key in this.options_of_options) return this.options_of_options[key];
-    return {};
   }
 
   getNode(key: string) {
