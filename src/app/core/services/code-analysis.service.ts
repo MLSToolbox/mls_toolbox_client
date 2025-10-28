@@ -1,13 +1,6 @@
 import { Injectable } from "@angular/core";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Observable } from "rxjs";
-import {
-  AnalysisResponse,
-  TreeNode,
-  ProjectAnalysisRequest,
-  ProjectAnalysisResponse,
-  AnalyzerType,
-} from "@app/core/models";
 
 export interface PrimeNGTreeNode {
   label?: string;
@@ -31,26 +24,23 @@ export class CodeAnalysisService {
 
   constructor(private http: HttpClient) {}
 
-  uploadProjectZip(file: File): Observable<AnalysisResponse> {
+  uploadProjectZip(file: File): Observable<any> {
     const formData = new FormData();
     formData.append("file", file);
 
     const endpoint = `${this.API_URL}/upload-zip`;
 
-    return this.http.post<AnalysisResponse>(endpoint, formData);
+    return this.http.post<any>(endpoint, formData);
   }
 
-  analyzeProject(
-    sessionId: string,
-    analyzers: AnalyzerType[]
-  ): Observable<ProjectAnalysisResponse> {
+  analyzeProject(sessionId: string, analyzers: any[]): Observable<any> {
     const endpoint = `${this.API_URL}/analyze/${sessionId}`;
 
-    const requestBody: ProjectAnalysisRequest = {
+    const requestBody: any = {
       analyzers,
     };
 
-    return this.http.post<ProjectAnalysisResponse>(endpoint, requestBody, {
+    return this.http.post<any>(endpoint, requestBody, {
       headers: new HttpHeaders({
         "Content-Type": "application/json",
       }),
@@ -67,7 +57,7 @@ export class CodeAnalysisService {
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   }
 
-  convertToPrimeNGTree(node: TreeNode): PrimeNGTreeNode {
+  convertToPrimeNGTree(node: any): PrimeNGTreeNode {
     const isDirectory = node.type === "directory";
 
     return {
@@ -86,7 +76,8 @@ export class CodeAnalysisService {
       type: node.type,
       styleClass: isDirectory ? "tree-folder" : "tree-file",
       children:
-        node.children?.map((child) => this.convertToPrimeNGTree(child)) || [],
+        node.children?.map((child: any) => this.convertToPrimeNGTree(child)) ||
+        [],
     };
   }
 

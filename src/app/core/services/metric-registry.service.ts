@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { MetricType, MetricCategory, MetricUIConfig, QualityLevel } from '../models/base-metric.models';
+import { MetricType, MetricCategory, MetricUIConfig, QualityLevel } from '../models/base-metric.model';
 
 /**
  * Servicio para registrar y gestionar métricas disponibles
