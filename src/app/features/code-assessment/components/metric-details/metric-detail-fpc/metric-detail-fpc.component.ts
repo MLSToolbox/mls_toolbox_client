@@ -1,5 +1,4 @@
 import { Component, Input } from '@angular/core';
-import { FPCFileDetails } from '@app/core';
 
 @Component({
   selector: 'app-metric-detail-fpc',
@@ -7,6 +6,6 @@ import { FPCFileDetails } from '@app/core';
   styleUrl: './metric-detail-fpc.component.css'
 })
 export class MetricDetailFpcComponent {
-  @Input() data!: FPCFileDetails;
-  @Input() isLightTheme: boolean = false; // Recibe el estado del tema
+  @Input() data!: any;
+  @Input() isLightTheme: boolean = false;
 }

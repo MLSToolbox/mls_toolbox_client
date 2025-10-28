@@ -1,16 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
-import { 
-  AnalysisResponse, 
-  TreeNode,
-  ProjectAnalysisResponse,
-  CohesionLevel,
-  PurityLevel,
-  FPCFileDetails,
-  PFPPackageDetails,
-  CodeAnalysisService,
-  MetricNodeDetails,
-  MetricRegistryService
-} from '@app/core';
+import { CodeAnalysisService } from '@app/core';
 
 interface FileTreeNode {
   name: string;
@@ -24,14 +13,12 @@ interface FileTreeNode {
   level?: number;
   qualityColor?: 'green' | 'yellow' | 'red' | null;
   
-  // Sistema de métricas múltiples (nuevo)
   metrics?: {
-    [metricId: string]: MetricNodeDetails;
+    [metricId: string]: any;
   };
   
-  // Mantener compatibilidad temporal con código existente
-  fpcData?: FPCFileDetails;
-  pfpData?: PFPPackageDetails;
+  fpcData?: any;
+  pfpData?: any;
 }
 
 @Component({
@@ -42,26 +29,22 @@ interface FileTreeNode {
 export class CodeAssessExplorerComponent implements OnChanges {
   @Input() projectFileName: string = '';
   @Input() projectFileSize: string = '';
-  @Input() analysisData: AnalysisResponse | null = null;
-  @Input() analysisResults: ProjectAnalysisResponse | null = null;
+  @Input() analysisData: any | null = null;
+  @Input() analysisResults: any | null = null;
   
   @Output() nodeSelected = new EventEmitter<FileTreeNode>();
   
-  // Datos del árbol
   rootNodes: FileTreeNode[] = [];
   filesAnalyzed: number = 0;
   isValidPipeline: boolean = false;
   
-  // Nodo seleccionado para mostrar detalles de métricas
   selectedNode: FileTreeNode | null = null;
   showMetricDetails: boolean = false;
   
-  // Métrica actualmente seleccionada para mostrar (por defecto la primera disponible)
   activeMetricId: string | null = null;
   
   constructor(
-    private codeAnalysisService: CodeAnalysisService,
-    public metricRegistry: MetricRegistryService
+    private codeAnalysisService: CodeAnalysisService
   ) {}
   
   ngOnChanges(changes: SimpleChanges): void {
@@ -103,7 +86,7 @@ export class CodeAssessExplorerComponent implements OnChanges {
    
   }
   
-  private convertNode(node: TreeNode, level: number): FileTreeNode {
+  private convertNode(node: any, level: number): FileTreeNode {
     return {
       name: node.name,
       path: node.path,
@@ -330,7 +313,7 @@ export class CodeAssessExplorerComponent implements OnChanges {
    * Mapea cohesion_level (FPC) a color
    * high → verde, medium → amarillo, low → rojo
    */
-  private mapCohesionToColor(cohesionLevel: CohesionLevel): 'green' | 'yellow' | 'red' {
+  private mapCohesionToColor(cohesionLevel: any): 'green' | 'yellow' | 'red' {
     switch (cohesionLevel) {
       case 'high':
         return 'green';
@@ -347,7 +330,7 @@ export class CodeAssessExplorerComponent implements OnChanges {
    * Mapea purity_level (PFP) a color
    * High → verde, Moderate → amarillo, Low/Very Low → rojo
    */
-  private mapPurityToColor(purityLevel: PurityLevel): 'green' | 'yellow' | 'red' {
+  private mapPurityToColor(purityLevel: any): 'green' | 'yellow' | 'red' {
     switch (purityLevel) {
       case 'High':
         return 'green';
@@ -414,7 +397,7 @@ export class CodeAssessExplorerComponent implements OnChanges {
   /**
    * Obtiene los datos de una métrica específica del nodo
    */
-  getMetricData(node: FileTreeNode, metricId: string): MetricNodeDetails | FPCFileDetails | PFPPackageDetails | null {
+  getMetricData(node: FileTreeNode, metricId: string): any | null {
     // Intentar en el nuevo sistema
     if (node.metrics?.[metricId]) {
       return node.metrics[metricId];

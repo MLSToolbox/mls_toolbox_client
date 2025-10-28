@@ -6,9 +6,7 @@ import {
   Output,
 } from "@angular/core";
 import {
-  ConfigurationService,
   GraphEditorService,
-  PanelFocusService,
 } from "@app/core";
 import { Subscription } from "rxjs";
 import { Node } from "../../editor";
@@ -37,11 +35,9 @@ export class GraphPropertiesComponent implements OnInit {
   nodeParamOptions: [] | any;
   stageOptions: [] | any;
   constructor(
-    private data: GraphEditorService,
-    private focusService: PanelFocusService,
-    private configService: ConfigurationService
+    private editorService: GraphEditorService
   ) {
-    this.subscription = this.data.selectedSource.subscribe(async (message) => {
+    this.subscription = this.editorService.selectedSource.subscribe(async (message) => {
       if (message == "") {
         this.allNode = undefined;
         this.selectedNode = "";
@@ -55,14 +51,14 @@ export class GraphPropertiesComponent implements OnInit {
       if (message == this.last_selected_node) return;
       this.last_selected_node = message;
       this.openProperties();
-      this.allNode = await this.data.getNode(message);
+      this.allNode = await this.editorService.getNodeById(message);
       this.selectedNode = this.allNode.label;
       this.nodeInfo = this.allNode.params;
       this.nodeInputKeys = this.nodeInfo ? Object.keys(this.nodeInfo) : [];
       this.nodeParamOptions = [];
-      this.options = this.configService.getAllOptions();
-      this.options_of_options = this.configService.getAllOptionsOfOptions();
-      this.stageOptions = this.data
+      this.options = this.editorService.options;
+      this.options_of_options = this.editorService.options_of_options;
+      this.stageOptions = this.editorService
         .getModuleOptions()
         .filter((option: any) => option.id != this.allNode!.id);
     });
@@ -71,12 +67,12 @@ export class GraphPropertiesComponent implements OnInit {
   ngOnInit() {}
 
   ngOnChanges(): void {
-    this.allNode = this.data.getNode(this.selectedNode);
+    this.allNode = this.editorService.getNodeById(this.selectedNode);
     if (this.allNode == undefined) this.closeProperties();
   }
 
   @HostListener("mouseenter") onMouseEnter() {
-    this.focusService.mouseOver(this);
+    this.editorService.mouseOver(this);
   }
 
   keyEvent(event: KeyboardEvent) {
@@ -92,30 +88,30 @@ export class GraphPropertiesComponent implements OnInit {
     this.allNode!.params[key][field] = inputElement.value;
 
     await this.allNode!.update();
-    await this.data.updateNode(this.allNode!);
+    await this.editorService.updateNode(this.allNode!);
   }
 
   async updateOption(value: any, key = "color", field = "value") {
     this.allNode!.params[key][field] = value.value;
 
     await this.allNode!.update();
-    await this.data.updateNode(this.allNode!);
+    await this.editorService.updateNode(this.allNode!);
   }
 
   async updateParam(key: string, value: Event) {
     const inputElement = value.target as HTMLInputElement;
     this.allNode!.params[key].param_label = inputElement.value;
     await this.allNode!.update();
-    await this.data.updateNode(this.allNode!);
+    await this.editorService.updateNode(this.allNode!);
   }
 
   async updateList(key: string, event: Event, index: number) {
     const inputElement = event.target as HTMLInputElement;
 
     this.allNode!.params[key].value[index] = inputElement.value;
-    //this.data
+    //this.editorService
     await this.allNode!.update();
-    //await this.data.updateNode(this.allNode!);
+    //await this.editorService.updateNode(this.allNode!);
   }
 
   async updateLink(value: any) {
@@ -123,11 +119,11 @@ export class GraphPropertiesComponent implements OnInit {
     if (target_id == "") {
       if (this.allNode!.params["link"].value != "") {
         this.allNode!.params["link"].value = "";
-        await this.data.unlinkModule(this.allNode! as ModuleNode);
+        await this.editorService.unlinkModule(this.allNode! as ModuleNode);
       }
     } else {
       this.allNode!.params["link"].value = target_id;
-      let result = await this.data.linkModule(this.allNode! as ModuleNode);
+      let result = await this.editorService.linkModule(this.allNode! as ModuleNode);
       if (!result) {
         this.allNode!.params["link"].value = ""; // CAN'T CHAIN LINKS
       }
@@ -139,25 +135,25 @@ export class GraphPropertiesComponent implements OnInit {
 
     this.allNode!.params[key].value[index][key_index] = inputElement.value;
     await this.allNode!.update();
-    await this.data.updateNode(this.allNode!);
+    await this.editorService.updateNode(this.allNode!);
   }
 
   async addItemToMap(key: string) {
     this.allNode!.params[key].value.push({ key: "", value: "" });
     await this.allNode!.update();
-    await this.data.updateNode(this.allNode!);
+    await this.editorService.updateNode(this.allNode!);
   }
 
   async addItemToList(key: string) {
     this.allNode!.params[key].value.push("");
     await this.allNode!.update();
-    await this.data.updateNode(this.allNode!);
+    await this.editorService.updateNode(this.allNode!);
   }
 
   async removeItemFromList(key: string, index: number) {
     this.allNode!.params[key].value.splice(index, 1);
     await this.allNode!.update();
-    await this.data.updateNode(this.allNode!);
+    await this.editorService.updateNode(this.allNode!);
   }
 
   trackByFn(index: number, item: any): number {
@@ -170,7 +166,7 @@ export class GraphPropertiesComponent implements OnInit {
 
   closeProperties() {
     this.propertiesClose.emit(true);
-    this.data.unselectNodes();
+    this.editorService.unselectNodes();
     this.last_selected_node = "";
   }
 
@@ -179,21 +175,21 @@ export class GraphPropertiesComponent implements OnInit {
   }
 
   showEditor() {
-    this.data.generateJsonOfEditor();
+    this.editorService.generateJsonOfEditor();
   }
 
   changeEditor() {
     if (this.allNode == undefined) return;
-    this.data.changeEditor(this.allNode!.id, true);
+    this.editorService.changeEditor(this.allNode!.id, true);
     this.closeProperties();
   }
 
   deleteNode() {
     if (this.allNode == undefined) return;
-    this.data.deleteNode(this.allNode!.id);
+    this.editorService.deleteNode(this.allNode!.id);
   }
 
   getStageName(id: string) {
-    return this.data.getStageName(id);
+    return this.editorService.getStageName(id);
   }
 }

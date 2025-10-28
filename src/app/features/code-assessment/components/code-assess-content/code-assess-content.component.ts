@@ -1,5 +1,4 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { AnalysisResponse, AnalyzerType, ProjectAnalysisResponse } from '@app/core';
 
 interface FileTreeNode {
   name: string;
@@ -18,23 +17,20 @@ interface FileTreeNode {
 export class CodeAssessContentComponent {
   @Input() sessionId: string = '';
   @Input() isAnalyzing: boolean = false;
-  @Input() analysisResults: ProjectAnalysisResponse | null = null;
-  @Input() isLightTheme: boolean = false; // Recibe el estado del tema
+  @Input() analysisResults: any | null = null;
+  @Input() isLightTheme: boolean = false;
   
-  @Output() analysisComplete = new EventEmitter<AnalysisResponse>();
-  @Output() analysisTypeChange = new EventEmitter<AnalyzerType[]>();
+  @Output() analysisComplete = new EventEmitter<any>();
+  @Output() analysisTypeChange = new EventEmitter<any[]>();
   
-  // Propiedades para manejar el estado del contenido
   uploadedFile: File | null = null;
   uploadedFileName: string = '';
   uploadedFileSize: string = '';
-  analysisResponse: AnalysisResponse | null = null;
+  analysisResponse: any | null = null;
   
-  // Propiedades para el panel de métricas
   selectedNode: FileTreeNode | null = null;
   showMetricsPanel: boolean = false;
 
-  // Handler para cuando se sube un archivo
   onFileUpload(file: File) {
     this.uploadedFile = file;
     this.uploadedFileName = file.name;
@@ -42,20 +38,16 @@ export class CodeAssessContentComponent {
     console.log('File uploaded:', file.name);
   }
   
-  // Handler para cuando el análisis se completa (upload)
-  onAnalysisUploadComplete(response: AnalysisResponse) {
+  onAnalysisUploadComplete(response: any) {
     this.analysisResponse = response;
     console.log('📊 Analysis complete in content component:', response);
     
-    // Propagar al componente padre
     this.analysisComplete.emit(response);
   }
 
-  // Handler para cuando se selecciona tipo de análisis
-  onAnalysisFormTypeChange(analyzers: AnalyzerType[]) {
+  onAnalysisFormTypeChange(analyzers: any[]) {
     console.log('Analysis type selected in content:', analyzers);
     
-    // Propagar al componente padre
     this.analysisTypeChange.emit(analyzers);
   }
   

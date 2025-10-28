@@ -1,11 +1,10 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { FPCFileDetails, PFPPackageDetails } from '@app/core';
 
 export interface MetricsPanelData {
   name: string;
   type: 'file' | 'directory';
-  fpcData?: FPCFileDetails;
-  pfpData?: PFPPackageDetails;
+  fpcData?: any;
+  pfpData?: any;
 }
 
 @Component({

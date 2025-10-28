@@ -1,5 +1,4 @@
 import { Component, Input } from '@angular/core';
-import { PFPPackageDetails } from '@app/core';
 
 @Component({
   selector: 'app-metric-detail-pfp',
@@ -7,6 +6,6 @@ import { PFPPackageDetails } from '@app/core';
   styleUrl: './metric-detail-pfp.component.css'
 })
 export class MetricDetailPfpComponent {
-  @Input() data!: PFPPackageDetails;
-  @Input() isLightTheme: boolean = false; // Recibe el estado del tema
+  @Input() data!: any;
+  @Input() isLightTheme: boolean = false;
 }

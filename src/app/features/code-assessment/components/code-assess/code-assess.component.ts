@@ -1,6 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { MessageService } from "primeng/api";
-import { AnalysisResponse, AnalyzerType, CodeAnalysisService, ProjectAnalysisResponse } from "@app/core";
+import { CodeAnalysisService } from "@app/core";
 
 @Component({
   selector: "app-code-assess",
@@ -8,20 +8,16 @@ import { AnalysisResponse, AnalyzerType, CodeAnalysisService, ProjectAnalysisRes
   styleUrl: "./code-assess.component.css",
 })
 export class CodeAssessComponent implements OnInit {
-  // Sidebar state
   sidebarOpen = false;
   
-  // Theme state
   isLightTheme = false;
   
-  // Analysis data
-  analysisData: AnalysisResponse | null = null;
+  analysisData: any | null = null;
   sessionId: string = '';
-  selectedAnalyzers: AnalyzerType[] = ['fpc', 'pfp'];
+  selectedAnalyzers: any[] = ['fpc', 'pfp'];
   
-  // Analysis state
   isAnalyzing: boolean = false;
-  analysisResults: ProjectAnalysisResponse | null = null;
+  analysisResults: any | null = null;
 
   constructor(
     private messageService: MessageService,
@@ -29,7 +25,6 @@ export class CodeAssessComponent implements OnInit {
   ) {}
   
   ngOnInit() {
-    // Cargar tema guardado del localStorage
     const savedTheme = localStorage.getItem('code-assess-theme');
     if (savedTheme === 'light') {
       this.isLightTheme = true;
@@ -37,12 +32,10 @@ export class CodeAssessComponent implements OnInit {
     }
   }
 
-  // Toggle sidebar (para móviles)
   toggleSidebar() {
     this.sidebarOpen = !this.sidebarOpen;
   }
   
-  // Toggle theme (cambiar entre oscuro y claro)
   toggleTheme() {
     this.isLightTheme = !this.isLightTheme;
     
@@ -57,26 +50,22 @@ export class CodeAssessComponent implements OnInit {
     }
   }
   
-  // Manejar respuesta del análisis inicial (upload)
-  onAnalysisComplete(response: AnalysisResponse) {
+  onAnalysisComplete(response: any) {
     this.analysisData = response;
     this.sessionId = response.data.session_id;
     console.log('📊 Datos de análisis recibidos en componente padre:', response);
     console.log('🔑 Session ID guardado:', this.sessionId);
   }
   
-  // Verificar si se puede ejecutar análisis
   get canAnalyze(): boolean {
     return !!this.sessionId && !this.isAnalyzing;
   }
   
-  // Manejar cambio de tipo de análisis
-  onAnalysisTypeChange(analyzers: AnalyzerType[]) {
+  onAnalysisTypeChange(analyzers: any[]) {
     this.selectedAnalyzers = analyzers;
     console.log('📋 Analizadores seleccionados actualizados:', analyzers);
   }
   
-  // Ejecutar análisis del proyecto
   onRunAnalysis() {
     if (!this.canAnalyze) {
       console.warn('⚠️ No se puede ejecutar el análisis');

@@ -1,5 +1,5 @@
-import { Component, EventEmitter, Output } from '@angular/core';
-import { CodeAnalysisService, AnalysisResponse } from '@app/core';
+import { Component, Output, EventEmitter, Input } from '@angular/core';
+import { CodeAnalysisService } from '@app/core';
 
 @Component({
   selector: 'app-code-assess-hero',
@@ -8,7 +8,7 @@ import { CodeAnalysisService, AnalysisResponse } from '@app/core';
 })
 export class CodeAssessHeroComponent {
   @Output() fileUpload = new EventEmitter<File>();
-  @Output() analysisComplete = new EventEmitter<AnalysisResponse>();
+  @Output() analysisComplete = new EventEmitter<any>();
   
   isUploading = false;
 

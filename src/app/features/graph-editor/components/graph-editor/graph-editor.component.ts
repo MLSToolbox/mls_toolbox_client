@@ -8,11 +8,8 @@ import {
 } from "@angular/core";
 import { MenuItem } from "primeng/api";
 import { Subscription } from "rxjs";
-import {
-  GraphEditorService,
-  PanelFocusService,
-  ConfigurationService,
-} from "@app/core";
+
+import { GraphEditorService } from "../../services/graph-editor.service";
 import { ModuleNode } from "../../models/nodes";
 import { Node } from "../../editor";
 
@@ -42,20 +39,18 @@ export class GraphEditorComponent implements OnInit {
   last_selected_node: string = "";
   constructor(
     private injector: Injector,
-    private graphEditorService: GraphEditorService,
-    private focusService: PanelFocusService,
-    private configService: ConfigurationService
+    private editorService: GraphEditorService
   ) {
     window.addEventListener("beforeunload", beforeUnloadHandler);
 
-    this.subscription = this.graphEditorService.selectedEditor.subscribe(
-      (message) => {
+    this.subscription = this.editorService.selectedEditor.subscribe(
+      (message: any) => {
         this.moduleImIn = message;
       }
     );
 
-    this.subscriptionNode = this.graphEditorService.selectedSource.subscribe(
-      (message) => {
+    this.subscriptionNode = this.editorService.selectedSource.subscribe(
+      (message: any) => {
         if (message == "") {
           this.allNode = undefined;
           this.last_selected_node = "";
@@ -64,7 +59,7 @@ export class GraphEditorComponent implements OnInit {
 
         if (message == this.last_selected_node) return;
         this.last_selected_node = message;
-        this.allNode = this.graphEditorService.getNode(message);
+        this.allNode = this.editorService.getNodeById(message);
       }
     );
 
@@ -72,15 +67,15 @@ export class GraphEditorComponent implements OnInit {
   }
 
   async ngOnInit() {
-    await this.configService.waitForFetch();
-    const availableNodes = this.graphEditorService.getAvailableNodes();
+    await this.editorService.waitForFetch();
+    const availableNodes = this.editorService.getAvailableNodes();
     for (const value of availableNodes.keys()) {
       let items = [];
       for (const item of availableNodes.get(value)!) {
         items.push({
           label: item,
           command: () => {
-            this.graphEditorService.addNode(item);
+            this.editorService.addNode(item);
           },
         });
       }
@@ -92,11 +87,11 @@ export class GraphEditorComponent implements OnInit {
   }
 
   async ngAfterViewInit() {
-    await this.graphEditorService.createEditor(
+    await this.editorService.createEditor(
       this.container.nativeElement,
       this.injector
     );
-    await this.graphEditorService.homeZoom();
+    await this.editorService.homeZoom();
   }
 
   save(severity: string) {
@@ -104,11 +99,11 @@ export class GraphEditorComponent implements OnInit {
   }
 
   addStage() {
-    this.graphEditorService.addNode("Step");
+    this.editorService.addNode("Step");
   }
 
   @HostListener("mouseenter") onMouseEnter() {
-    this.focusService.mouseOver(this);
+    this.editorService.mouseOver(this);
   }
 
   async keyEvent(event: KeyboardEvent) {
@@ -123,7 +118,7 @@ export class GraphEditorComponent implements OnInit {
     }
 
     if (event.key === "v" && event.ctrlKey && this.copyNode) {
-      this.graphEditorService.addNode(
+      this.editorService.addNode(
         this.copyNode.getNodeName(),
         undefined,
         JSON.parse(JSON.stringify(this.copyNode.data()))
@@ -133,15 +128,15 @@ export class GraphEditorComponent implements OnInit {
   }
 
   async zoomIn() {
-    await this.graphEditorService.zoomIn();
+    await this.editorService.zoomIn();
   }
 
   async zoomOut() {
-    await this.graphEditorService.zoomOut();
+    await this.editorService.zoomOut();
   }
 
   async homeZoom() {
-    await this.graphEditorService.homeZoom();
+    await this.editorService.homeZoom();
   }
 
   async toggleMap() {
@@ -154,18 +149,18 @@ export class GraphEditorComponent implements OnInit {
   }
 
   async arrangeNodes() {
-    await this.graphEditorService.arrangeNodes();
+    await this.editorService.arrangeNodes();
   }
 
   backToRoot() {
     let node = new ModuleNode();
     node.id = "root";
     node.setName("General Editor");
-    this.graphEditorService.changeEditor(node.id, true);
+    this.editorService.changeEditor(node.id, true);
   }
 
   deleteNode() {
-    this.graphEditorService.deleteNode(this.allNode!.id);
+    this.editorService.deleteNode(this.allNode!.id);
     this.allNode = undefined;
   }
 }

@@ -1,6 +1,6 @@
 import { Subscription } from "rxjs";
 import { Component, HostListener } from "@angular/core";
-import { GraphEditorService, PanelFocusService } from "@app/core";
+import { GraphEditorService } from "@app/core";
 
 @Component({
   selector: "app-graph-layers",
@@ -15,20 +15,18 @@ export class GraphLayersComponent {
   modulesCollapsed: any;
   subscription: Subscription | undefined;
   constructor(
-    private graphService: GraphEditorService,
-    private focusService: PanelFocusService
+    private editorService: GraphEditorService
   ) {
-    this.graphService = graphService;
-    this.allModules = graphService.modules;
+    this.allModules = editorService.modules;
   }
 
   ngOnInit(): void {
-    this.subscription = this.graphService.anyChange.subscribe((message) => {
+    this.subscription = this.editorService.anyChange.subscribe((message) => {
       this.allModules = {};
       this.modulesKeys = [];
       this.modulesNames = {};
       this.modulesCollapsed = {};
-      this.allModules = this.graphService.modules;
+      this.allModules = this.editorService.modules;
       let moduleIds = Object.keys(this.allModules);
       // delete root from modulesKeys
       moduleIds.splice(moduleIds.indexOf("root"), 1);
@@ -50,7 +48,7 @@ export class GraphLayersComponent {
   }
 
   @HostListener("mouseenter") onMouseEnter() {
-    this.focusService.mouseOver(this);
+    this.editorService.mouseOver(this);
   }
 
   keyEvent(event: KeyboardEvent) {
@@ -59,16 +57,16 @@ export class GraphLayersComponent {
 
   toggleModule(module: string) {
     // console.log("Toggling module: " + module);
-    this.graphService.changeEditor(module, true);
+    this.editorService.changeEditor(module, true);
   }
 
   async toggleNode(node: any) {
     // console.log("Toggling node: " + node.name);
-    await this.graphService.changeEditor(
-      await this.graphService.getNodeModule(node.id),
+    await this.editorService.changeEditor(
+      await this.editorService.getNodeModule(node.id),
       true
     );
-    this.graphService.selectNode(node.id);
+    this.editorService.selectNode(node.id);
     // console.log(this.allModules);
   }
 }

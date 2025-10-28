@@ -1,5 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { AnalyzerType } from '@app/core';
+import { Component, EventEmitter, Output, Input } from '@angular/core';
 
 @Component({
   selector: 'app-code-assess-analysis-form',
@@ -11,7 +10,7 @@ export class CodeAssessAnalysisFormComponent {
   @Input() isAnalyzing: boolean = false;
   
   @Output() analysisTypeChange = new EventEmitter<string>();
-  @Output() startAnalysis = new EventEmitter<AnalyzerType[]>();
+  @Output() startAnalysis = new EventEmitter<any[]>();
   
   private _selectedAnalysisType: string = 'all';
 
@@ -28,25 +27,19 @@ export class CodeAssessAnalysisFormComponent {
     return !!this.sessionId && !this.isAnalyzing;
   }
   
-  /**
-   * Mapea el tipo de análisis seleccionado a los analizadores correspondientes
-   */
-  private getAnalyzersFromType(type: string): AnalyzerType[] {
+  private getAnalyzersFromType(type: string): any[] {
     switch (type) {
       case 'cohesion':
-        return ['fpc']; // Functional Programming Cohesion
+        return ['fpc'];
       case 'coupling':
-        return ['pfp']; // Pipeline Flow Pattern
+        return ['pfp'];
       case 'all':
-        return ['fpc', 'pfp']; // Todos los analizadores
+        return ['fpc', 'pfp'];
       default:
         return ['fpc', 'pfp'];
     }
   }
   
-  /**
-   * Inicia el análisis con los analizadores seleccionados
-   */
   onAnalyzeClick(): void {
     if (!this.canAnalyze) {
       console.warn('⚠️ No se puede analizar: sin sesión o análisis en curso');

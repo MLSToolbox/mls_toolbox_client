@@ -14,7 +14,7 @@ export class GraphFileComponent {
   ref: DynamicDialogRef | undefined;
 
   constructor(
-    public graphEditorService: GraphEditorService,
+    public editorService: GraphEditorService,
     public dialogService: DialogService
   ) {}
 
@@ -39,21 +39,21 @@ export class GraphFileComponent {
 
   async processFileContent(content: string) {
     await this.clearEditor();
-    await this.graphEditorService.loadEditor(JSON.parse(content));
+    await this.editorService.loadEditor(JSON.parse(content));
   }
 
   async clearEditor() {
-    await this.graphEditorService.cleanEditor();
-    await this.graphEditorService.homeZoom();
-    await this.graphEditorService.arrangeNodes();
+    await this.editorService.cleanEditor();
+    await this.editorService.homeZoom();
+    await this.editorService.arrangeNodes();
   }
 
   generateCode() {
-    this.graphEditorService.generateAndDownloadCode();
+    this.editorService.generateAndDownloadCode();
   }
 
   downloadEditor() {
-    this.graphEditorService.generateJsonOfEditor();
+    this.editorService.generateJsonOfEditor();
   }
 
   showTemplates() {
@@ -69,7 +69,7 @@ export class GraphFileComponent {
 
     this.ref.onClose.subscribe(async (path: string) => {
       if (path) {
-        await this.graphEditorService.loadTemplate(path);
+        await this.editorService.loadTemplate(path);
       }
     });
   }
