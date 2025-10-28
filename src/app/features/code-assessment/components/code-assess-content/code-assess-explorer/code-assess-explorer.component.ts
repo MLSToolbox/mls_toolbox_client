@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { 
   AnalysisResponse, 
   TreeNode,
@@ -44,6 +44,8 @@ export class CodeAssessExplorerComponent implements OnChanges {
   @Input() projectFileSize: string = '';
   @Input() analysisData: AnalysisResponse | null = null;
   @Input() analysisResults: ProjectAnalysisResponse | null = null;
+  
+  @Output() nodeSelected = new EventEmitter<FileTreeNode>();
   
   // Datos del árbol
   rootNodes: FileTreeNode[] = [];
@@ -365,8 +367,12 @@ export class CodeAssessExplorerComponent implements OnChanges {
     
     // Verificar si el nodo tiene métricas (nuevo sistema o legacy)
     if (node.metrics || node.fpcData || node.pfpData) {
+      // Emitir evento al componente padre
+      this.nodeSelected.emit(node);
+      
+      // Mantener compatibilidad con el modal antiguo (opcional)
       this.selectedNode = node;
-      this.showMetricDetails = true;
+      this.showMetricDetails = false; // Desactivar modal, usar panel lateral
       
       // Establecer la primera métrica disponible como activa
       this.activeMetricId = this.getAvailableMetrics(node)[0] || null;

@@ -8,4 +8,5 @@ import { FPCFileDetails } from '@app/core';
 })
 export class MetricDetailFpcComponent {
   @Input() data!: FPCFileDetails;
+  @Input() isLightTheme: boolean = false; // Recibe el estado del tema
 }

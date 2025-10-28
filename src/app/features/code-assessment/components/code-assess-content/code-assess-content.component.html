@@ -23,7 +23,16 @@
     [projectFileSize]="uploadedFileSize"
     [analysisData]="analysisResponse"
     [analysisResults]="analysisResults"
+    (nodeSelected)="onNodeSelected($event)"
   ></app-code-assess-explorer>
+  
+  <!-- Nuevo Panel de Métricas Lateral -->
+  <app-code-assess-metrics-panel
+    [selectedNode]="selectedNode"
+    [isVisible]="showMetricsPanel"
+    [isLightTheme]="isLightTheme"
+    (closePanel)="onCloseMetricsPanel()"
+  ></app-code-assess-metrics-panel>
   
 </div>
 

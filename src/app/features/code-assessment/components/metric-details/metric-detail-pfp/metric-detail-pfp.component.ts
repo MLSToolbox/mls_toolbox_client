@@ -8,4 +8,5 @@ import { PFPPackageDetails } from '@app/core';
 })
 export class MetricDetailPfpComponent {
   @Input() data!: PFPPackageDetails;
+  @Input() isLightTheme: boolean = false; // Recibe el estado del tema
 }

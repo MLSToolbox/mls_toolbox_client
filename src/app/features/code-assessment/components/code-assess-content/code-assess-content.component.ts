@@ -1,6 +1,15 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { AnalysisResponse, AnalyzerType, ProjectAnalysisResponse } from '@app/core';
 
+interface FileTreeNode {
+  name: string;
+  path: string;
+  type: 'file' | 'directory';
+  fpcData?: any;
+  pfpData?: any;
+  metrics?: any;
+}
+
 @Component({
   selector: 'app-code-assess-content',
   templateUrl: './code-assess-content.component.html',
@@ -10,6 +19,7 @@ export class CodeAssessContentComponent {
   @Input() sessionId: string = '';
   @Input() isAnalyzing: boolean = false;
   @Input() analysisResults: ProjectAnalysisResponse | null = null;
+  @Input() isLightTheme: boolean = false; // Recibe el estado del tema
   
   @Output() analysisComplete = new EventEmitter<AnalysisResponse>();
   @Output() analysisTypeChange = new EventEmitter<AnalyzerType[]>();
@@ -19,6 +29,10 @@ export class CodeAssessContentComponent {
   uploadedFileName: string = '';
   uploadedFileSize: string = '';
   analysisResponse: AnalysisResponse | null = null;
+  
+  // Propiedades para el panel de métricas
+  selectedNode: FileTreeNode | null = null;
+  showMetricsPanel: boolean = false;
 
   // Handler para cuando se sube un archivo
   onFileUpload(file: File) {
@@ -43,6 +57,20 @@ export class CodeAssessContentComponent {
     
     // Propagar al componente padre
     this.analysisTypeChange.emit(analyzers);
+  }
+  
+  // Handler para cuando se selecciona un nodo en el explorador
+  onNodeSelected(node: FileTreeNode) {
+    console.log('Node selected:', node);
+    this.selectedNode = node;
+    this.showMetricsPanel = true;
+  }
+  
+  // Handler para cerrar el panel de métricas
+  onCloseMetricsPanel() {
+    this.showMetricsPanel = false;
+    // Opcional: mantener el nodo seleccionado o limpiarlo
+    // this.selectedNode = null;
   }
 
   // Helper para formatear tamaño de archivo

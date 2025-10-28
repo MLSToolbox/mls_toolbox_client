@@ -10,6 +10,7 @@ import { CodeAssessContentComponent } from "./components/code-assess-content/cod
 import { CodeAssessHeroComponent } from "./components/code-assess-content/code-assess-hero/code-assess-hero.component";
 import { CodeAssessAnalysisFormComponent } from "./components/code-assess-content/code-assess-analysis-form/code-assess-analysis-form.component";
 import { CodeAssessExplorerComponent } from "./components/code-assess-content/code-assess-explorer/code-assess-explorer.component";
+import { CodeAssessMetricsPanelComponent } from "./components/code-assess-content/code-assess-metrics-panel/code-assess-metrics-panel.component";
 import { MetricDetailFpcComponent } from "./components/metric-details/metric-detail-fpc/metric-detail-fpc.component";
 import { MetricDetailPfpComponent } from "./components/metric-details/metric-detail-pfp/metric-detail-pfp.component";
 import { KnobModule } from "primeng/knob";
@@ -28,6 +29,7 @@ import { SharedModule } from "@app/shared/shared.module";
     CodeAssessHeroComponent,
     CodeAssessAnalysisFormComponent,
     CodeAssessExplorerComponent,
+    CodeAssessMetricsPanelComponent,
     MetricDetailFpcComponent,
     MetricDetailPfpComponent,
   ],

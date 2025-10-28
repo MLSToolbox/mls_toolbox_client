@@ -2,16 +2,36 @@
 <div class="metric-section">
   <div class="metric-header flex items-center gap-2 mb-4">
     <div class="metric-badge bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-bold">PFP</div>
-    <h4 class="text-white font-semibold text-base">Package Functional Purity</h4>
+    <h4 class="font-semibold text-base transition-colors"
+        [ngClass]="{
+          'text-white': !isLightTheme,
+          'text-gray-900': isLightTheme
+        }">Package Functional Purity</h4>
   </div>
   
   <!-- Purity Score -->
-  <div class="metric-item bg-[#252525] rounded-lg p-4 mb-3">
+  <div class="metric-item rounded-lg p-4 mb-3 transition-colors"
+       [ngClass]="{
+         'bg-[#252525]': !isLightTheme,
+         'bg-gray-100': isLightTheme
+       }">
     <div class="flex items-center justify-between mb-3">
-      <span class="text-gray-400 text-sm">Purity Score</span>
-      <span class="text-white text-2xl font-bold">{{ (data.metrics.pfp_score * 100).toFixed(1) }}%</span>
+      <span class="text-sm transition-colors"
+            [ngClass]="{
+              'text-gray-400': !isLightTheme,
+              'text-gray-600': isLightTheme
+            }">Purity Score</span>
+      <span class="text-2xl font-bold transition-colors"
+            [ngClass]="{
+              'text-white': !isLightTheme,
+              'text-gray-900': isLightTheme
+            }">{{ (data.metrics.pfp_score * 100).toFixed(1) }}%</span>
     </div>
-    <div class="purity-bar bg-[#3a3a3a] rounded-full h-2 overflow-hidden">
+    <div class="purity-bar rounded-full h-2 overflow-hidden transition-colors"
+         [ngClass]="{
+           'bg-[#3a3a3a]': !isLightTheme,
+           'bg-gray-300': isLightTheme
+         }">
       <div 
         class="purity-fill h-full transition-all duration-500"
         [style.width.%]="data.metrics.pfp_score * 100"
@@ -37,36 +57,80 @@
   </div>
   
   <!-- ML Modules Info -->
-  <div class="metric-item bg-[#252525] rounded-lg p-4 mb-3">
+  <div class="metric-item rounded-lg p-4 mb-3 transition-colors"
+       [ngClass]="{
+         'bg-[#252525]': !isLightTheme,
+         'bg-gray-100': isLightTheme
+       }">
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <div class="text-gray-400 text-xs mb-1">ML Modules</div>
-        <div class="text-white text-xl font-bold">{{ data.metrics.ml_modules }}</div>
+        <div class="text-xs mb-1 transition-colors"
+             [ngClass]="{
+               'text-gray-400': !isLightTheme,
+               'text-gray-600': isLightTheme
+             }">ML Modules</div>
+        <div class="text-xl font-bold transition-colors"
+             [ngClass]="{
+               'text-white': !isLightTheme,
+               'text-gray-900': isLightTheme
+             }">{{ data.metrics.ml_modules }}</div>
       </div>
       <div>
-        <div class="text-gray-400 text-xs mb-1">Total Modules</div>
-        <div class="text-white text-xl font-bold">{{ data.metrics.total_modules }}</div>
+        <div class="text-xs mb-1 transition-colors"
+             [ngClass]="{
+               'text-gray-400': !isLightTheme,
+               'text-gray-600': isLightTheme
+             }">Total Modules</div>
+        <div class="text-xl font-bold transition-colors"
+             [ngClass]="{
+               'text-white': !isLightTheme,
+               'text-gray-900': isLightTheme
+             }">{{ data.metrics.total_modules }}</div>
       </div>
     </div>
-    <div class="mt-3 pt-3 border-t border-gray-700">
-      <div class="text-gray-400 text-xs mb-1">ML Ratio</div>
+    <div class="mt-3 pt-3 border-t transition-colors"
+         [ngClass]="{
+           'border-gray-700': !isLightTheme,
+           'border-gray-300': isLightTheme
+         }">
+      <div class="text-xs mb-1 transition-colors"
+           [ngClass]="{
+             'text-gray-400': !isLightTheme,
+             'text-gray-600': isLightTheme
+           }">ML Ratio</div>
       <div class="text-[#bfed54] text-lg font-bold">{{ (data.metrics.ml_ratio * 100).toFixed(1) }}%</div>
     </div>
   </div>
   
   <!-- Pipeline Stages -->
-  <div class="metric-item bg-[#252525] rounded-lg p-4 mb-3">
-    <div class="text-gray-400 text-sm mb-2">Pipeline Stages</div>
+  <div class="metric-item rounded-lg p-4 mb-3 transition-colors"
+       [ngClass]="{
+         'bg-[#252525]': !isLightTheme,
+         'bg-gray-100': isLightTheme
+       }">
+    <div class="text-sm mb-2 transition-colors"
+         [ngClass]="{
+           'text-gray-400': !isLightTheme,
+           'text-gray-600': isLightTheme
+         }">Pipeline Stages</div>
     <div class="flex flex-wrap gap-2 mb-3">
       <span 
         *ngFor="let stage of data.pipeline_stages.detected_stages"
-        class="stage-tag bg-[#3a3a3a] text-[#bfed54] px-3 py-1 rounded-md text-xs font-mono"
+        class="stage-tag px-3 py-1 rounded-md text-xs font-mono transition-colors"
+        [ngClass]="{
+          'bg-[#3a3a3a] text-[#bfed54]': !isLightTheme,
+          'bg-gray-200 text-purple-700': isLightTheme
+        }"
       >
         {{ stage }}
       </span>
     </div>
     <div class="flex items-center justify-between text-xs">
-      <span class="text-gray-500">{{ data.pipeline_stages.stage_count }} stage(s)</span>
+      <span class="transition-colors"
+            [ngClass]="{
+              'text-gray-500': !isLightTheme,
+              'text-gray-600': isLightTheme
+            }">{{ data.pipeline_stages.stage_count }} stage(s)</span>
       <span 
         class="px-2 py-1 rounded"
         [ngClass]="data.pipeline_stages.is_focused ? 'bg-green-900 text-green-300' : 'bg-yellow-900 text-yellow-300'"
@@ -77,11 +141,23 @@
   </div>
   
   <!-- Quality Indicators -->
-  <div class="metric-item bg-[#252525] rounded-lg p-4 mb-3">
-    <div class="text-gray-400 text-sm mb-3">Quality Indicators</div>
+  <div class="metric-item rounded-lg p-4 mb-3 transition-colors"
+       [ngClass]="{
+         'bg-[#252525]': !isLightTheme,
+         'bg-gray-100': isLightTheme
+       }">
+    <div class="text-sm mb-3 transition-colors"
+         [ngClass]="{
+           'text-gray-400': !isLightTheme,
+           'text-gray-600': isLightTheme
+         }">Quality Indicators</div>
     <div class="space-y-2">
       <div class="flex items-center justify-between">
-        <span class="text-gray-300 text-xs">Has ML Content</span>
+        <span class="text-xs transition-colors"
+              [ngClass]="{
+                'text-gray-300': !isLightTheme,
+                'text-gray-700': isLightTheme
+              }">Has ML Content</span>
         <span 
           class="px-2 py-1 rounded text-xs font-bold"
           [ngClass]="data.quality_indicators.has_ml_content ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'"
@@ -90,7 +166,11 @@
         </span>
       </div>
       <div class="flex items-center justify-between">
-        <span class="text-gray-300 text-xs">Pure Package</span>
+        <span class="text-xs transition-colors"
+              [ngClass]="{
+                'text-gray-300': !isLightTheme,
+                'text-gray-700': isLightTheme
+              }">Pure Package</span>
         <span 
           class="px-2 py-1 rounded text-xs font-bold"
           [ngClass]="data.quality_indicators.is_pure_package ? 'bg-green-900 text-green-300' : 'bg-yellow-900 text-yellow-300'"
@@ -99,7 +179,11 @@
         </span>
       </div>
       <div class="flex items-center justify-between">
-        <span class="text-gray-300 text-xs">Needs Refactoring</span>
+        <span class="text-xs transition-colors"
+              [ngClass]="{
+                'text-gray-300': !isLightTheme,
+                'text-gray-700': isLightTheme
+              }">Needs Refactoring</span>
         <span 
           class="px-2 py-1 rounded text-xs font-bold"
           [ngClass]="data.quality_indicators.needs_refactoring ? 'bg-red-900 text-red-300' : 'bg-green-900 text-green-300'"
@@ -112,24 +196,38 @@
 
   <!-- Recommendations -->
   <div *ngIf="data.recommendations && data.recommendations.length > 0" 
-       class="metric-item bg-[#252525] rounded-lg p-4">
+       class="metric-item rounded-lg p-4 transition-colors"
+       [ngClass]="{
+         'bg-[#252525]': !isLightTheme,
+         'bg-gray-100': isLightTheme
+       }">
     <div class="flex items-center gap-2 mb-3">
       <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
       </svg>
-      <div class="text-white font-semibold text-sm">Recommendations</div>
+      <div class="font-semibold text-sm transition-colors"
+           [ngClass]="{
+             'text-white': !isLightTheme,
+             'text-gray-900': isLightTheme
+           }">Recommendations</div>
     </div>
     <div class="space-y-2">
       <div 
         *ngFor="let recommendation of data.recommendations"
-        class="recommendation-item bg-[#1e1e1e] border-l-4 p-3 rounded text-xs"
+        class="recommendation-item border-l-4 p-3 rounded text-xs transition-colors"
         [ngClass]="{
+          'bg-[#1e1e1e]': !isLightTheme,
+          'bg-white': isLightTheme,
           'border-red-500': recommendation.includes('HIGH PRIORITY'),
           'border-yellow-500': recommendation.includes('Consider'),
           'border-blue-500': !recommendation.includes('HIGH PRIORITY') && !recommendation.includes('Consider')
         }"
       >
-        <div class="text-gray-300 leading-relaxed">{{ recommendation }}</div>
+        <div class="leading-relaxed transition-colors"
+             [ngClass]="{
+               'text-gray-300': !isLightTheme,
+               'text-gray-700': isLightTheme
+             }">{{ recommendation }}</div>
       </div>
     </div>
   </div>

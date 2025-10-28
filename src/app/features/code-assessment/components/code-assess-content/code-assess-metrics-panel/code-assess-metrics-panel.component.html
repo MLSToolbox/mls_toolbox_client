@@ -1,0 +1,114 @@
+<!-- Metrics Panel - Positioned to the right of Explorer (siguiendo diseño Figma) -->
+<div 
+  class="metrics-panel-container absolute top-[280px] left-[457px] w-[666px] h-[586px] transition-all duration-300 ease-in-out"
+  [class.opacity-0]="!isVisible"
+  [class.translate-x-full]="!isVisible"
+  [class.opacity-100]="isVisible"
+  [class.translate-x-0]="isVisible"
+  *ngIf="selectedNode"
+>
+  <!-- Panel Card -->
+  <div class="panel-card rounded-2xl h-full flex flex-col overflow-hidden shadow-2xl border transition-colors"
+       [ngClass]="{
+         'bg-[#0c0c0c] border-gray-800': !isLightTheme,
+         'bg-white border-gray-200': isLightTheme
+       }">
+    
+    <!-- Header -->
+    <div class="panel-header border-b px-6 py-4 flex items-center justify-between flex-shrink-0 transition-colors"
+         [ngClass]="{
+           'bg-[#1a1a1a] border-gray-800': !isLightTheme,
+           'bg-gray-50 border-gray-200': isLightTheme
+         }">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">{{ selectedNode.type === 'file' ? '📄' : '📁' }}</span>
+        <div class="flex-1 min-w-0">
+          <h3 class="font-semibold text-base truncate transition-colors"
+              [ngClass]="{
+                'text-white': !isLightTheme,
+                'text-gray-900': isLightTheme
+              }">{{ selectedNode.name }}</h3>
+          <p class="text-xs transition-colors"
+             [ngClass]="{
+               'text-gray-400': !isLightTheme,
+               'text-gray-600': isLightTheme
+             }">{{ selectedNode.type === 'file' ? 'Module Metrics' : 'Package Metrics' }}</p>
+        </div>
+      </div>
+      <button 
+        class="close-btn text-2xl leading-none transition-colors flex-shrink-0 w-8 h-8 flex items-center justify-center rounded"
+        [ngClass]="{
+          'text-gray-400 hover:text-white hover:bg-gray-800': !isLightTheme,
+          'text-gray-600 hover:text-gray-900 hover:bg-gray-200': isLightTheme
+        }"
+        (click)="onClose()"
+        title="Close panel"
+        aria-label="Close metrics panel"
+      >
+        ×
+      </button>
+    </div>
+    
+    <!-- Content - Scrollable -->
+    <div class="panel-content flex-1 overflow-y-auto overflow-x-hidden px-6 py-6 transition-colors"
+         [ngClass]="{
+           'bg-[#0c0c0c]': !isLightTheme,
+           'bg-white': isLightTheme
+         }">
+      
+      <!-- Empty State - No metrics available -->
+      <div 
+        *ngIf="!selectedNode.fpcData && !selectedNode.pfpData" 
+        class="empty-metrics flex flex-col items-center justify-center h-full text-center gap-4"
+      >
+        <div class="empty-icon text-6xl opacity-20">📊</div>
+        <div>
+          <h4 class="font-semibold mb-2 transition-colors"
+              [ngClass]="{
+                'text-white': !isLightTheme,
+                'text-gray-900': isLightTheme
+              }">No Metrics Available</h4>
+          <p class="text-sm transition-colors"
+             [ngClass]="{
+               'text-gray-500': !isLightTheme,
+               'text-gray-600': isLightTheme
+             }">
+            This {{ selectedNode.type === 'file' ? 'file' : 'package' }} doesn't have analysis data yet.
+          </p>
+        </div>
+      </div>
+      
+      <!-- FPC Metrics Component -->
+      <app-metric-detail-fpc 
+        *ngIf="selectedNode.fpcData" 
+        [data]="selectedNode.fpcData"
+        [isLightTheme]="isLightTheme"
+        class="block mb-8"
+      ></app-metric-detail-fpc>
+      
+      <!-- PFP Metrics Component -->
+      <app-metric-detail-pfp 
+        *ngIf="selectedNode.pfpData" 
+        [data]="selectedNode.pfpData"
+        [isLightTheme]="isLightTheme"
+        class="block"
+      ></app-metric-detail-pfp>
+      
+    </div>
+    
+    <!-- Footer (optional) -->
+    <div class="panel-footer border-t px-6 py-3 flex items-center justify-between text-xs flex-shrink-0 transition-colors"
+         [ngClass]="{
+           'bg-[#1a1a1a] border-gray-800 text-gray-400': !isLightTheme,
+           'bg-gray-50 border-gray-200 text-gray-600': isLightTheme
+         }">
+      <span>
+        <i class="pi pi-info-circle"></i> Metrics analysis complete
+      </span>
+      <span class="text-[#bfed54]">
+        {{ selectedNode.type === 'file' ? 'FPC' : 'PFP' }} Analysis
+      </span>
+    </div>
+    
+  </div>
+</div>
