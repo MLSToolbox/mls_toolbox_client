@@ -3,11 +3,9 @@ import { BrowserModule } from "@angular/platform-browser";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
 import { HttpClientModule } from "@angular/common/http";
-import { AppRoutingModule } from "./app-routing.module";
-import { AppComponent } from "./app.component";
-import { SharedModule } from "./shared/shared.module";
-import { AccordionModule } from "primeng/accordion";
+import { provideHttpClient } from "@angular/common/http";
 import { TooltipModule } from "primeng/tooltip";
+import { AccordionModule } from "primeng/accordion";
 import { InputTextModule } from "primeng/inputtext";
 import { ScrollPanelModule } from "primeng/scrollpanel";
 import { SplitButtonModule } from "primeng/splitbutton";
@@ -16,6 +14,10 @@ import { KnobModule } from "primeng/knob";
 import { DynamicDialogModule } from "primeng/dynamicdialog";
 import { ToastModule } from "primeng/toast";
 import { MessageService } from "primeng/api";
+
+import { AppRoutingModule } from "./app-routing.module";
+import { AppComponent } from "./app.component";
+import { SharedModule } from "./shared/shared.module";
 
 @NgModule({
   declarations: [AppComponent],
@@ -35,7 +37,7 @@ import { MessageService } from "primeng/api";
     DynamicDialogModule,
     ToastModule,
   ],
-  providers: [provideAnimationsAsync(), MessageService],
+  providers: [provideAnimationsAsync(), provideHttpClient(), MessageService],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

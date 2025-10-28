@@ -14,10 +14,7 @@ export class ApiService {
     formData.append("file", file);
     return this.http.post<ApiResponse<UploadZipResponse>>(
       "/upload-zip",
-      formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      }
+      formData
     );
   }
 

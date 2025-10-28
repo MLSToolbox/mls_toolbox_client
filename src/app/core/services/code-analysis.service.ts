@@ -56,49 +56,4 @@ export class CodeAnalysisService {
 
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   }
-
-  convertToPrimeNGTree(node: any): PrimeNGTreeNode {
-    const isDirectory = node.type === "directory";
-
-    return {
-      label: node.name,
-      data: {
-        path: node.path,
-        size: node.size,
-        validSyntax: node.valid_syntax,
-        type: node.type,
-      },
-      icon: isDirectory ? "pi pi-folder" : this.getFileIcon(node.name),
-      expandedIcon: "pi pi-folder-open",
-      collapsedIcon: "pi pi-folder",
-      leaf: !isDirectory,
-      expanded: false,
-      type: node.type,
-      styleClass: isDirectory ? "tree-folder" : "tree-file",
-      children:
-        node.children?.map((child: any) => this.convertToPrimeNGTree(child)) ||
-        [],
-    };
-  }
-
-  private getFileIcon(filename: string): string {
-    const ext = filename.split(".").pop()?.toLowerCase();
-
-    const iconMap: { [key: string]: string } = {
-      py: "pi pi-file",
-      js: "pi pi-file",
-      ts: "pi pi-file",
-      json: "pi pi-file",
-      md: "pi pi-file",
-      txt: "pi pi-file",
-      yml: "pi pi-file",
-      yaml: "pi pi-file",
-      xml: "pi pi-file",
-      html: "pi pi-file",
-      css: "pi pi-file",
-      scss: "pi pi-file",
-    };
-
-    return iconMap[ext || ""] || "pi pi-file";
-  }
 }

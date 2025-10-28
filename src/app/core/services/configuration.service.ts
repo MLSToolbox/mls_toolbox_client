@@ -29,9 +29,8 @@ export class ConfigurationService {
         signal: AbortSignal.timeout(environment.apiTimeout),
       });
 
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
-      }
 
       const json = await response.json();
 
@@ -44,7 +43,6 @@ export class ConfigurationService {
       this.semaphor.complete();
     } catch (error) {
       console.error("Error loading configuration:", error);
-      // TODO: Implement proper error handling
       throw error;
     }
   }

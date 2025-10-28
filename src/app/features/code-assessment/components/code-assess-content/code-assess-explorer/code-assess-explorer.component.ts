@@ -97,7 +97,7 @@ export class CodeAssessExplorerComponent implements OnChanges {
     
     // Los children del root son los nodos principales del proyecto
     if (treeStructure.children && treeStructure.children.length > 0) {
-      this.rootNodes = treeStructure.children.map(node => this.convertNode(node, 0));
+      this.rootNodes = treeStructure.children.map((node: any) => this.convertNode(node, 0));
     }
     
    
@@ -110,7 +110,7 @@ export class CodeAssessExplorerComponent implements OnChanges {
       type: node.type,
       size: node.size,
       validSyntax: node.valid_syntax,
-      children: node.children?.map(child => this.convertNode(child, level + 1)) || [],
+      children: node.children?.map((child: any) => this.convertNode(child, level + 1)) || [],
       expanded: false,
       selected: false,
       level: level

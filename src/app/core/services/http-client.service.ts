@@ -1,56 +1,29 @@
 import { Injectable } from "@angular/core";
-import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
-
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { environment } from "@environment/index";
+import { Observable } from "rxjs";
 
 @Injectable({
   providedIn: "root",
 })
 export class HttpClientService {
-  private axiosInstance: AxiosInstance;
+  private baseURL = environment.apiUrl;
 
-  constructor() {
-    this.axiosInstance = axios.create({
-      baseURL: environment.apiUrl,
-      timeout: environment.apiTimeout,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+  constructor(private http: HttpClient) {}
 
-    this.setupInterceptors();
+  get<T>(url: string): Observable<T> {
+    return this.http.get<T>(`${this.baseURL}${url}`);
   }
 
-  private setupInterceptors() {
-    this.axiosInstance.interceptors.request.use(
-      (config) => {
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
-
-    this.axiosInstance.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        console.error("API Error:", error);
-        return Promise.reject(error);
-      }
-    );
+  post<T>(url: string, data?: any, headers?: HttpHeaders): Observable<T> {
+    return this.http.post<T>(`${this.baseURL}${url}`, data, { headers });
   }
 
-  get<T>(url: string, config?: AxiosRequestConfig) {
-    return this.axiosInstance.get<T>(url, config);
+  put<T>(url: string, data?: any): Observable<T> {
+    return this.http.put<T>(`${this.baseURL}${url}`, data);
   }
 
-  post<T>(url: string, data?: any, config?: AxiosRequestConfig) {
-    return this.axiosInstance.post<T>(url, data, config);
-  }
-
-  put<T>(url: string, data?: any, config?: AxiosRequestConfig) {
-    return this.axiosInstance.put<T>(url, data, config);
-  }
-
-  delete<T>(url: string, config?: AxiosRequestConfig) {
-    return this.axiosInstance.delete<T>(url, config);
+  delete<T>(url: string): Observable<T> {
+    return this.http.delete<T>(`${this.baseURL}${url}`);
   }
 }
