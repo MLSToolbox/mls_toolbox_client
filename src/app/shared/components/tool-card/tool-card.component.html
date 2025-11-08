@@ -1,37 +1,53 @@
 <div 
   [routerLink]="routerLink"
-  class="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-8 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl border border-white/20">
+  class="group relative bg-white rounded-2xl shadow-lg p-8 cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border border-gray-100 overflow-hidden">
   
-  <!-- Icono -->
-  <div class="flex items-center gap-4 mb-6">
-    <div class="w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
-      <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="iconPath"></path>
-      </svg>
+  <!-- Efecto de fondo al hover -->
+  <div class="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300" style="background: linear-gradient(135deg, rgb(0, 32, 96) 0%, rgb(153, 204, 204) 100%);"></div>
+  
+  <div class="relative z-10">
+    <!-- Icono con efecto -->
+    <div class="mb-6">
+      <div class="w-16 h-16 rounded-2xl flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-110" 
+           style="background: linear-gradient(135deg, rgb(0, 32, 96) 0%, rgb(0, 50, 120) 100%);">
+        <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="iconPath"></path>
+        </svg>
+      </div>
     </div>
-    <h3 class="text-2xl font-bold text-gray-900">{{ title }}</h3>
-  </div>
 
-  <!-- Descripción -->
-  <p class="text-gray-600 mb-6 leading-relaxed">
-    {{ description }}
-  </p>
+    <!-- Título -->
+    <h3 class="text-2xl font-bold mb-4 transition-colors duration-300" style="color: rgb(0, 32, 96);">
+      {{ title }}
+    </h3>
 
-  <!-- Features -->
-  <ul class="space-y-3 mb-6">
-    <li *ngFor="let feature of features" class="flex items-start gap-3">
-      <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-      </svg>
-      <span class="text-gray-700">{{ feature }}</span>
-    </li>
-  </ul>
+    <!-- Descripción -->
+    <p class="text-gray-600 mb-6 leading-relaxed text-base">
+      {{ description }}
+    </p>
 
-  <!-- Call to Action -->
-  <div class="flex items-center gap-2 text-blue-600 font-semibold group">
-    <span>Get Started</span>
-    <svg class="w-5 h-5 transform transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-    </svg>
+    <!-- Features con diseño mejorado -->
+    <div class="space-y-3 mb-8">
+      <div *ngFor="let feature of features" class="flex items-start gap-3 group/item">
+        <div class="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5" 
+             style="background-color: rgba(153, 204, 204, 0.2);">
+          <svg class="w-3 h-3" style="color: rgb(0, 32, 96);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        <span class="text-gray-700 text-sm leading-relaxed">{{ feature }}</span>
+      </div>
+    </div>
+
+    <!-- Call to Action con animación -->
+    <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+      <span class="font-semibold text-base" style="color: rgb(0, 32, 96);">Get Started</span>
+      <div class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110" 
+           style="background-color: rgba(0, 32, 96, 0.1);">
+        <svg class="w-5 h-5 transform transition-transform group-hover:translate-x-1" style="color: rgb(0, 32, 96);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+        </svg>
+      </div>
+    </div>
   </div>
 </div>

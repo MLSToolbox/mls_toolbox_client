@@ -1,0 +1,147 @@
+<!-- Hero Section -->
+<app-hero
+  title="Code Assessment"
+  subtitle="Analyze your code quality with professional metrics and best practices validation">
+</app-hero>
+
+<!-- Main Content -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  
+  <!-- Back Button (only on metrics and results views) -->
+  <button 
+    *ngIf="currentView !== 'upload'"
+    (click)="goBack()"
+    class="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors duration-200">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+    </svg>
+    <span class="font-medium">{{ currentView === 'metrics' ? 'Back to Upload' : 'Change Metrics' }}</span>
+  </button>
+
+  <!-- Progress Steps -->
+  <app-progress-steps [steps]="steps"></app-progress-steps>
+
+  <!-- VIEW 1: Upload -->
+  <div *ngIf="currentView === 'upload'">
+    <app-upload-zone (fileSelected)="onFileSelected($event)"></app-upload-zone>
+  </div>
+
+  <!-- VIEW 2: Metrics Selection -->
+  <div *ngIf="currentView === 'metrics'">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h2 class="text-3xl font-bold mb-3" style="color: rgb(0, 32, 96);">What do you want to analyze?</h2>
+      <p class="text-gray-600 text-lg">Select the metrics that interest you. You can choose all or just some.</p>
+    </div>
+
+    <!-- Selected Count Badge -->
+    <div class="rounded-xl p-4 mb-8 text-center text-white"
+         style="background: linear-gradient(135deg, rgb(0, 32, 96) 0%, rgb(0, 50, 120) 100%);">
+      <p class="text-sm font-medium">
+        <span class="text-lg font-bold">{{ selectedMetrics.size }}</span> metrics selected
+        <span class="opacity-75 ml-2">• We recommend choosing at least 2 for a complete analysis</span>
+      </p>
+    </div>
+
+    <!-- Metrics Grid -->
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <app-metric-card
+        *ngFor="let metric of availableMetrics"
+        [metric]="metric"
+        [selected]="isMetricSelected(metric.id)"
+        (toggle)="onMetricToggle($event)">
+      </app-metric-card>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex gap-4 max-w-2xl mx-auto">
+      <button
+        (click)="selectAllMetrics()"
+        class="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-all duration-200">
+        Select All
+      </button>
+      <button
+        (click)="runAnalysis()"
+        [disabled]="!canRunAnalysis()"
+        class="flex-1 px-6 py-3 font-medium rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
+        [ngClass]="{
+          'opacity-50 cursor-not-allowed': !canRunAnalysis()
+        }"
+        [style.background]="canRunAnalysis() ? 'linear-gradient(135deg, rgb(0, 32, 96) 0%, rgb(0, 50, 120) 100%)' : ''"
+        style="color: white;">
+        <span>Start Analysis</span>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- VIEW 3: Results -->
+  <div *ngIf="currentView === 'results'">
+    <div class="grid lg:grid-cols-3 gap-8">
+      
+      <!-- Left Sidebar - Dynamic Content -->
+      <app-results-sidebar>
+        <!-- Project Info Card -->
+        <app-info-card
+          title="Project Information"
+          [items]="[
+            { icon: '📦', label: 'File', value: projectInfo.name },
+            { icon: '💾', label: 'Size', value: projectInfo.size },
+            { icon: '📄', label: 'Files', value: projectInfo.files.toString() },
+            { icon: '📅', label: 'Date', value: projectInfo.date }
+          ]">
+        </app-info-card>
+
+        <!-- Analyzed Metrics Card -->
+        <app-info-card
+          title="Analyzed Metrics"
+          [items]="analyzedMetricsList">
+        </app-info-card>
+      </app-results-sidebar>
+
+      <!-- Right Content - Dynamic Results -->
+      <app-results-content>
+        <!-- Overall Score Card -->
+        <div class="rounded-xl p-8 text-white shadow-xl"
+             style="background: linear-gradient(135deg, rgb(0, 32, 96) 0%, rgb(0, 50, 120) 100%);">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm opacity-90 mb-2">Overall Code Quality</p>
+              <h3 class="text-5xl font-bold mb-2">{{ overallScore }}<span class="text-2xl opacity-75">/100</span></h3>
+              <p class="text-sm opacity-90">
+                {{ overallScore >= 80 ? 'Excellent!' : overallScore >= 60 ? 'Good' : 'Needs Improvement' }}
+              </p>
+            </div>
+            <div class="w-24 h-24 rounded-full flex items-center justify-center text-4xl bg-white bg-opacity-20">
+              {{ overallScore >= 80 ? '🎉' : overallScore >= 60 ? '👍' : '⚠️' }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Individual Results -->
+        <app-result-card
+          *ngFor="let result of results"
+          [result]="result">
+        </app-result-card>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-2 gap-4 pt-4">
+          <button
+            class="px-6 py-3 border-2 font-medium rounded-lg transition-all duration-200 hover:bg-gray-50"
+            style="border-color: rgb(0, 32, 96); color: rgb(0, 32, 96);">
+            Download Report
+          </button>
+          <button
+            class="px-6 py-3 font-medium rounded-lg transition-all duration-200 text-white shadow-lg hover:opacity-90"
+            style="background: linear-gradient(135deg, rgb(0, 32, 96) 0%, rgb(0, 50, 120) 100%);">
+            New Analysis
+          </button>
+        </div>
+      </app-results-content>
+
+    </div>
+  </div>
+
+</div>

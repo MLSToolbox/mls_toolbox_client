@@ -6,12 +6,14 @@ import { RouterModule } from '@angular/router';
 import { HeaderComponent } from './components/header/header.component';
 import { HeroComponent } from './components/hero/hero.component';
 import { ToolCardComponent } from './components/tool-card/tool-card.component';
+import { ToolHeaderComponent } from './components/tool-header/tool-header.component';
 
 @NgModule({
   declarations: [
     HeaderComponent,
     HeroComponent,
-    ToolCardComponent
+    ToolCardComponent,
+    ToolHeaderComponent
   ],
   imports: [
     CommonModule,
@@ -20,7 +22,8 @@ import { ToolCardComponent } from './components/tool-card/tool-card.component';
   exports: [
     HeaderComponent,
     HeroComponent,
-    ToolCardComponent
+    ToolCardComponent,
+    ToolHeaderComponent
   ]
 })
 export class SharedModule { }
