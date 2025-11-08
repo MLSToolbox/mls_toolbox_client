@@ -89,6 +89,154 @@ a:hover {
 }
 
 
+/* ===================================================================
+   UTILITY CLASSES - Reutilizables y escalables
+   =================================================================== */
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-6);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: none;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background-color: var(--color-accent-purple);
+  color: var(--color-white);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-accent-purple-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(120, 63, 242, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background-color: var(--color-accent-green);
+  color: var(--color-black);
+}
+
+.btn-secondary:hover {
+  background-color: #a8d447;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(191, 237, 84, 0.4);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
+}
+
+/* Cards */
+.card {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Layouts */
+.layout-container {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--color-bg-secondary);
+}
+
+.layout-content {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--spacing-6);
+}
+
+/* Text Utilities */
+.text-primary {
+  color: var(--color-text-primary);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-inverse {
+  color: var(--color-text-inverse);
+}
+
+/* Header Styles */
+.header {
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-4) var(--spacing-6);
+}
+
+/* Sidebar Styles */
+.sidebar {
+  background-color: var(--color-bg-secondary);
+  border-right: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+  border-radius: var(--radius-md);
+}
+
+.sidebar-link:hover {
+  background-color: var(--color-gray-100);
+  color: var(--color-accent-purple);
+}
+
+.sidebar-link.active {
+  background-color: rgba(120, 63, 242, 0.1);
+  color: var(--color-accent-purple);
+}
+
+/* Hero Section */
+.hero {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-12) var(--spacing-8);
+  text-align: center;
+  color: var(--color-white);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.1;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="white" opacity="0.1"/></svg>');
+}
+
+/* PrimeNG Override */
 .p-button {
   background-color: var(--color-primary) !important;
   border-color: var(--color-primary) !important;

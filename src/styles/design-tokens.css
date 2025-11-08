@@ -43,67 +43,11 @@
   --color-border-medium: var(--color-gray-300);
   --color-border-inverse: var(--color-white);
   
-  /* ================================================================
-     CODE ASSESSMENT - Theme Variables (Light Mode)
-     ================================================================ */
-  --code-assess-bg-main: #050505;
-  --code-assess-bg-secondary: #0f0e0e;
-  --code-assess-bg-tertiary: #232020;
-  
-  /* Cards & Containers */
-  --code-assess-card-bg: #0f0f0f;
-  --code-assess-card-border: #1f1f1f;
-  --code-assess-card-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  
-  /* Sidebar */
-  --code-assess-sidebar-bg: #131212;
-  --code-assess-sidebar-text: #ffffff;
-  --code-assess-sidebar-text-secondary: #b0b0b0;
-  --code-assess-sidebar-hover: rgba(255, 255, 255, 0.05);
-  --code-assess-sidebar-active: #783ff2;
-  --code-assess-sidebar-active-bg: rgba(120, 63, 242, 0.15);
-  
-  /* Header */
-  --code-assess-header-bg: #0f0f0f;
-  --code-assess-header-text: #ffffff;
-  --code-assess-header-border: #1f1f1f;
-  
-  /* Hero Section */
-  --code-assess-hero-bg-start: #2d1b69;
-  --code-assess-hero-bg-end: #1a0f3d;
-  --code-assess-hero-text: #ffffff;
-  --code-assess-hero-overlay: rgba(255, 255, 255, 0.05);
-  
-  /* Buttons */
-  --code-assess-btn-primary-bg: #783ff2;
-  --code-assess-btn-primary-hover: #6835d1;
-  --code-assess-btn-primary-text: #ffffff;
-  --code-assess-btn-secondary-bg: #232020;
-  --code-assess-btn-secondary-hover: #2d2d2d;
-  --code-assess-btn-secondary-text: #ffffff;
-  
-  /* Text Colors */
-  --code-assess-text-primary: #ffffff;
-  --code-assess-text-secondary: #b0b0b0;
-  --code-assess-text-tertiary: #808080;
-  --code-assess-text-inverse: #24292e;
-  
-  /* Form Elements */
-  --code-assess-input-bg: #1a1a1a;
-  --code-assess-input-border: #333333;
-  --code-assess-input-border-focus: #783ff2;
-  --code-assess-input-text: #ffffff;
-  
   /* Status Colors */
-  --code-assess-success: #10b981;
-  --code-assess-warning: #f59e0b;
-  --code-assess-error: #ef4444;
-  --code-assess-info: #3b82f6;
-  
-  /* Accent Elements */
-  --code-assess-accent-green: #bfed54;
-  --code-assess-accent-purple: #783ff2;
-  --code-assess-blur-purple: #8857aa;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
 }
 
 /* ===================================================================
@@ -191,67 +135,7 @@
   --transition-base: 0.3s ease-in-out;
   --transition-slow: 0.5s ease-in-out;
 }
-.light-theme {
-  /* Main Backgrounds */
-  --code-assess-bg-main: #ffffff;
-  --code-assess-bg-secondary: #f8f9fa;
-  --code-assess-bg-tertiary: #f0f2f5;
-  
-  /* Cards & Containers */
-  --code-assess-card-bg: #ffffff;
-  --code-assess-card-border: #e1e4e8;
-  --code-assess-card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  
-  /* Sidebar */
-  --code-assess-sidebar-bg: #f8f9fa;
-  --code-assess-sidebar-text: #24292e;
-  --code-assess-sidebar-text-secondary: #586069;
-  --code-assess-sidebar-hover: #e1e4e8;
-  --code-assess-sidebar-active: #783ff2;
-  --code-assess-sidebar-active-bg: rgba(120, 63, 242, 0.08);
-  
-  /* Header */
-  --code-assess-header-bg: #ffffff;
-  --code-assess-header-text: #24292e;
-  --code-assess-header-border: #e1e4e8;
-  
-  /* Hero Section */
-  --code-assess-hero-bg-start: #7c3aed;
-  --code-assess-hero-bg-end: #5b21b6;
-  --code-assess-hero-text: #ffffff;
-  --code-assess-hero-overlay: rgba(255, 255, 255, 0.05);
-  
-  /* Buttons */
-  --code-assess-btn-primary-bg: #783ff2;
-  --code-assess-btn-primary-hover: #6835d1;
-  --code-assess-btn-primary-text: #ffffff;
-  --code-assess-btn-secondary-bg: #f0f2f5;
-  --code-assess-btn-secondary-hover: #e1e4e8;
-  --code-assess-btn-secondary-text: #24292e;
-  
-  /* Text Colors */
-  --code-assess-text-primary: #24292e;
-  --code-assess-text-secondary: #586069;
-  --code-assess-text-tertiary: #6a737d;
-  --code-assess-text-inverse: #ffffff;
-  
-  /* Form Elements */
-  --code-assess-input-bg: #ffffff;
-  --code-assess-input-border: #d1d5db;
-  --code-assess-input-border-focus: #783ff2;
-  --code-assess-input-text: #24292e;
-  
-  /* Status Colors (se mantienen iguales) */
-  --code-assess-success: #10b981;
-  --code-assess-warning: #f59e0b;
-  --code-assess-error: #ef4444;
-  --code-assess-info: #3b82f6;
-  
-  /* Accent Elements (se mantienen iguales) */
-  --code-assess-accent-green: #bfed54;
-  --code-assess-accent-purple: #783ff2;
-  --code-assess-blur-purple: rgba(136, 87, 170, 0.15);
-}
+
 .code-assess-layout,
 .frame,
 .frame-4,

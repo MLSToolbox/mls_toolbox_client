@@ -1,0 +1,33 @@
+<!-- Hero Section -->
+<app-hero
+  title="Welcome to MLS Toolbox"
+  subtitle="A collection of tools for MLOps maintaining good software engineering practices">
+</app-hero>
+
+<!-- Tools Grid -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 pb-16">
+  <div class="grid md:grid-cols-2 gap-8">
+    <app-tool-card
+      *ngFor="let tool of tools"
+      [title]="tool.title"
+      [description]="tool.description"
+      [features]="tool.features"
+      [routerLink]="tool.routerLink"
+      [iconPath]="tool.iconPath">
+    </app-tool-card>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="mt-12 grid grid-cols-3 gap-6">
+    <div 
+      *ngFor="let stat of stats"
+      class="bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-shadow duration-300">
+      <p class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-2">
+        {{ stat.value }}
+      </p>
+      <p class="text-gray-600 text-sm font-medium">
+        {{ stat.label }}
+      </p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLToolbox - Análisis de Código Simplificado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        .metric-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        .metric-card.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+        .metric-card.selected .icon-bg {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .metric-card.selected .icon {
+            color: white;
+        }
+        .metric-card.selected .metric-description {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        .step-indicator {
+            position: relative;
+        }
+        .step-indicator::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            width: 100%;
+            height: 2px;
+            background: #e5e7eb;
+            z-index: -1;
+        }
+        .step-indicator:last-child::after {
+            display: none;
+        }
+        .step-indicator.active::after {
+            background: #667eea;
+        }
+        .step-indicator.completed .step-circle {
+            background: #10b981;
+            border-color: #10b981;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navbar -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">ML</span>
+                    </div>
+                    <span class="text-xl font-semibold text-gray-800">MLToolbox</span>
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="showView('dashboard')" class="px-4 py-2 text-gray-600 hover:text-gray-900 transition">
+                        Inicio
+                    </button>
+                    <button onclick="showView('projects')" class="px-4 py-2 text-gray-600 hover:text-gray-900 transition">
+                        Mis Proyectos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard View -->
+    <div id="dashboard-view" class="view-container">
+        <!-- Hero Section -->
+        <div class="gradient-bg text-white py-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h1 class="text-4xl font-bold mb-4">Mejora la calidad de tu código ML</h1>
+                    <p class="text-xl text-purple-100 max-w-2xl mx-auto">
+                        Herramientas simples para analizar y mejorar tus proyectos de Machine Learning
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tools Grid -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 pb-16">
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Tool 1: Code Assessment -->
+                <div class="glass-effect rounded-2xl shadow-xl p-8 card-hover cursor-pointer" onclick="showView('upload')">
+                    <div class="flex items-start justify-between mb-6">
+                        <div class="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center">
+                            <svg class="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <span class="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                            Básico
+                        </span>
+                    </div>
+                    
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-3">
+                        Análisis de Calidad
+                    </h3>
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        Evalúa tu código con métricas profesionales: cohesión, acoplamiento, SOLID y más
+                    </p>
+                    
+                    <div class="space-y-3 mb-6">
+                        <div class="flex items-center gap-2 text-sm text-gray-600">
+                            <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Elige qué métricas analizar</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-gray-600">
+                            <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Explicaciones simples de cada concepto</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-gray-600">
+                            <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Recomendaciones personalizadas</span>
+                        </div>
+                    </div>
+
+                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition">
+                        Comenzar Análisis
+                    </button>
+                </div>
+
+                <!-- Tool 2: Model Optimizer -->
+                <div class="glass-effect rounded-2xl shadow-xl p-8 card-hover cursor-pointer">
+                    <div class="flex items-start justify-between mb-6">
+                        <div class="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center">
+                            <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                        <span class="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-xs font-medium">
+                            Avanzado
+                        </span>
+                    </div>
+                    
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-3">
+                        Optimizador de Modelos
+                    </h3>
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        Mejora el rendimiento de tus modelos ML con recomendaciones automáticas de optimización
+                    </p>
+                    
+                    <div class="space-y-3 mb-6">
+                        <div class="flex items-center gap-2 text-sm text-gray-600">
+                            <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Analiza métricas de rendimiento</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-gray-600">
+                            <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Identifica cuellos de botella</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-gray-600">
+                            <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Sugerencias de hiperparámetros</span>
+                        </div>
+                    </div>
+
+                    <button class="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 rounded-lg transition">
+                        Optimizar Modelo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="mt-12 grid grid-cols-3 gap-6">
+                <div class="bg-white rounded-xl p-6 text-center">
+                    <div class="text-3xl font-bold text-gray-800 mb-1">150+</div>
+                    <div class="text-sm text-gray-600">Proyectos Analizados</div>
+                </div>
+                <div class="bg-white rounded-xl p-6 text-center">
+                    <div class="text-3xl font-bold text-gray-800 mb-1">95%</div>
+                    <div class="text-sm text-gray-600">Satisfacción de Usuarios</div>
+                </div>
+                <div class="bg-white rounded-xl p-6 text-center">
+                    <div class="text-3xl font-bold text-gray-800 mb-1">24/7</div>
+                    <div class="text-sm text-gray-600">Disponibilidad</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload View -->
+    <div id="upload-view" class="view-container hidden">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Back Button -->
+            <button onclick="showView('dashboard')" class="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Volver al inicio
+            </button>
+
+            <!-- Progress Steps -->
+            <div class="bg-white rounded-xl p-6 mb-8">
+                <div class="flex items-center justify-between max-w-4xl mx-auto">
+                    <div class="flex flex-col items-center gap-2 step-indicator active">
+                        <div class="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold step-circle">
+                            1
+                        </div>
+                        <span class="text-sm font-medium text-gray-700">Subir Código</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 step-indicator">
+                        <div class="w-12 h-12 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center font-semibold step-circle">
+                            2
+                        </div>
+                        <span class="text-sm font-medium text-gray-500">Elegir Métricas</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 step-indicator">
+                        <div class="w-12 h-12 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center font-semibold step-circle">
+                            3
+                        </div>
+                        <span class="text-sm font-medium text-gray-500">Análisis</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 step-indicator">
+                        <div class="w-12 h-12 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center font-semibold step-circle">
+                            4
+                        </div>
+                        <span class="text-sm font-medium text-gray-500">Resultados</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Area -->
+            <div class="bg-white rounded-xl p-12 shadow-sm text-center">
+                <div class="max-w-xl mx-auto">
+                    <div class="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                    </div>
+                    
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-3">Sube tu proyecto</h2>
+                    <p class="text-gray-600 mb-8">Arrastra tu archivo .zip o haz click para seleccionar</p>
+                    
+                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-12 hover:border-blue-400 hover:bg-blue-50/50 transition cursor-pointer">
+                        <input type="file" id="fileInput" class="hidden" accept=".zip" onchange="handleFileUpload(event)">
+                        <label for="fileInput" class="cursor-pointer">
+                            <div class="text-gray-500 mb-4">
+                                <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                                <p class="text-sm font-medium">Arrastra tu archivo aquí</p>
+                                <p class="text-xs mt-2">o haz click para seleccionar</p>
+                            </div>
+                            <p class="text-xs text-gray-400">Formatos soportados: .zip (máx. 50MB)</p>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metrics Selection View -->
+    <div id="metrics-view" class="view-container hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Back Button -->
+            <button onclick="showView('upload')" class="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Atrás
+            </button>
+
+            <!-- Progress Steps -->
+            <div class="bg-white rounded-xl p-6 mb-8">
+                <div class="flex items-center justify-between max-w-4xl mx-auto">
+                    <div class="flex flex-col items-center gap-2 step-indicator completed active">
+                        <div class="w-12 h-12 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold step-circle">
+                            ✓
+                        </div>
+                        <span class="text-sm font-medium text-gray-700">Subir Código</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 step-indicator active">
+                        <div class="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold step-circle">
+                            2
+                        </div>
+                        <span class="text-sm font-medium text-gray-700">Elegir Métricas</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 step-indicator">
+                        <div class="w-12 h-12 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center font-semibold step-circle">
+                            3
+                        </div>
+                        <span class="text-sm font-medium text-gray-500">Análisis</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 step-indicator">
+                        <div class="w-12 h-12 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center font-semibold step-circle">
+                            4
+                        </div>
+                        <span class="text-sm font-medium text-gray-500">Resultados</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-3">¿Qué quieres analizar?</h2>
+                <p class="text-gray-600 text-lg">Selecciona las métricas que te interesan. Puedes elegir todas o solo algunas.</p>
+            </div>
+
+            <!-- Selected Count -->
+            <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl p-4 mb-8 text-center">
+                <p class="text-sm font-medium">
+                    <span id="selected-count">0</span> métricas seleccionadas
+                    <span class="opacity-75 ml-2">• Se recomienda elegir al menos 2 para un análisis completo</span>
+                </p>
+            </div>
+
+            <!-- Metrics Grid -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Cohesion -->
+                <div class="metric-card bg-white border-2 border-gray-200 rounded-xl p-6" onclick="toggleMetric('cohesion', this)">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="icon-bg w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <svg class="icon w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+                            </svg>
+                        </div>
+                        <span class="px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">Básico</span>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2">Cohesión</h3>
+                    <p class="metric-description text-sm text-gray-600 leading-relaxed">
+                        Mide qué tan relacionadas están las funciones dentro de un mismo módulo. Alta cohesión = código más organizado.
+                    </p>
+                </div>
+
+                <!-- Coupling -->
+                <div class="metric-card bg-white border-2 border-gray-200 rounded-xl p-6" onclick="toggleMetric('coupling', this)">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="icon-bg w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <svg class="icon w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
+                        </div>
+                        <span class="px-2 py-1 bg-purple-50 text-purple-700 rounded-full text-xs font-medium">Básico</span>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2">Acoplamiento</h3>
+                    <p class="metric-description text-sm text-gray-600 leading-relaxed">
+                        Evalúa qué tan dependientes son tus módulos entre sí. Bajo acoplamiento = más fácil de mantener y cambiar.
+                    </p>
+                </div>
+
+                <!-- SOLID -->
+                <div class="metric-card bg-white border-2 border-gray-200 rounded-xl p-6" onclick="toggleMetric('solid', this)">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="icon-bg w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <svg class="icon w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                        </div>
+                        <span class="px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">Intermedio</span>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2">Principios SOLID</h3>
+                    <p class="metric-description text-sm text-gray-600 leading-relaxed">
+                        Verifica si tu código sigue los 5 principios fundamentales de diseño orientado a objetos profesional.
+                    </p>
+                </div>
+
+                <!-- Complexity -->
+                <div class="metric-card bg-white border-2 border-gray-200 rounded-xl p-6" onclick="toggleMetric('complexity', this)">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="icon-bg w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <svg class="icon w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                        </div>
+                        <span class="px-2 py-1 bg-orange-50 text-orange-700 rounded-full text-xs font-medium">Básico</span>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2">Complejidad</h3>
+                    <p class="metric-description text-sm text-gray-600 leading-relaxed">
+                        Analiza qué tan complicado es entender tu código. Detecta funciones muy largas o con muchas ramas.
+                    </p>
+                </div>
+
+                <!-- Code Duplication -->
+                <div class="metric-card bg-white border-2 border-gray-200 rounded-xl p-6" onclick="toggleMetric('duplication', this)">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="icon-bg w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                            <svg class="icon w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <span class="px-2 py-1 bg-red-50 text-red-700 rounded-full text-xs font-medium">Básico</span>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2">Código Duplicado</h3>
+                    <p class="metric-description text-sm text-gray-600 leading-relaxed">
+                        Encuentra código repetido en tu proyecto. La duplicación hace que los bugs sean más difíciles de arreglar.
+                    </p>
+                </div>
+
+                <!-- Naming Conventions -->
+                <div class="metric-card bg-white border-2 border-gray-200 rounded-xl p-6" onclick="toggleMetric('naming', this)">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="icon-bg w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                            <svg class="icon w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                        </div>
+                        <span class="px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium">Básico</span>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2">Convenciones de Nombres</h3>
+                    <p class="metric-description text-sm text-gray-600 leading-relaxed">
+                        Revisa si tus variables, funciones y clases tienen nombres claros y siguen las mejores prácticas.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-4 max-w-2xl mx-auto">
+                <button onclick="selectAllMetrics()" class="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:border-gray-400 transition">
+                    Seleccionar Todas
+                </button>
+                <button onclick="runAnalysis()" class="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" id="run-analysis-btn" disabled>
+                    Iniciar Análisis →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results View -->
+    <div id="results-view" class="view-container hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Back Button -->
+            <button onclick="showView('metrics')" class="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Cambiar métricas
+            </button>
+
+            <!-- Progress Steps -->
+            <div class="bg-white rounded-xl p-6 mb-8">
+                <div class="flex items-center justify-between max-w-4xl mx-auto">
+                    <div class="flex flex-col items-center gap-2 step-indicator completed">
+                        <div class="w-12 h-12 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold">
+                            ✓
+                        </div>
+                        <span class="text-sm font-medium text-gray-700">Subir Código</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 step-indicator completed">
+                        <div class="w-12 h-12 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold">
+                            ✓
+                        </div>
+                        <span class="text-sm font-medium text-gray-700">Elegir Métricas</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 step-indicator completed">
+                        <div class="w-12 h-12 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold">
+                            ✓
+                        </div>
+                        <span class="text-sm font-medium text-gray-700">Análisis</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 step-indicator active">
+                        <div class="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">
+                            4
+                        </div>
+                        <span class="text-sm font-medium text-gray-700">Resultados</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Left: Project Info -->
+                <div class="space-y-6">
+                    <div class="bg-white rounded-xl p-6 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Proyecto Analizado</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600">Nombre:</span>
+                                <span class="font-medium">iris_classification</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600">Archivos:</span>
+                                <span class="font-medium">8</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600">Líneas de código:</span>
+                                <span class="font-medium">1,247</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl p-6 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Métricas Analizadas</h3>
+                        <div class="space-y-2" id="analyzed-metrics-list">
+                            <!-- Will be populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Results -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Overall Score -->
+                    <div class="bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl p-8 text-white shadow-xl">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <h3 class="text-lg font-medium mb-2 opacity-90">Calidad General</h3>
+                                <div class="text-5xl font-bold mb-4">78%</div>
+                                <p class="text-blue-100">Tu código tiene una buena estructura base con algunas oportunidades de mejora</p>
+                            </div>
+                            <div class="relative w-32 h-32">
+                                <svg class="w-full h-full" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" stroke-width="8" fill="none"/>
+                                    <circle cx="50" cy="50" r="40" stroke="white" stroke-width="8" fill="none" 
+                                            stroke-dasharray="251.2" stroke-dashoffset="55.3" class="progress-ring"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metric Results -->
+                    <div id="metric-results-container" class="space-y-6">
+                        <!-- Will be populated based on selected metrics -->
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <button onclick="showView('dashboard')" class="px-6 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:border-gray-400 transition">
+                            Nuevo Análisis
+                        </button>
+                        <button class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition shadow-lg">
+                            Descargar Informe PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedMetrics = new Set();
+
+        function showView(viewName) {
+            document.querySelectorAll('.view-container').forEach(view => {
+                view.classList.add('hidden');
+            });
+
+            const views = {
+                'dashboard': 'dashboard-view',
+                'upload': 'upload-view',
+                'metrics': 'metrics-view',
+                'results': 'results-view'
+            };
+
+            if (views[viewName]) {
+                document.getElementById(views[viewName]).classList.remove('hidden');
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Simulate upload
+                setTimeout(() => {
+                    showView('metrics');
+                }, 500);
+            }
+        }
+
+        function toggleMetric(metricId, element) {
+            if (selectedMetrics.has(metricId)) {
+                selectedMetrics.delete(metricId);
+                element.classList.remove('selected');
+            } else {
+                selectedMetrics.add(metricId);
+                element.classList.add('selected');
+            }
+
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            document.getElementById('selected-count').textContent = selectedMetrics.size;
+            const runBtn = document.getElementById('run-analysis-btn');
+            runBtn.disabled = selectedMetrics.size === 0;
+        }
+
+        function selectAllMetrics() {
+            const metricCards = document.querySelectorAll('.metric-card');
+            const metrics = ['cohesion', 'coupling', 'solid', 'complexity', 'duplication', 'naming'];
+            
+            metrics.forEach((metric, index) => {
+                selectedMetrics.add(metric);
+                metricCards[index].classList.add('selected');
+            });
+
+            updateSelectedCount();
+        }
+
+        function runAnalysis() {
+            if (selectedMetrics.size === 0) return;
+
+            // Simulate analysis
+            showView('results');
+            populateResults();
+        }
+
+        function populateResults() {
+            // Populate analyzed metrics list
+            const metricsList = document.getElementById('analyzed-metrics-list');
+            const metricNames = {
+                'cohesion': 'Cohesión',
+                'coupling': 'Acoplamiento',
+                'solid': 'Principios SOLID',
+                'complexity': 'Complejidad',
+                'duplication': 'Código Duplicado',
+                'naming': 'Convenciones de Nombres'
+            };
+
+            metricsList.innerHTML = Array.from(selectedMetrics).map(metric => `
+                <div class="flex items-center gap-2 text-sm">
+                    <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    <span>${metricNames[metric]}</span>
+                </div>
+            `).join('');
+
+            // Populate metric results
+            const resultsContainer = document.getElementById('metric-results-container');
+            const results = {
+                'cohesion': {
+                    score: 85,
+                    color: 'green',
+                    status: 'Excelente',
+                    message: 'Tus módulos están bien organizados con alta cohesión interna',
+                    icon: '✓'
+                },
+                'coupling': {
+                    score: 72,
+                    color: 'yellow',
+                    status: 'Bueno',
+                    message: 'Algunas dependencias innecesarias entre módulos que podrían simplificarse',
+                    icon: '⚠'
+                },
+                'solid': {
+                    score: 68,
+                    color: 'orange',
+                    status: 'Mejorable',
+                    message: 'Varias clases violan el principio de responsabilidad única',
+                    icon: '!'
+                },
+                'complexity': {
+                    score: 80,
+                    color: 'green',
+                    status: 'Muy Bien',
+                    message: 'La mayoría de funciones son simples y fáciles de entender',
+                    icon: '✓'
+                },
+                'duplication': {
+                    score: 65,
+                    color: 'orange',
+                    status: 'Atención',
+                    message: 'Encontramos código duplicado en 3 archivos, se puede refactorizar',
+                    icon: '!'
+                },
+                'naming': {
+                    score: 90,
+                    color: 'green',
+                    status: 'Excelente',
+                    message: 'Los nombres de variables y funciones son claros y descriptivos',
+                    icon: '✓'
+                }
+            };
+
+            const colorClasses = {
+                'green': 'border-green-200 bg-green-50',
+                'yellow': 'border-yellow-200 bg-yellow-50',
+                'orange': 'border-orange-200 bg-orange-50'
+            };
+
+            const iconColors = {
+                'green': 'bg-green-100 text-green-600',
+                'yellow': 'bg-yellow-100 text-yellow-600',
+                'orange': 'bg-orange-100 text-orange-600'
+            };
+
+            resultsContainer.innerHTML = Array.from(selectedMetrics).map(metric => {
+                const result = results[metric];
+                return `
+                    <div class="bg-white border ${colorClasses[result.color]} rounded-xl p-6">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 ${iconColors[result.color]} rounded-lg flex items-center justify-center font-bold text-xl flex-shrink-0">
+                                ${result.icon}
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="font-semibold text-gray-800">${metricNames[metric]}</h4>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-2xl font-bold text-gray-800">${result.score}%</span>
+                                        <span class="px-2 py-1 bg-white rounded-full text-xs font-medium">${result.status}</span>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-600">${result.message}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            showView('dashboard');
+        });
+    </script>
+</body>
+</html>

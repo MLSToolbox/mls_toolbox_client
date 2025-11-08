@@ -1,29 +1,26 @@
-import { NgModule } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { RouterModule } from "@angular/router";
-import { SmallHeaderComponent } from "./components/small-header/small-header.component";
-import { HeaderComponent } from "./components/header/header.component";
-import { FeatureButtonComponent } from "./components/feature-button/feature-button.component";
-import { ToolHeaderComponent } from "./components/tool-header/tool-header.component";
-import { ButtonModule } from "primeng/button";
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+
+// Components
+import { HeaderComponent } from './components/header/header.component';
+import { HeroComponent } from './components/hero/hero.component';
+import { ToolCardComponent } from './components/tool-card/tool-card.component';
 
 @NgModule({
   declarations: [
-    SmallHeaderComponent,
     HeaderComponent,
-    FeatureButtonComponent,
-    ToolHeaderComponent
+    HeroComponent,
+    ToolCardComponent
   ],
   imports: [
-    CommonModule, 
-    RouterModule,
-    ButtonModule
+    CommonModule,
+    RouterModule
   ],
   exports: [
-    SmallHeaderComponent,
     HeaderComponent,
-    FeatureButtonComponent,
-    ToolHeaderComponent
-  ],
+    HeroComponent,
+    ToolCardComponent
+  ]
 })
-export class SharedModule {}
+export class SharedModule { }

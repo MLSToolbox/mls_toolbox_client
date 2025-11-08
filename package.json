@@ -24,6 +24,7 @@
     "d3-shape": "^3.2.0",
     "elkjs": "^0.8.2",
     "file-saver": "^2.0.5",
+    "lucide-angular": "^0.553.0",
     "primeicons": "^6.0.1",
     "primeng": "^17.0.0",
     "rete": "^2.0.3",

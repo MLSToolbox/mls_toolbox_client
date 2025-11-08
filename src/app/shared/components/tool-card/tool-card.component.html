@@ -1,0 +1,37 @@
+<div 
+  [routerLink]="routerLink"
+  class="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-8 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl border border-white/20">
+  
+  <!-- Icono -->
+  <div class="flex items-center gap-4 mb-6">
+    <div class="w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
+      <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="iconPath"></path>
+      </svg>
+    </div>
+    <h3 class="text-2xl font-bold text-gray-900">{{ title }}</h3>
+  </div>
+
+  <!-- Descripción -->
+  <p class="text-gray-600 mb-6 leading-relaxed">
+    {{ description }}
+  </p>
+
+  <!-- Features -->
+  <ul class="space-y-3 mb-6">
+    <li *ngFor="let feature of features" class="flex items-start gap-3">
+      <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
+      <span class="text-gray-700">{{ feature }}</span>
+    </li>
+  </ul>
+
+  <!-- Call to Action -->
+  <div class="flex items-center gap-2 text-blue-600 font-semibold group">
+    <span>Get Started</span>
+    <svg class="w-5 h-5 transform transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+    </svg>
+  </div>
+</div>
