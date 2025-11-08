@@ -118,23 +118,11 @@
 
     <!-- Step 4: Results -->
     <div *ngIf="state.currentStep === StepEnum.RESULTS" class="flex-1 p-8 bg-gray-50">
-      <div class="max-w-7xl mx-auto">
-        <div class="text-center mb-8">
-          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
-            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-          </div>
-          <h2 class="text-2xl font-bold mb-2" style="color: rgb(0, 32, 96);">Analysis Complete!</h2>
-          <p class="text-gray-600">Your code quality assessment results are ready</p>
-        </div>
-        
-        <!-- Placeholder for results component -->
-        <div class="bg-white rounded-lg border border-gray-200 p-8">
-          <p class="text-gray-600 text-center mb-4">Results visualization component coming soon...</p>
-          <pre *ngIf="state.analysisResponse" class="bg-gray-50 p-4 rounded text-xs overflow-auto max-h-96">{{ state.analysisResponse | json }}</pre>
-        </div>
-      </div>
+      <app-assessment-results
+        [results]="state.analysisResponse"
+        (newAnalysis)="onResetAssessment()"
+        (exportResults)="onExportResults()">
+      </app-assessment-results>
     </div>
   </div>
 </div>
