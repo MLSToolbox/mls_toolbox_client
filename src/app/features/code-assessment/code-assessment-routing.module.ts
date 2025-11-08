@@ -1,6 +1,6 @@
 import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
-import { AssessmentPageComponent } from "./pages/assessment-page/assessment-page.component";
+import { AssessmentPageComponent } from "./pages/assessment-page.component";
 
 const routes: Routes = [
   {
