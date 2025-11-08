@@ -51,9 +51,16 @@ export class CodeAssessmentService {
    * Upload ZIP file to backend
    */
   uploadFile(file: File): Observable<void> {
+    console.log('📤 Starting file upload:', {
+      name: file.name,
+      size: file.size,
+      type: file.type
+    });
+
     // Validate file
     const validation = this.validateFile(file);
     if (!validation.valid) {
+      console.error('❌ File validation failed:', validation.error);
       this.updateState({
         error: {
           message: validation.error || 'Invalid file',
@@ -76,9 +83,13 @@ export class CodeAssessmentService {
       error: null
     });
 
+    console.log('✅ File validated, sending to API...');
+
     return this.apiService.uploadZip(file).pipe(
       tap(response => {
+        console.log('📥 Upload response received:', response);
         if (response.success && response.data) {
+          console.log('✅ Upload successful, session ID:', response.data.session_id);
           this.updateState({
             sessionId: response.data.session_id,
             uploadResponse: response.data,
@@ -91,6 +102,7 @@ export class CodeAssessmentService {
       }),
       map(() => void 0),
       catchError(error => {
+        console.error('❌ Upload error:', error);
         const errorObj: AssessmentError = {
           message: error?.error?.message || error?.message || 'Failed to upload file',
           code: 'UPLOAD_ERROR',
@@ -127,12 +139,20 @@ export class CodeAssessmentService {
       currentStep: AssessmentStepEnum.ANALYSIS
     });
 
+    // Map metrics to backend analyzers
+    // 'fpc' metric maps to 'fpc' analyzer which includes file, pipeline, and class analysis
+    const analyzers = metrics.includes('fpc') ? ['fpc'] : metrics;
+
     const analysisData = {
-      metrics,
-      options: {
-        // Add any additional options here
+      analyzers: analyzers,
+      all_files: false, // Only analyze ML pipeline files by default
+      pipeline_overrides: {
+        file_stages: {},
+        excluded_files: []
       }
     };
+
+    console.log('🔬 Sending analysis request:', analysisData);
 
     return this.apiService.analyze(sessionId, analysisData).pipe(
       tap(response => {

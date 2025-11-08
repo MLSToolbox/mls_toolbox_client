@@ -222,22 +222,38 @@ export class AssessmentUploadComponent {
   }
 
   private handleFile(file: File): void {
+    console.group('📁 File Selection Handler');
+    console.log('File selected:', {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      lastModified: new Date(file.lastModified)
+    });
+
     // Validate file type
     const isZip = file.name.toLowerCase().endsWith('.zip') || 
                   file.type === 'application/zip' || 
                   file.type === 'application/x-zip-compressed';
     
     if (!isZip) {
+      console.error('❌ Invalid file type');
       this.errorMessage = 'Please upload a valid ZIP file';
+      console.groupEnd();
       return;
     }
 
     // Validate file size
     if (file.size > this.MAX_FILE_SIZE) {
       const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+      console.error(`❌ File too large: ${sizeMB}MB (max: 50MB)`);
       this.errorMessage = `File size (${sizeMB}MB) exceeds the 50MB limit`;
+      console.groupEnd();
       return;
     }
+
+    console.log('✅ File validation passed');
+    console.log('🚀 Emitting file to parent component');
+    console.groupEnd();
 
     // Emit file for upload
     this.fileSelected.emit(file);

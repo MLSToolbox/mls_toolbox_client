@@ -1,8 +1,8 @@
-import { NgModule } from "@angular/core";
+import { NgModule, ErrorHandler } from "@angular/core";
 import { BrowserModule } from "@angular/platform-browser";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
-import { HttpClientModule } from "@angular/common/http";
+import { HttpClientModule, HTTP_INTERCEPTORS } from "@angular/common/http";
 import { provideHttpClient } from "@angular/common/http";
 import { TooltipModule } from "primeng/tooltip";
 import { AccordionModule } from "primeng/accordion";
@@ -18,6 +18,8 @@ import { MessageService } from "primeng/api";
 import { AppRoutingModule } from "./app-routing.module";
 import { AppComponent } from "./app.component";
 import { SharedModule } from "./shared/shared.module";
+import { LoggingInterceptor } from "./core/interceptors/logging.interceptor";
+import { GlobalErrorHandler } from "./core/interceptors/global-error-handler";
 
 @NgModule({
   declarations: [AppComponent],
@@ -37,7 +39,22 @@ import { SharedModule } from "./shared/shared.module";
     DynamicDialogModule,
     ToastModule,
   ],
-  providers: [provideAnimationsAsync(), provideHttpClient(), MessageService],
+  providers: [
+    provideAnimationsAsync(), 
+    provideHttpClient(), 
+    MessageService,
+    // HTTP Interceptor for logging all requests/responses
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: LoggingInterceptor,
+      multi: true
+    },
+    // Global Error Handler
+    {
+      provide: ErrorHandler,
+      useClass: GlobalErrorHandler
+    }
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

@@ -12,7 +12,18 @@ import { AssessmentState, AssessmentStep, AssessmentStepEnum } from '../models/a
 export class AssessmentPageComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   
-  state: AssessmentState | null = null;
+  state: AssessmentState = {
+    currentStep: AssessmentStepEnum.UPLOAD,
+    uploadedFile: null,
+    sessionId: null,
+    uploadResponse: null,
+    analysisResponse: null,
+    isUploading: false,
+    isAnalyzing: false,
+    error: null,
+    selectedMetrics: []
+  };
+  
   steps: AssessmentStep[] = [
     { number: 1, label: 'Upload Code', completed: false, icon: 'upload' },
     { number: 2, label: 'Choose Metrics', completed: false, icon: 'sliders' },
@@ -28,12 +39,38 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    console.log('🎬 AssessmentPageComponent initialized with steps:', this.steps);
+    console.log('🎬 Initial state:', this.state);
+    
     this.assessmentService.state$
       .pipe(takeUntil(this.destroy$))
       .subscribe(state => {
+        console.log('📊 Assessment State Updated:', {
+          currentStep: state.currentStep,
+          stepName: this.getStepName(state.currentStep),
+          hasFile: !!state.uploadedFile,
+          sessionId: state.sessionId,
+          isUploading: state.isUploading,
+          isAnalyzing: state.isAnalyzing,
+          hasError: !!state.error
+        });
+        console.log('📊 Stepper will receive:', {
+          steps: this.steps,
+          currentStep: state.currentStep
+        });
         this.state = state;
         this.updateSteps(state.currentStep);
       });
+  }
+
+  private getStepName(step: number): string {
+    const names: { [key: number]: string } = {
+      1: 'UPLOAD',
+      2: 'METRICS',
+      3: 'ANALYSIS',
+      4: 'RESULTS'
+    };
+    return names[step] || 'UNKNOWN';
   }
 
   ngOnDestroy(): void {
@@ -65,17 +102,25 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Handle back navigation to upload step
+   */
+  onBackToUpload(): void {
+    this.assessmentService.setStep(AssessmentStepEnum.UPLOAD);
+  }
+
+  /**
    * Handle metrics selection and run analysis
    */
   onRunAnalysis(metrics: string[]): void {
+    console.log('🚀 Starting analysis with metrics:', metrics);
     this.assessmentService.runAnalysis(metrics)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          console.log('Analysis completed successfully');
+          console.log('✅ Analysis completed successfully');
         },
         error: (error) => {
-          console.error('Analysis failed:', error);
+          console.error('❌ Analysis failed:', error);
         }
       });
   }

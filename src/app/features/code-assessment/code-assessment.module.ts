@@ -10,6 +10,7 @@ import { AssessmentPageComponent } from "./pages/assessment-page.component";
 // Components
 import { AssessmentStepperComponent } from "./components/assessment-stepper.component";
 import { AssessmentUploadComponent } from "./components/assessment-upload.component";
+import { AssessmentMetricsComponent } from "./components/assessment-metrics.component";
 
 @NgModule({
   declarations: [
@@ -17,7 +18,8 @@ import { AssessmentUploadComponent } from "./components/assessment-upload.compon
     AssessmentPageComponent,
     // Components
     AssessmentStepperComponent,
-    AssessmentUploadComponent
+    AssessmentUploadComponent,
+    AssessmentMetricsComponent
   ],
   imports: [
     CommonModule,

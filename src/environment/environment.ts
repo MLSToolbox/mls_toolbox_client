@@ -1,8 +1,8 @@
 import { validateEnvironment } from './environment.schema';
 
 const config = {
-  apiUrl: 'http://mls_toolbox_server:5050',
-  apiTimeout: 10000,
+  apiUrl: 'http://localhost:5000/api',
+  apiTimeout: 30000,
 };
 
 export const environment = validateEnvironment(config);
