@@ -3,7 +3,7 @@ import { Component, Output, EventEmitter, Input, ViewChild, ElementRef } from '@
 @Component({
   selector: 'app-assessment-upload',
   template: `
-    <div class="flex-1 flex items-center justify-center p-8 bg-gray-50">
+    <div class="flex items-center justify-center py-12 px-8 bg-gray-50">
       <div class="max-w-2xl w-full">
         <!-- Icon -->
         <div class="flex justify-center mb-6">

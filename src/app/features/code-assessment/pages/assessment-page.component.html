@@ -1,40 +1,33 @@
 <!-- Main Content -->
-<div class="flex flex-col bg-gray-50" style="min-height: calc(100vh - 64px);">
-  <!-- Page Header -->
-  <div class="bg-white border-b border-gray-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <div class="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 class="text-3xl font-bold tracking-tight" style="color: rgb(0, 32, 96);">
-            Code Assessment
-          </h1>
-          <p class="mt-1 text-sm text-gray-600">
-            Analyze your Python project quality with comprehensive metrics
-          </p>
-        </div>
+<div class="flex flex-col bg-gray-50 min-h-screen">
+  <!-- Page Header - Compact -->
+  <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <!-- Reset Button -->
-          <button 
-            *ngIf="state && (state.uploadedFile || state.sessionId)"
-            (click)="onResetAssessment()"
-            [disabled]="state.isUploading || state.isAnalyzing"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
-            New Assessment
-          </button>
-          
-          <!-- Back to Home -->
-          <a 
-            [routerLink]="['/']"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-            </svg>
-            Back to Home
-          </a>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold" style="color: rgb(0, 32, 96);">Code Assessment</h1>
+            <p class="text-xs text-gray-600">Python project quality analyzer</p>
+          </div>
         </div>
+        
+        <!-- Reset Button -->
+        <button 
+          *ngIf="state && (state.uploadedFile || state.sessionId)"
+          (click)="onResetAssessment()"
+          [disabled]="state.isUploading || state.isAnalyzing"
+          class="px-4 py-2 text-xs font-medium text-white rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+          style="background: linear-gradient(135deg, rgb(0, 32, 96) 0%, rgb(0, 50, 120) 100%);">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          New Assessment
+        </button>
       </div>
     </div>
   </div>
@@ -73,7 +66,7 @@
   </div>
 
   <!-- Content Area -->
-  <div class="flex-1 flex flex-col">
+  <div class="pb-8">
     <!-- Step 1: Upload -->
     <app-assessment-upload
       *ngIf="state.currentStep === StepEnum.UPLOAD"
@@ -85,16 +78,17 @@
       (reset)="onUploadReset()">
     </app-assessment-upload>
 
-    <!-- Step 2: Choose Metrics -->
-      <!-- Step 2: Metrics Selection -->
-      <div *ngIf="state.currentStep === StepEnum.METRICS" 
-           class="flex-1 flex flex-col items-center justify-center p-8 bg-gray-50">
-        <app-assessment-metrics
-          (runAnalysis)="onRunAnalysis($event)"
-          (back)="onBackToUpload()">
-        </app-assessment-metrics>
-      </div>    <!-- Step 3: Analysis -->
-    <div *ngIf="state.currentStep === StepEnum.ANALYSIS" class="flex-1 flex flex-col items-center justify-center p-8 bg-gray-50">
+    <!-- Step 2: Metrics Selection -->
+    <div *ngIf="state.currentStep === StepEnum.METRICS" 
+         class="flex items-center justify-center py-12 px-8 bg-gray-50">
+      <app-assessment-metrics
+        (runAnalysis)="onRunAnalysis($event)"
+        (back)="onBackToUpload()">
+      </app-assessment-metrics>
+    </div>
+    
+    <!-- Step 3: Analysis -->
+    <div *ngIf="state.currentStep === StepEnum.ANALYSIS" class="flex items-center justify-center py-16 px-8 bg-gray-50">
       <div class="text-center max-w-md">
         <div class="mb-6">
           <div class="w-24 h-24 mx-auto rounded-full bg-blue-100 flex items-center justify-center">
@@ -117,7 +111,7 @@
     </div>
 
     <!-- Step 4: Results -->
-    <div *ngIf="state.currentStep === StepEnum.RESULTS" class="flex-1 p-8 bg-gray-50">
+    <div *ngIf="state.currentStep === StepEnum.RESULTS" class="py-8 px-4 bg-gray-50">
       <app-assessment-results
         [results]="state.analysisResponse"
         (newAnalysis)="onResetAssessment()"
