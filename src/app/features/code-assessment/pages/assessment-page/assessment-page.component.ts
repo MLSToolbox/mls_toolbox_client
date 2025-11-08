@@ -11,17 +11,22 @@ type ViewStep = 'upload' | 'metrics' | 'results';
   standalone: false
 })
 export class AssessmentPageComponent {
+  // Tool info
+  toolName = 'Code Assessment';
+  
   currentView: ViewStep = 'upload';
   uploadedFile: File | null = null;
   selectedMetrics = new Set<string>();
 
-  // Steps configuration
-  steps: Step[] = [
-    { number: 1, label: 'Upload Code', status: 'active' },
-    { number: 2, label: 'Choose Metrics', status: 'pending' },
-    { number: 3, label: 'Analysis', status: 'pending' },
-    { number: 4, label: 'Results', status: 'pending' }
+  // Steps configuration - Dynamic and easy to modify
+  private stepsConfig = [
+    { label: 'Upload Code', view: 'upload' as ViewStep },
+    { label: 'Choose Metrics', view: 'metrics' as ViewStep },
+    { label: 'Analysis', view: 'analysis' as ViewStep },
+    { label: 'Results', view: 'results' as ViewStep }
   ];
+
+  steps: Step[] = this.initializeSteps();
 
   // Available metrics
   availableMetrics: Metric[] = [
@@ -101,31 +106,46 @@ export class AssessmentPageComponent {
     return this.selectedMetrics.size > 0;
   }
 
+  // Initialize steps dynamically
+  private initializeSteps(): Step[] {
+    return this.stepsConfig.map((config, index) => ({
+      number: index + 1,
+      label: config.label,
+      status: index === 0 ? 'active' : 'pending'
+    }));
+  }
+
+  // Navigate to specific step by view
+  private navigateToView(view: ViewStep): void {
+    this.currentView = view;
+    const stepIndex = this.stepsConfig.findIndex(s => s.view === view);
+    if (stepIndex !== -1) {
+      this.updateStepsByIndex(stepIndex);
+    }
+  }
+
   goToMetrics(): void {
-    this.currentView = 'metrics';
-    this.updateSteps(1);
+    this.navigateToView('metrics');
   }
 
   runAnalysis(): void {
     if (!this.canRunAnalysis()) return;
     
     // Simulate analysis
-    this.currentView = 'results';
-    this.updateSteps(3);
+    this.navigateToView('results');
     this.generateMockResults();
   }
 
   goBack(): void {
     if (this.currentView === 'metrics') {
-      this.currentView = 'upload';
-      this.updateSteps(0);
+      this.navigateToView('upload');
     } else if (this.currentView === 'results') {
-      this.currentView = 'metrics';
-      this.updateSteps(1);
+      this.navigateToView('metrics');
     }
   }
 
-  private updateSteps(activeIndex: number): void {
+  // Update steps status based on current active index
+  private updateStepsByIndex(activeIndex: number): void {
     this.steps = this.steps.map((step, index) => ({
       ...step,
       status: index < activeIndex ? 'completed' : index === activeIndex ? 'active' : 'pending'

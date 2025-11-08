@@ -3,7 +3,7 @@
     <div class="flex justify-between items-center h-16">
       <!-- Logo y Título -->
       <div class="flex items-center gap-3">
-        <div class="flex items-center gap-3 group cursor-pointer">
+        <a [routerLink]="['/']" class="flex items-center gap-3 group cursor-pointer">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:scale-105" 
                style="background: linear-gradient(135deg, rgb(0, 32, 96) 0%, rgb(0, 50, 120) 100%);">
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -14,7 +14,7 @@
             <span class="text-xl font-bold tracking-tight" style="color: rgb(0, 32, 96);">MLS Toolbox</span>
             <div class="h-0.5 w-0 group-hover:w-full transition-all duration-300 rounded-full" style="background-color: rgb(153, 204, 204);"></div>
           </div>
-        </div>
+        </a>
       </div>
 
       <!-- Navegación -->

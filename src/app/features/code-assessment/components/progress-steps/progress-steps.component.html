@@ -9,8 +9,8 @@
       <div 
         class="w-12 h-12 rounded-full flex items-center justify-center font-semibold transition-all duration-300 z-10"
         [ngClass]="{
-          'text-white': step.status === 'completed' || step.status === 'active',
-          'bg-green-600': step.status === 'completed',
+          'bg-green-600 text-white': step.status === 'completed',
+          'text-white': step.status === 'active',
           'bg-gray-200 text-gray-600': step.status === 'pending'
         }"
         [style.background-color]="step.status === 'active' ? 'rgb(0, 32, 96)' : ''">
