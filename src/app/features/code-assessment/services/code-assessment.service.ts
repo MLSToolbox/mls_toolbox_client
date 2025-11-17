@@ -16,63 +16,6 @@ import {
 export class CodeAssessmentService {
   private readonly METRICS_REGISTRY: MetricOption[] = [
     {
-      id: 'radon_cc',
-      name: 'Cyclomatic Complexity',
-      description: 'Measures code complexity by counting independent paths through code. Higher values indicate more complex, harder to test code.',
-      category: 'complexity',
-      enabled: true,
-      selected: false,
-      formula: 'CC = E - N + 2P (E=edges, N=nodes, P=connected components)',
-      ideal_range: { min: 1, max: 10, optimal: '1-5', acceptable: '6-10', warning: '>10' },
-      interpretation: {
-        '1-5': 'Simple, easy to test',
-        '6-10': 'More complex, acceptable',
-        '11-20': 'Complex, consider refactoring',
-        '>20': 'Very complex, refactoring needed'
-      },
-      references: [
-        'https://radon.readthedocs.io/en/latest/intro.html',
-        'https://en.wikipedia.org/wiki/Cyclomatic_complexity'
-      ]
-    },
-    {
-      id: 'radon_mi',
-      name: 'Maintainability Index',
-      description: 'Composite metric measuring code maintainability based on complexity, volume, and comments. Higher values indicate more maintainable code.',
-      category: 'maintainability',
-      enabled: true,
-      selected: false,
-      formula: 'MI = 171 - 5.2*ln(V) - 0.23*G - 16.2*ln(L) (V=volume, G=complexity, L=lines)',
-      ideal_range: { min: 0, max: 100, optimal: '>20', acceptable: '10-20', warning: '<10' },
-      interpretation: {
-        '20-100': 'Maintainable',
-        '10-19': 'Moderate maintainability',
-        '0-9': 'Difficult to maintain'
-      },
-      references: ['https://radon.readthedocs.io/en/latest/intro.html']
-    },
-    {
-      id: 'pylint',
-      name: 'Code Quality Score',
-      description: 'Evaluates code against PEP 8 style guide, detects errors, enforces coding standards, and finds code smells.',
-      category: 'quality',
-      enabled: true,
-      selected: false,
-      formula: 'Score = 10.0 - ((float(5 * error + warning + refactor + convention) / statement) * 10)',
-      ideal_range: { min: null, max: 10.0, optimal: '>8.0', acceptable: '7.0-8.0', warning: '<7.0' },
-      interpretation: {
-        '9.0-10.0': 'Excellent - very few issues detected',
-        '8.0-8.9': 'Good - minor improvements possible',
-        '7.0-7.9': 'Acceptable - consider addressing warnings',
-        '5.0-6.9': 'Needs improvement - multiple issues found',
-        '<5.0': 'Poor - significant refactoring needed'
-      },
-      references: [
-        'https://pylint.pycqa.org/en/latest/',
-        'https://peps.python.org/pep-0008/'
-      ]
-    },
-    {
       id: 'fpc',
       name: 'Functional Pipeline Cohesion',
       description: 'Measures cohesion of ML pipeline code by analyzing how well functions and classes are organized around specific ML pipeline stages.',
@@ -87,27 +30,6 @@ export class CodeAssessmentService {
         'low (0-3.9)': 'Poorly organized code, consider restructuring around ML pipeline stages'
       },
       references: ['https://github.com/MLS-Toobox/mls_code_generator']
-    },
-    {
-      id: 'file_structure',
-      name: 'File Structure Quality',
-      description: 'Evaluates Python file organization patterns. Identifies whether files follow OOP principles, functional style, script style, or anti-patterns.',
-      category: 'structure',
-      enabled: true,
-      selected: false,
-      formula: 'Score = (classes_only * 1.0 + functions_only * 0.9 + script_only * 0.6 + mixed * 0.5 + mixed_script * 0.3) / total_files * 10',
-      ideal_range: { min: 0, max: 10, optimal: '>8.0', acceptable: '6.0-8.0', warning: '<6.0' },
-      interpretation: {
-        '9.0-10.0': 'Excellent - consistent OOP or functional patterns throughout',
-        '7.0-8.9': 'Good - mostly consistent with few script-style files',
-        '6.0-6.9': 'Acceptable - some script-style or mixed pattern files',
-        '4.0-5.9': 'Poor - many anti-patterns, architectural inconsistency',
-        '<3.0': 'Critical - predominant use of mixed script anti-pattern'
-      },
-      references: [
-        'https://peps.python.org/pep-0008/',
-        'https://en.wikipedia.org/wiki/Separation_of_concerns'
-      ]
     },
     {
       id: 'lccml',
@@ -130,20 +52,6 @@ export class CodeAssessmentService {
         'LCOM4 - Hitz & Montazeri, 1995',
         'Adapted for ML pipelines'
       ]
-    },
-    {
-      id: 'pipeline',
-      name: 'ML Pipeline Detection',
-      description: 'Detects and maps ML pipeline stages in the codebase. Identifies which files and functions belong to different stages.',
-      category: 'detection',
-      enabled: true,
-      selected: false,
-      interpretation: {
-        'comprehensive': 'All major ML pipeline stages detected',
-        'partial': 'Some pipeline stages detected, others may be missing',
-        'minimal': 'Few or no ML pipeline patterns detected'
-      },
-      references: ['https://github.com/MLS-Toobox/mls_code_generator']
     }
   ];
 

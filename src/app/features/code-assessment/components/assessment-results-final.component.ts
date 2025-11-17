@@ -10,6 +10,13 @@ import {
 } from '@app/core/models';
 import { TreeStructure, ChildChild } from '@app/core/models/upload-zip.model';
 
+interface DetailedMessage {
+  diagnosis: string;
+  recommendation?: string;
+  severity: string;
+  rule_id?: number;
+}
+
 interface FileMetricsData {
   [metricId: string]: {
     metricName: string;
@@ -18,15 +25,16 @@ interface FileMetricsData {
     score?: number;
     severity?: 'error' | 'warning' | 'info' | 'success';
     messages?: string[];
+    detailedMessages?: DetailedMessage[];
   };
 }
 
 @Component({
   selector: 'app-assessment-results-final',
   template: `
-    <div class="flex h-screen bg-gray-50">
+    <div class="flex h-full bg-gray-50">
       
-      <div class="w-80 bg-white border-r border-gray-200 flex flex-col overflow-hidden">
+      <div class="w-80 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
         <div class="border-b border-gray-200 px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50">
           <!-- New Analysis Button -->
           <button
@@ -77,8 +85,8 @@ interface FileMetricsData {
         </div>
       </div>
 
-      <div class="flex-1 overflow-y-auto">
-        <div class="max-w-5xl mx-auto p-8">
+      <div class="flex-1 overflow-y-auto min-h-0">
+        <div class="max-w-5xl mx-auto p-8 pb-16">
           
           <div *ngIf="!selectedPath" class="text-center py-16">
             <div class="w-20 h-20 mx-auto rounded-full bg-blue-100 flex items-center justify-center mb-4">
@@ -134,80 +142,354 @@ interface FileMetricsData {
 
             <div class="space-y-6">
               <div *ngFor="let metricId of getMetricIds()" 
-                   class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                   class="bg-white rounded-xl border shadow-lg overflow-hidden"
+                   [ngClass]="{
+                     'border-red-200': selectedFileData[metricId].severity === 'error',
+                     'border-yellow-200': selectedFileData[metricId].severity === 'warning',
+                     'border-blue-200': selectedFileData[metricId].severity === 'info',
+                     'border-green-200': selectedFileData[metricId].severity === 'success',
+                     'border-gray-200': !selectedFileData[metricId].severity
+                   }">
                 
-                <div class="border-b border-gray-200 px-6 py-4 bg-gray-50">
+                <!-- Header with gradient -->
+                <div class="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
                   <div class="flex items-center justify-between">
-                    <div>
-                      <h3 class="text-lg font-bold text-gray-900">{{ selectedFileData[metricId].metricName }}</h3>
-                      <span class="text-xs px-2 py-1 rounded font-medium inline-block mt-1"
-                            [ngClass]="getCategoryClass(selectedFileData[metricId].category)">
-                        {{ selectedFileData[metricId].category }}
-                      </span>
+                    <div class="flex-1">
+                      <div class="flex items-center gap-3 mb-2">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <h3 class="text-xl font-bold text-gray-900">{{ selectedFileData[metricId].metricName }}</h3>
+                      </div>
+                      <p class="text-sm text-gray-600 mb-2">
+                        {{ getMetricDescription(metricId) }}
+                      </p>
+                      <button 
+                        (click)="toggleMetricDetails(metricId)"
+                        class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-blue-700 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        {{ isMetricDetailsExpanded(metricId) ? 'Hide Details' : 'Learn More' }}
+                      </button>
                     </div>
+                    
+                    <!-- Score Badge -->
                     <div *ngIf="selectedFileData[metricId].score !== undefined" 
-                         class="text-right">
-                      <div class="text-3xl font-bold"
-                           [ngClass]="getScoreTextClass(selectedFileData[metricId].score!)">
+                         class="flex flex-col items-center justify-center w-24 h-24 rounded-full shadow-lg"
+                         [ngClass]="{
+                           'bg-gradient-to-br from-red-400 to-red-600': selectedFileData[metricId].score! < 4,
+                           'bg-gradient-to-br from-yellow-400 to-yellow-600': selectedFileData[metricId].score! >= 4 && selectedFileData[metricId].score! < 7,
+                           'bg-gradient-to-br from-green-400 to-green-600': selectedFileData[metricId].score! >= 7
+                         }">
+                      <div class="text-3xl font-bold text-white">
                         {{ selectedFileData[metricId].score!.toFixed(1) }}
                       </div>
-                      <div class="text-xs text-gray-600">Score</div>
+                      <div class="text-xs text-white opacity-90">/ 10</div>
                     </div>
                   </div>
                 </div>
 
-                <div class="px-6 py-4">
-                  <div *ngIf="selectedFileData[metricId].severity" 
-                       class="mb-4 px-4 py-3 rounded-lg flex items-start gap-3"
+                <!-- Expanded Metric Documentation -->
+                <div *ngIf="isMetricDetailsExpanded(metricId)" class="mx-6 mt-6 bg-gradient-to-br from-gray-50 to-blue-50 rounded-lg border-2 border-blue-200 overflow-hidden">
+                  <div class="px-5 py-3 bg-blue-600 text-white">
+                    <h4 class="font-bold text-sm">Metric Documentation</h4>
+                  </div>
+                  <div class="p-5 space-y-4">
+                    <!-- Formula -->
+                    <div *ngIf="getMetricFormula(metricId)">
+                      <div class="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">Formula</div>
+                      <div class="bg-white rounded-lg p-4 border border-blue-200 font-mono text-sm text-gray-800">
+                        {{ getMetricFormula(metricId) }}
+                      </div>
+                    </div>
+
+                    <!-- Ideal Range -->
+                    <div *ngIf="getMetricIdealRange(metricId)">
+                      <div class="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">Ideal Range</div>
+                      <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-green-50 rounded-lg p-3 border border-green-200">
+                          <div class="text-xs text-green-600 font-medium mb-1">Optimal</div>
+                          <div class="text-sm font-bold text-green-700">{{ getMetricIdealRange(metricId).optimal }}</div>
+                        </div>
+                        <div class="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
+                          <div class="text-xs text-yellow-600 font-medium mb-1">Acceptable</div>
+                          <div class="text-sm font-bold text-yellow-700">{{ getMetricIdealRange(metricId).acceptable }}</div>
+                        </div>
+                        <div class="bg-red-50 rounded-lg p-3 border border-red-200">
+                          <div class="text-xs text-red-600 font-medium mb-1">Warning</div>
+                          <div class="text-sm font-bold text-red-700">{{ getMetricIdealRange(metricId).warning }}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Interpretation Guide -->
+                    <div *ngIf="getMetricInterpretation(metricId)">
+                      <div class="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">Interpretation Guide</div>
+                      <div class="space-y-2">
+                        <div *ngFor="let item of getMetricInterpretationItems(metricId)" 
+                             class="bg-white rounded-lg p-3 border border-gray-200 flex gap-3">
+                          <div class="flex-shrink-0 font-mono text-sm font-bold text-blue-600">{{ item.range }}</div>
+                          <div class="text-sm text-gray-700">{{ item.description }}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- References -->
+                    <div *ngIf="getMetricReferences(metricId) && getMetricReferences(metricId).length > 0">
+                      <div class="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">References</div>
+                      <div class="space-y-2">
+                        <a *ngFor="let ref of getMetricReferences(metricId)" 
+                           [href]="ref" 
+                           target="_blank"
+                           class="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 hover:underline">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                          </svg>
+                          {{ ref }}
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Detailed Messages -->
+                <div *ngIf="selectedFileData[metricId].detailedMessages && selectedFileData[metricId].detailedMessages!.length > 0" 
+                     class="mx-6 mt-6 space-y-4">
+                  <div *ngFor="let detailedMsg of selectedFileData[metricId].detailedMessages" 
+                       class="rounded-lg overflow-hidden border-2"
                        [ngClass]="{
-                         'bg-red-50 border border-red-200': selectedFileData[metricId].severity === 'error',
-                         'bg-yellow-50 border border-yellow-200': selectedFileData[metricId].severity === 'warning',
-                         'bg-blue-50 border border-blue-200': selectedFileData[metricId].severity === 'info',
-                         'bg-green-50 border border-green-200': selectedFileData[metricId].severity === 'success'
+                         'border-red-300': detailedMsg.severity === 'high' || detailedMsg.severity === 'error',
+                         'border-yellow-300': detailedMsg.severity === 'medium' || detailedMsg.severity === 'warning',
+                         'border-blue-300': detailedMsg.severity === 'low' || detailedMsg.severity === 'info',
+                         'border-green-300': detailedMsg.severity === 'success'
                        }">
-                    <svg *ngIf="selectedFileData[metricId].severity === 'error'" class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <svg *ngIf="selectedFileData[metricId].severity === 'warning'" class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                    </svg>
-                    <svg *ngIf="selectedFileData[metricId].severity === 'info'" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <svg *ngIf="selectedFileData[metricId].severity === 'success'" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <div class="flex-1">
-                      <div *ngFor="let msg of selectedFileData[metricId].messages" 
-                           class="text-sm mb-2 last:mb-0"
-                           [ngClass]="{
-                             'text-red-800': selectedFileData[metricId].severity === 'error',
-                             'text-yellow-800': selectedFileData[metricId].severity === 'warning',
-                             'text-blue-800': selectedFileData[metricId].severity === 'info',
-                             'text-green-800': selectedFileData[metricId].severity === 'success'
-                           }">
-                        {{ msg }}
+                    
+                    <!-- Severity Badge -->
+                    <div class="px-4 py-2 flex items-center justify-between"
+                         [ngClass]="{
+                           'bg-red-100': detailedMsg.severity === 'high' || detailedMsg.severity === 'error',
+                           'bg-yellow-100': detailedMsg.severity === 'medium' || detailedMsg.severity === 'warning',
+                           'bg-blue-100': detailedMsg.severity === 'low' || detailedMsg.severity === 'info',
+                           'bg-green-100': detailedMsg.severity === 'success'
+                         }">
+                      <span class="text-xs font-bold uppercase tracking-wide"
+                            [ngClass]="{
+                              'text-red-700': detailedMsg.severity === 'high' || detailedMsg.severity === 'error',
+                              'text-yellow-700': detailedMsg.severity === 'medium' || detailedMsg.severity === 'warning',
+                              'text-blue-700': detailedMsg.severity === 'low' || detailedMsg.severity === 'info',
+                              'text-green-700': detailedMsg.severity === 'success'
+                            }">
+                        {{ detailedMsg.severity }} Severity
+                      </span>
+                      <span *ngIf="detailedMsg.rule_id" class="text-xs font-mono text-gray-600">
+                        Rule #{{ detailedMsg.rule_id }}
+                      </span>
+                    </div>
+
+                    <!-- Diagnosis -->
+                    <div class="px-4 py-3 bg-white border-t border-gray-200">
+                      <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 flex-shrink-0 mt-0.5"
+                             [ngClass]="{
+                               'text-red-600': detailedMsg.severity === 'high' || detailedMsg.severity === 'error',
+                               'text-yellow-600': detailedMsg.severity === 'medium' || detailedMsg.severity === 'warning',
+                               'text-blue-600': detailedMsg.severity === 'low' || detailedMsg.severity === 'info',
+                               'text-green-600': detailedMsg.severity === 'success'
+                             }"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <div class="flex-1">
+                          <div class="text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Diagnosis</div>
+                          <p class="text-sm text-gray-800">{{ detailedMsg.diagnosis }}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Recommendation -->
+                    <div *ngIf="detailedMsg.recommendation" class="px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-gray-200">
+                      <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                        <div class="flex-1">
+                          <div class="text-xs font-bold text-blue-700 mb-1 uppercase tracking-wide">Recommendation</div>
+                          <p class="text-sm text-blue-900 font-medium">{{ detailedMsg.recommendation }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Key Metrics Grid -->
+                <div class="px-6 py-6">
+                  <div *ngIf="metricId === 'fpc'" class="space-y-4">
+                    <!-- Primary Metrics -->
+                    <div class="grid grid-cols-2 gap-4">
+                      <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                        <div class="text-xs font-semibold text-blue-600 mb-1">COHESION LEVEL</div>
+                        <div class="text-2xl font-bold capitalize"
+                             [ngClass]="{
+                               'text-green-700': selectedFileData[metricId].data.cohesion_level === 'high',
+                               'text-yellow-700': selectedFileData[metricId].data.cohesion_level === 'medium',
+                               'text-red-700': selectedFileData[metricId].data.cohesion_level === 'low',
+                               'text-gray-700': selectedFileData[metricId].data.cohesion_level === 'non_ml_file' || selectedFileData[metricId].data.cohesion_level === 'small_file'
+                             }">
+                          {{ selectedFileData[metricId].data.cohesion_level?.replace('_', ' ') || 'N/A' }}
+                        </div>
+                      </div>
+                      
+                      <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200">
+                        <div class="text-xs font-semibold text-gray-600 mb-1">FILE SIZE (NLOC)</div>
+                        <div class="text-2xl font-bold text-gray-700">
+                          {{ selectedFileData[metricId].data.nloc || 0 }}
+                        </div>
+                        <div class="text-xs text-gray-600 mt-1">
+                          {{ selectedFileData[metricId].data.above_nloc_threshold ? 'Above' : 'Below' }} threshold
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Pipeline Detection Metrics -->
+                    <div class="grid grid-cols-3 gap-4">
+                      <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
+                        <div class="text-xs font-semibold text-indigo-600 mb-1">STAGES DETECTED</div>
+                        <div class="text-2xl font-bold text-indigo-700">
+                          {{ selectedFileData[metricId].data.stages_detected?.length || 0 }}
+                        </div>
+                        <div class="text-xs text-indigo-600 mt-1">Unique: {{ selectedFileData[metricId].data.unique_stages || 0 }}</div>
+                      </div>
+
+                      <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                        <div class="text-xs font-semibold text-purple-600 mb-1">PHASES</div>
+                        <div class="text-2xl font-bold text-purple-700">
+                          {{ selectedFileData[metricId].data.phases_detected?.length || 0 }}
+                        </div>
+                        <div class="text-xs text-purple-600 mt-1">Unique: {{ selectedFileData[metricId].data.unique_phases || 0 }}</div>
+                      </div>
+
+                      <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border border-teal-200">
+                        <div class="text-xs font-semibold text-teal-600 mb-1">ML CONTENT</div>
+                        <div class="text-lg font-bold text-teal-700">
+                          {{ selectedFileData[metricId].data.ml_content ? 'Yes' : 'No' }}
+                        </div>
+                        <div class="text-xs text-teal-600 mt-1">
+                          {{ selectedFileData[metricId].data.is_script_file ? 'Script file' : 'Structured file' }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Detected Stages List -->
+                    <div *ngIf="selectedFileData[metricId].data.stages_detected && selectedFileData[metricId].data.stages_detected.length > 0"
+                         class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+                      <div class="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">Detected Pipeline Stages</div>
+                      <div class="flex flex-wrap gap-2">
+                        <span *ngFor="let stage of selectedFileData[metricId].data.stages_detected"
+                              class="px-3 py-1 text-xs font-medium rounded-full bg-white border border-blue-300 text-blue-700">
+                          {{ stage.replace('_', ' ') }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Detected Phases List -->
+                    <div *ngIf="selectedFileData[metricId].data.phases_detected && selectedFileData[metricId].data.phases_detected.length > 0"
+                         class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200">
+                      <div class="text-xs font-semibold text-purple-700 mb-2 uppercase tracking-wide">Detected Pipeline Phases</div>
+                      <div class="flex flex-wrap gap-2">
+                        <span *ngFor="let phase of selectedFileData[metricId].data.phases_detected"
+                              class="px-3 py-1 text-xs font-medium rounded-full bg-white border border-purple-300 text-purple-700">
+                          {{ phase.replace('_', ' ') }}
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  <div class="space-y-3">
-                    <div *ngFor="let item of getDataItems(selectedFileData[metricId].data)" class="flex items-start gap-3">
-                      <div class="flex-shrink-0 w-32 text-sm font-medium text-gray-700">{{ item.label }}:</div>
-                      <div class="flex-1">
-                        <div *ngIf="!isArray(item.value) && !isObject(item.value)" class="text-sm text-gray-900">
-                          {{ formatValue(item.value) }}
+                  <div *ngIf="metricId === 'lccml'" class="space-y-4">
+                    <!-- Primary Metrics -->
+                    <div class="grid grid-cols-2 gap-4">
+                      <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                        <div class="text-xs font-semibold text-purple-600 mb-1">COHESION LEVEL</div>
+                        <div class="text-2xl font-bold capitalize"
+                             [ngClass]="{
+                               'text-green-700': selectedFileData[metricId].data.cohesion_level === 'high',
+                               'text-yellow-700': selectedFileData[metricId].data.cohesion_level === 'medium',
+                               'text-red-700': selectedFileData[metricId].data.cohesion_level === 'low',
+                               'text-gray-700': selectedFileData[metricId].data.cohesion_level === 'not_applicable' || selectedFileData[metricId].data.cohesion_level === 'no_class'
+                             }">
+                          {{ selectedFileData[metricId].data.cohesion_level?.replace('_', ' ') || 'N/A' }}
                         </div>
-                        <div *ngIf="isArray(item.value)" class="space-y-1">
-                          <div *ngFor="let arrItem of item.value" class="text-sm text-gray-700 flex items-center gap-2">
-                            <svg class="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            {{ formatValue(arrItem) }}
+                      </div>
+
+                      <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
+                        <div class="text-xs font-semibold text-indigo-600 mb-1">LCCML SCORE</div>
+                        <div class="text-2xl font-bold text-indigo-700">
+                          {{ selectedFileData[metricId].data.lccml !== null && selectedFileData[metricId].data.lccml !== undefined 
+                             ? (selectedFileData[metricId].data.lccml * 100).toFixed(1) + '%' 
+                             : 'N/A' }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Connection Metrics -->
+                    <div class="grid grid-cols-3 gap-4">
+                      <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                        <div class="text-xs font-semibold text-blue-600 mb-1">METHODS</div>
+                        <div class="text-2xl font-bold text-blue-700">
+                          {{ selectedFileData[metricId].data.n_methods || 0 }}
+                        </div>
+                        <div class="text-xs text-blue-600 mt-1">In class</div>
+                      </div>
+                      
+                      <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border border-teal-200">
+                        <div class="text-xs font-semibold text-teal-600 mb-1">POSSIBLE PAIRS</div>
+                        <div class="text-2xl font-bold text-teal-700">
+                          {{ selectedFileData[metricId].data.n_possible_pairs || 0 }}
+                        </div>
+                        <div class="text-xs text-teal-600 mt-1">Total combinations</div>
+                      </div>
+
+                      <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                        <div class="text-xs font-semibold text-green-600 mb-1">CONNECTED PAIRS</div>
+                        <div class="text-2xl font-bold text-green-700">
+                          {{ selectedFileData[metricId].data.n_connected_pairs || 0 }}
+                        </div>
+                        <div class="text-xs text-green-600 mt-1">
+                          {{ selectedFileData[metricId].data.n_possible_pairs > 0 
+                             ? ((selectedFileData[metricId].data.n_connected_pairs / selectedFileData[metricId].data.n_possible_pairs) * 100).toFixed(0) + '%' 
+                             : '0%' }} connected
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Connection Breakdown -->
+                    <div *ngIf="selectedFileData[metricId].data.connection_breakdown" 
+                         class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
+                      <div class="text-xs font-semibold text-blue-700 mb-3 uppercase tracking-wide">Connection Breakdown</div>
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div class="bg-white rounded-lg p-3 border border-blue-200 text-center">
+                          <div class="text-xs text-gray-600 mb-1">Method Calls</div>
+                          <div class="text-xl font-bold text-blue-700">
+                            {{ selectedFileData[metricId].data.connection_breakdown.by_method_calls || 0 }}
                           </div>
                         </div>
-                        <div *ngIf="isObject(item.value)" class="bg-gray-50 rounded p-3 text-xs font-mono">
-                          <pre class="whitespace-pre-wrap text-gray-800">{{ formatObject(item.value) }}</pre>
+                        <div class="bg-white rounded-lg p-3 border border-purple-200 text-center">
+                          <div class="text-xs text-gray-600 mb-1">Variables</div>
+                          <div class="text-xl font-bold text-purple-700">
+                            {{ selectedFileData[metricId].data.connection_breakdown.by_variables || 0 }}
+                          </div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 border border-teal-200 text-center">
+                          <div class="text-xs text-gray-600 mb-1">ML Functions</div>
+                          <div class="text-xl font-bold text-teal-700">
+                            {{ selectedFileData[metricId].data.connection_breakdown.by_ml_functions || 0 }}
+                          </div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 border border-indigo-200 text-center">
+                          <div class="text-xs text-gray-600 mb-1">Files</div>
+                          <div class="text-xl font-bold text-indigo-700">
+                            {{ selectedFileData[metricId].data.connection_breakdown.by_files || 0 }}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -233,6 +515,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
   selectedFileData: FileMetricsData = {};
   allMetrics: AnalysisResult[] = [];
   fileMetricsMap: Map<string, FileMetricsData> = new Map();
+  expandedMetricDetails: Set<string> = new Set();
 
   ngOnInit(): void {
     this.processResults();
@@ -282,17 +565,29 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
       
       const fileMetrics = this.fileMetricsMap.get(normalizedPath)!;
       const messages: string[] = [];
+      const detailedMessages: DetailedMessage[] = [];
       let severity: 'error' | 'warning' | 'info' | 'success' = 'info';
 
       // Get messages from metric.messages.by_file (standardized format)
       // Try with and without leading slash
       const fileMessages = (metric.messages as any)?.by_file?.[filePath] || 
                           (metric.messages as any)?.by_file?.[normalizedPath] || [];
+      
       fileMessages.forEach((msg: any) => {
+        // Store detailed message with diagnosis and recommendation separated
+        detailedMessages.push({
+          diagnosis: msg.diagnosis || '',
+          recommendation: msg.recommendation || '',
+          severity: msg.severity || 'info',
+          rule_id: msg.rule_id
+        });
+
+        // Also create simple message for backward compatibility
         const diagnosisText = msg.diagnosis || '';
         const recommendationText = msg.recommendation || '';
         messages.push(`${diagnosisText} ${recommendationText}`.trim());
         
+        // Determine overall severity (highest wins)
         if (msg.severity === 'high' || msg.severity === 'error') {
           severity = 'error';
         } else if (msg.severity === 'medium' && severity !== 'error') {
@@ -324,7 +619,8 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
         category,
         data: fileData,
         severity,
-        messages
+        messages,
+        detailedMessages
       };
     });
   }
@@ -602,6 +898,53 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
 
   onExport(): void {
     this.exportResults.emit();
+  }
+
+  toggleMetricDetails(metricId: string): void {
+    if (this.expandedMetricDetails.has(metricId)) {
+      this.expandedMetricDetails.delete(metricId);
+    } else {
+      this.expandedMetricDetails.add(metricId);
+    }
+  }
+
+  isMetricDetailsExpanded(metricId: string): boolean {
+    return this.expandedMetricDetails.has(metricId);
+  }
+
+  getMetricDescription(metricId: string): string {
+    const metric = this.allMetrics.find(m => m.analyzer_id === metricId);
+    return metric?.documentation?.description || '';
+  }
+
+  getMetricFormula(metricId: string): string | null {
+    const metric = this.allMetrics.find(m => m.analyzer_id === metricId);
+    return metric?.documentation?.formula || null;
+  }
+
+  getMetricIdealRange(metricId: string): any {
+    const metric = this.allMetrics.find(m => m.analyzer_id === metricId);
+    return metric?.documentation?.ideal_range || null;
+  }
+
+  getMetricInterpretation(metricId: string): any {
+    const metric = this.allMetrics.find(m => m.analyzer_id === metricId);
+    return metric?.documentation?.interpretation || null;
+  }
+
+  getMetricInterpretationItems(metricId: string): { range: string, description: string }[] {
+    const interpretation = this.getMetricInterpretation(metricId);
+    if (!interpretation) return [];
+    
+    return Object.entries(interpretation).map(([range, description]) => ({
+      range,
+      description: description as string
+    }));
+  }
+
+  getMetricReferences(metricId: string): string[] {
+    const metric = this.allMetrics.find(m => m.analyzer_id === metricId);
+    return metric?.documentation?.references || [];
   }
 
   Object = Object;
