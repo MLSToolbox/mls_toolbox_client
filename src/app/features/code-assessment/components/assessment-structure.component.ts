@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { TreeStructure, ChildChild } from '@app/core/models/upload-zip.model';
+import { TreeStructure, ChildChild, AutoDetectedPipeline } from '@app/core/models/upload-zip.model';
 import { MetricOption } from '../models/assessment.models';
 
 @Component({
@@ -31,7 +31,7 @@ import { MetricOption } from '../models/assessment.models';
                 
                 <div class="ml-4" *ngIf="projectStructure.children">
                   <ng-container *ngFor="let child of projectStructure.children">
-                    <app-tree-node [node]="child" [level]="1"></app-tree-node>
+                    <app-tree-node [node]="child" [level]="1" [detectedPipeline]="autoDetectedPipeline"></app-tree-node>
                   </ng-container>
                 </div>
               </div>
@@ -147,6 +147,7 @@ import { MetricOption } from '../models/assessment.models';
 })
 export class AssessmentStructureComponent implements OnInit {
   @Input() projectStructure: TreeStructure | null = null;
+  @Input() autoDetectedPipeline: AutoDetectedPipeline | null = null;
   @Input() availableMetrics: MetricOption[] = [];
   @Input() isAnalyzing = false;
   @Output() runAnalysis = new EventEmitter<string[]>();
@@ -236,11 +237,20 @@ export class AssessmentStructureComponent implements OnInit {
               class="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded flex-shrink-0">
           Invalid Syntax
         </span>
+
+        <div *ngIf="!isDirectory && getDetectedStages().length > 0" class="flex gap-1 flex-shrink-0">
+          <span *ngFor="let stage of getDetectedStages()" 
+                class="px-2 py-0.5 text-xs font-medium rounded"
+                [ngClass]="getStageColor(stage)"
+                [title]="'Detected: ' + formatStageName(stage)">
+            {{ formatStageName(stage) }}
+          </span>
+        </div>
       </div>
 
       <div *ngIf="isDirectory && isExpanded && node.children">
         <ng-container *ngFor="let child of node.children">
-          <app-tree-node [node]="child" [level]="level + 1"></app-tree-node>
+          <app-tree-node [node]="child" [level]="level + 1" [detectedPipeline]="detectedPipeline"></app-tree-node>
         </ng-container>
       </div>
     </div>
@@ -250,6 +260,7 @@ export class AssessmentStructureComponent implements OnInit {
 export class TreeNodeComponent {
   @Input() node!: ChildChild;
   @Input() level = 0;
+  @Input() detectedPipeline: AutoDetectedPipeline | null = null;
 
   isExpanded = false;
 
@@ -273,5 +284,37 @@ export class TreeNodeComponent {
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+  }
+
+  getDetectedStages(): string[] {
+    if (!this.detectedPipeline?.detected_stages || this.isDirectory) {
+      return [];
+    }
+
+    const stages: string[] = [];
+    const detectedStages = this.detectedPipeline.detected_stages as any;
+    Object.entries(detectedStages).forEach(([stage, files]) => {
+      if (files && Array.isArray(files)) {
+        if (files.some((f: any) => this.node.path.endsWith(f.file) || f.file.endsWith(this.node.path))) {
+          stages.push(stage);
+        }
+      }
+    });
+    return stages;
+  }
+
+  formatStageName(stage: string): string {
+    return stage.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  }
+
+  getStageColor(stage: string): string {
+    const colors: { [key: string]: string } = {
+      'data_collection': 'bg-blue-100 text-blue-800',
+      'data_cleaning': 'bg-green-100 text-green-800',
+      'feature_engineering': 'bg-purple-100 text-purple-800',
+      'model_training': 'bg-orange-100 text-orange-800',
+      'model_evaluation': 'bg-pink-100 text-pink-800'
+    };
+    return colors[stage] || 'bg-gray-100 text-gray-800';
   }
 }

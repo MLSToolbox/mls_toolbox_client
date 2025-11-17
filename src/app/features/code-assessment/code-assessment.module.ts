@@ -11,7 +11,8 @@ import { AssessmentPageComponent } from "./pages/assessment-page.component";
 import { AssessmentStepperComponent } from "./components/assessment-stepper.component";
 import { AssessmentUploadComponent } from "./components/assessment-upload.component";
 import { AssessmentStructureComponent, TreeNodeComponent } from "./components/assessment-structure.component";
-import { AssessmentResultsComponent } from "./components/assessment-results.component";
+import { AssessmentResultsV2Component } from "./components/assessment-results-v2.component";
+import { AssessmentResultsFinalComponent, TreeNodeClickableComponent } from "./components/assessment-results-final.component";
 
 @NgModule({
   declarations: [
@@ -22,7 +23,9 @@ import { AssessmentResultsComponent } from "./components/assessment-results.comp
     AssessmentUploadComponent,
     AssessmentStructureComponent,
     TreeNodeComponent,
-    AssessmentResultsComponent
+    AssessmentResultsV2Component,
+    AssessmentResultsFinalComponent,
+    TreeNodeClickableComponent
   ],
   imports: [
     CommonModule,

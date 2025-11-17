@@ -52,14 +52,14 @@ export class CodeAssessmentService {
       references: ['https://radon.readthedocs.io/en/latest/intro.html']
     },
     {
-      id: 'pylint_score',
+      id: 'pylint',
       name: 'Code Quality Score',
       description: 'Evaluates code against PEP 8 style guide, detects errors, enforces coding standards, and finds code smells.',
       category: 'quality',
       enabled: true,
       selected: false,
       formula: 'Score = 10.0 - ((float(5 * error + warning + refactor + convention) / statement) * 10)',
-      ideal_range: { min: -Infinity, max: 10.0, optimal: '>8.0', acceptable: '7.0-8.0', warning: '<7.0' },
+      ideal_range: { min: null, max: 10.0, optimal: '>8.0', acceptable: '7.0-8.0', warning: '<7.0' },
       interpretation: {
         '9.0-10.0': 'Excellent - very few issues detected',
         '8.0-8.9': 'Good - minor improvements possible',
@@ -132,7 +132,7 @@ export class CodeAssessmentService {
       ]
     },
     {
-      id: 'pipeline_detection',
+      id: 'pipeline',
       name: 'ML Pipeline Detection',
       description: 'Detects and maps ML pipeline stages in the codebase. Identifies which files and functions belong to different stages.',
       category: 'detection',
@@ -277,13 +277,9 @@ export class CodeAssessmentService {
       currentStep: AssessmentStepEnum.ANALYSIS
     });
 
-    // Map metrics to backend analyzers
-    // 'fpc' metric maps to 'fpc' analyzer which includes file, pipeline, and class analysis
-    const analyzers = metrics.includes('fpc') ? ['fpc'] : metrics;
-
     const analysisData = {
-      analyzers: analyzers,
-      all_files: false, // Only analyze ML pipeline files by default
+      analyzers: metrics,
+      all_files: false,
       pipeline_overrides: {
         file_stages: {},
         excluded_files: []

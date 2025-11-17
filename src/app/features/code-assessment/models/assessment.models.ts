@@ -48,8 +48,8 @@ export interface MetricOption {
   selected: boolean;
   formula?: string;
   ideal_range?: {
-    min?: number;
-    max?: number;
+    min?: number | null;
+    max?: number | null;
     optimal?: string;
     acceptable?: string;
     warning?: string;
