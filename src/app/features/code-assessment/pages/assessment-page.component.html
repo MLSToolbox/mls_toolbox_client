@@ -1,85 +1,90 @@
 <!-- Main Content -->
-<div class="flex flex-col bg-gray-50 min-h-screen">
-  <!-- Page Header - Compact -->
-  <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+<div class="flex flex-col h-screen bg-gray-50">
+  <!-- Integrated Header with Stepper -->
+  <div class="flex-shrink-0 w-full py-4 px-4 border-b border-gray-200" style="background: linear-gradient(to bottom, #f8fafc 0%, #ffffff 100%);">
+    <div class="max-w-7xl mx-auto">
+      <!-- Stepper -->
+      <div class="max-w-4xl mx-auto">
+        <div class="flex items-center justify-between">
+          <ng-container *ngFor="let step of steps; let i = index; let last = last">
+            <div class="flex flex-col items-center relative group">
+              <div 
+                class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 relative"
+                [ngClass]="{
+                  'bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-xl shadow-blue-500/50 scale-110': step.number === state.currentStep,
+                  'bg-gradient-to-br from-green-400 to-green-600 text-white shadow-lg shadow-green-500/30': step.completed && step.number !== state.currentStep,
+                  'bg-white border-2 border-gray-300 text-gray-400': step.number > state.currentStep && !step.completed
+                }">
+                <span *ngIf="step.number === state.currentStep" 
+                      class="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-20"></span>
+                <span *ngIf="!step.completed || step.number === state.currentStep" class="relative z-10">{{ step.number }}</span>
+                <svg *ngIf="step.completed && step.number !== state.currentStep" 
+                     class="w-6 h-6 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+              <span 
+                class="text-xs font-semibold text-center mt-2 transition-all duration-300 max-w-[80px]"
+                [ngClass]="{
+                  'text-blue-700 scale-105': step.number === state.currentStep,
+                  'text-green-600': step.completed && step.number !== state.currentStep,
+                  'text-gray-400': step.number > state.currentStep && !step.completed
+                }">
+                {{ step.label }}
+              </span>
+            </div>
+            <div *ngIf="!last" class="flex-1 h-1 mx-3 rounded-full transition-all duration-500"
+                 [ngClass]="{
+                   'bg-gradient-to-r from-blue-500 to-blue-600': step.completed,
+                   'bg-gray-200': !step.completed
+                 }">
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Area - Flex 1 to fill remaining space -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <!-- Error Alert (Global) -->
+    <div *ngIf="state.error as error" class="flex-shrink-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 w-full">
+      <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div class="flex items-start justify-between">
+          <div class="flex gap-3">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
+            <div>
+              <p class="text-sm font-medium text-red-900">{{ error.message }}</p>
+              <p *ngIf="error.code" class="text-xs text-red-700 mt-1">Error Code: {{ error.code }}</p>
+            </div>
           </div>
-          <div>
-            <h1 class="text-xl font-bold" style="color: rgb(0, 32, 96);">Code Assessment</h1>
-            <p class="text-xs text-gray-600">Python project quality analyzer</p>
-          </div>
+          <button 
+            (click)="onClearError()"
+            class="text-red-600 hover:text-red-800 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
         </div>
-        
-        <!-- Reset Button -->
-        <button 
-          *ngIf="state && (state.uploadedFile || state.sessionId)"
-          (click)="onResetAssessment()"
-          [disabled]="state.isUploading || state.isAnalyzing"
-          class="px-4 py-2 text-xs font-medium text-white rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
-          style="background: linear-gradient(135deg, rgb(0, 32, 96) 0%, rgb(0, 50, 120) 100%);">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-          </svg>
-          New Assessment
-        </button>
       </div>
     </div>
-  </div>
 
-  <!-- Stepper -->
-  <app-assessment-stepper
-    [steps]="steps"
-    [currentStep]="state.currentStep"
-    [isLoading]="state.isUploading || state.isAnalyzing"
-    [stepDescription]="getStepDescription()"
-    (stepChange)="onStepChange($event)">
-  </app-assessment-stepper>
-
-  <!-- Error Alert (Global) -->
-  <div *ngIf="state.error as error" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-      <div class="flex items-start justify-between">
-        <div class="flex gap-3">
-          <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          <div>
-            <p class="text-sm font-medium text-red-900">{{ error.message }}</p>
-            <p *ngIf="error.code" class="text-xs text-red-700 mt-1">Error Code: {{ error.code }}</p>
-          </div>
-        </div>
-        <button 
-          (click)="onClearError()"
-          class="text-red-600 hover:text-red-800 transition-colors">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Content Area -->
-  <div class="pb-8">
     <!-- Step 1: Upload -->
-    <app-assessment-upload
-      *ngIf="state.currentStep === StepEnum.UPLOAD"
-      [uploadedFileName]="state.uploadedFile?.name || null"
-      [isUploading]="state.isUploading"
-      [errorMessage]="getUploadErrorMessage()"
-      [fileSize]="getFileSize()"
-      (fileSelected)="onFileSelected($event)"
-      (reset)="onUploadReset()">
-    </app-assessment-upload>
+    <div *ngIf="state.currentStep === StepEnum.UPLOAD" class="flex-1 flex items-center justify-center bg-gray-50 overflow-auto">
+      <app-assessment-upload
+        [uploadedFileName]="state.uploadedFile?.name || null"
+        [isUploading]="state.isUploading"
+        [errorMessage]="getUploadErrorMessage()"
+        [fileSize]="getFileSize()"
+        (fileSelected)="onFileSelected($event)"
+        (reset)="onUploadReset()">
+      </app-assessment-upload>
+    </div>
 
     <!-- Step 2: Project Structure & Metrics Selection -->
-    <div *ngIf="state.currentStep === StepEnum.STRUCTURE" class="py-8 bg-gray-50">
+    <div *ngIf="state.currentStep === StepEnum.STRUCTURE" class="flex-1 bg-gray-50 overflow-auto">
       <app-assessment-structure
         [projectStructure]="state.uploadResponse?.tree_structure || null"
         [autoDetectedPipeline]="state.uploadResponse?.auto_detected_pipeline || null"
@@ -91,8 +96,8 @@
     </div>
     
     <!-- Step 3: Analysis -->
-    <div *ngIf="state.currentStep === StepEnum.ANALYSIS" class="flex items-center justify-center py-16 px-8 bg-gray-50">
-      <div class="text-center max-w-md">
+    <div *ngIf="state.currentStep === StepEnum.ANALYSIS" class="flex-1 flex items-center justify-center bg-gray-50 overflow-auto">
+      <div class="text-center max-w-md px-8">
         <div class="mb-6">
           <div class="w-24 h-24 mx-auto rounded-full bg-blue-100 flex items-center justify-center">
             <svg class="w-12 h-12 text-blue-600 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -114,7 +119,7 @@
     </div>
 
     <!-- Step 4: Results -->
-    <div *ngIf="state.currentStep === StepEnum.RESULTS" class="bg-gray-50">
+    <div *ngIf="state.currentStep === StepEnum.RESULTS" class="flex-1 bg-gray-50 overflow-hidden">
       <app-assessment-results-final
         [results]="state.analysisResponse"
         [projectStructure]="state.uploadResponse?.tree_structure || null"

@@ -27,8 +27,28 @@ interface FileMetricsData {
     <div class="flex h-screen bg-gray-50">
       
       <div class="w-80 bg-white border-r border-gray-200 flex flex-col overflow-hidden">
-        <div class="border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50">
-          <h3 class="text-lg font-bold text-gray-900 mb-1">Project Structure</h3>
+        <div class="border-b border-gray-200 px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <!-- New Analysis Button -->
+          <button
+            (click)="onNewAnalysis()"
+            class="w-full px-3 py-2 mb-3 text-sm font-medium text-white rounded-lg transition-all hover:shadow-lg flex items-center justify-center gap-2"
+            style="background: linear-gradient(135deg, rgb(0, 32, 96) 0%, rgb(0, 50, 120) 100%);">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            New Analysis
+          </button>
+          
+          <!-- Download Results Button -->
+          <button
+            class="w-full px-3 py-2 mb-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            Download Results
+          </button>
+          
+          <h3 class="text-sm font-bold text-gray-900 mb-1">Project Structure</h3>
           <p class="text-xs text-gray-600">Click on any file to see metrics</p>
         </div>
         
@@ -53,29 +73,6 @@ interface FileMetricsData {
                 </app-tree-node-clickable>
               </ng-container>
             </div>
-          </div>
-        </div>
-
-        <div class="border-t border-gray-200 px-6 py-4 bg-gray-50">
-          <div class="flex gap-2">
-            <button
-              (click)="onExport()"
-              class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-              </svg>
-              Export
-            </button>
-            
-            <button
-              (click)="onNewAnalysis()"
-              class="flex-1 px-4 py-2 text-sm font-medium text-white rounded-lg transition-all hover:shadow-lg flex items-center justify-center gap-2"
-              style="background: linear-gradient(135deg, rgb(0, 32, 96) 0%, rgb(0, 50, 120) 100%);">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-              </svg>
-              New
-            </button>
           </div>
         </div>
       </div>
