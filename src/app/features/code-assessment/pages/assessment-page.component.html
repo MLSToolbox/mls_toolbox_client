@@ -78,13 +78,15 @@
       (reset)="onUploadReset()">
     </app-assessment-upload>
 
-    <!-- Step 2: Metrics Selection -->
-    <div *ngIf="state.currentStep === StepEnum.METRICS" 
-         class="flex items-center justify-center py-12 px-8 bg-gray-50">
-      <app-assessment-metrics
+    <!-- Step 2: Project Structure & Metrics Selection -->
+    <div *ngIf="state.currentStep === StepEnum.STRUCTURE" class="py-8 bg-gray-50">
+      <app-assessment-structure
+        [projectStructure]="state.uploadResponse?.tree_structure || null"
+        [availableMetrics]="availableMetrics"
+        [isAnalyzing]="state.isAnalyzing"
         (runAnalysis)="onRunAnalysis($event)"
         (back)="onBackToUpload()">
-      </app-assessment-metrics>
+      </app-assessment-structure>
     </div>
     
     <!-- Step 3: Analysis -->

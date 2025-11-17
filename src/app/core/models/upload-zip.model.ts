@@ -4,14 +4,14 @@ export interface UploadZipResponse {
   tree_structure: TreeStructure;
 }
 
-interface AutoDetectedPipeline {
+export interface AutoDetectedPipeline {
   detected_stages: DetectedStages;
   files_analyzed: number;
   is_valid_pipeline: boolean;
   missing_stages: any[];
 }
 
-interface DetectedStages {
+export interface DetectedStages {
   data_cleaning: DataCleaning[];
   data_collection: DataCleaning[];
   data_labeling: DataCleaning[];
@@ -20,37 +20,37 @@ interface DetectedStages {
   model_training: DataCleaning[];
 }
 
-interface DataCleaning {
+export interface DataCleaning {
   evidences: Evidence[];
   file: string;
 }
 
-interface Evidence {
+export interface Evidence {
   method: Method;
   value: string;
 }
 
-enum Method {
+export enum Method {
   Filename = "filename",
   Import = "import",
   Keyword = "keyword",
 }
 
-interface TreeStructure {
+export interface TreeStructure {
   children: TreeStructureChild[];
   name: string;
   path: string;
   type: Type;
 }
 
-interface TreeStructureChild {
+export interface TreeStructureChild {
   children: ChildChild[];
   name: string;
   path: string;
   type: Type;
 }
 
-interface ChildChild {
+export interface ChildChild {
   name: string;
   path: string;
   size?: number;
@@ -59,7 +59,7 @@ interface ChildChild {
   children?: ChildChild[];
 }
 
-enum Type {
+export enum Type {
   Directory = "directory",
   File = "file",
 }

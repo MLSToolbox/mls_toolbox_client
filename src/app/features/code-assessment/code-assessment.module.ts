@@ -10,7 +10,7 @@ import { AssessmentPageComponent } from "./pages/assessment-page.component";
 // Components
 import { AssessmentStepperComponent } from "./components/assessment-stepper.component";
 import { AssessmentUploadComponent } from "./components/assessment-upload.component";
-import { AssessmentMetricsComponent } from "./components/assessment-metrics.component";
+import { AssessmentStructureComponent, TreeNodeComponent } from "./components/assessment-structure.component";
 import { AssessmentResultsComponent } from "./components/assessment-results.component";
 
 @NgModule({
@@ -20,7 +20,8 @@ import { AssessmentResultsComponent } from "./components/assessment-results.comp
     // Components
     AssessmentStepperComponent,
     AssessmentUploadComponent,
-    AssessmentMetricsComponent,
+    AssessmentStructureComponent,
+    TreeNodeComponent,
     AssessmentResultsComponent
   ],
   imports: [

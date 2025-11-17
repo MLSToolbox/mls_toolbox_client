@@ -26,10 +26,12 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
   
   steps: AssessmentStep[] = [
     { number: 1, label: 'Upload Code', completed: false, icon: 'upload' },
-    { number: 2, label: 'Choose Metrics', completed: false, icon: 'sliders' },
+    { number: 2, label: 'Project & Metrics', completed: false, icon: 'folder' },
     { number: 3, label: 'Analysis', completed: false, icon: 'activity' },
     { number: 4, label: 'Results', completed: false, icon: 'check-circle' }
   ];
+
+  availableMetrics = this.assessmentService.getAvailableMetrics();
 
   // Expose enum to template
   readonly StepEnum = AssessmentStepEnum;
@@ -211,8 +213,8 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
     switch (this.state.currentStep) {
       case AssessmentStepEnum.UPLOAD:
         return 'Upload your Python project as a ZIP file';
-      case AssessmentStepEnum.METRICS:
-        return 'Select the metrics you want to analyze';
+      case AssessmentStepEnum.STRUCTURE:
+        return 'Review project structure and select metrics';
       case AssessmentStepEnum.ANALYSIS:
         return 'Running quality assessment on your code';
       case AssessmentStepEnum.RESULTS:

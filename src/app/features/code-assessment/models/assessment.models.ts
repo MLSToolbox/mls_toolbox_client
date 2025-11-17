@@ -34,7 +34,7 @@ export interface AssessmentError {
 
 export enum AssessmentStepEnum {
   UPLOAD = 1,
-  METRICS = 2,
+  STRUCTURE = 2,
   ANALYSIS = 3,
   RESULTS = 4
 }
@@ -46,4 +46,14 @@ export interface MetricOption {
   category: string;
   enabled: boolean;
   selected: boolean;
+  formula?: string;
+  ideal_range?: {
+    min?: number;
+    max?: number;
+    optimal?: string;
+    acceptable?: string;
+    warning?: string;
+  };
+  interpretation?: { [key: string]: string };
+  references?: string[];
 }
