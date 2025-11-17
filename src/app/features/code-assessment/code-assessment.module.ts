@@ -1,29 +1,37 @@
 import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { HttpClientModule } from "@angular/common/http";
 import { CodeAssessmentRoutingModule } from "./code-assessment-routing.module";
-import { CodeAssessComponent } from "./components/code-assess/code-assess.component";
-import { CodeAssessFetchingComponent } from "./components/code-assess-fetching/code-assess-fetching.component";
-import { CodeAssessResponseComponent } from "./components/code-assess-response/code-assess-response.component";
-import { KnobModule } from "primeng/knob";
-import { TableModule } from "primeng/table";
-import { FormsModule } from "@angular/forms";
-import { ButtonModule } from "primeng/button";
-import { SharedModule } from "@app/shared/shared.module";
+import { SharedModule } from "@shared/shared.module";
+
+// Pages
+import { AssessmentPageComponent } from "./pages/assessment-page.component";
+
+// Components
+import { AssessmentStepperComponent } from "./components/assessment-stepper.component";
+import { AssessmentUploadComponent } from "./components/assessment-upload.component";
+import { AssessmentStructureComponent, TreeNodeComponent } from "./components/assessment-structure.component";
+import { AssessmentResultsV2Component } from "./components/assessment-results-v2.component";
+import { AssessmentResultsFinalComponent, TreeNodeClickableComponent } from "./components/assessment-results-final.component";
 
 @NgModule({
   declarations: [
-    CodeAssessComponent,         
-    CodeAssessFetchingComponent, 
-    CodeAssessResponseComponent, 
+    // Pages
+    AssessmentPageComponent,
+    // Components
+    AssessmentStepperComponent,
+    AssessmentUploadComponent,
+    AssessmentStructureComponent,
+    TreeNodeComponent,
+    AssessmentResultsV2Component,
+    AssessmentResultsFinalComponent,
+    TreeNodeClickableComponent
   ],
   imports: [
     CommonModule,
+    HttpClientModule,
     SharedModule,
-    FormsModule,
-    ButtonModule,
-    KnobModule,
-    TableModule,
-    CodeAssessmentRoutingModule
+    CodeAssessmentRoutingModule,
   ],
 })
 export class CodeAssessmentModule {}

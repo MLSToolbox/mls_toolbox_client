@@ -10,6 +10,9 @@
   --color-primary: rgb(0, 32, 96);        /* Azul oscuro del header */
   --color-primary-light: rgb(153, 204, 204); /* Azul claro del logo */
   --color-primary-dark: rgb(0, 20, 60);      /* Versión más oscura del primary */
+  --color-accent-purple: #783ff2;            /* Morado de botones */
+  --color-accent-purple-hover: #6835d1;      /* Morado hover */
+  --color-accent-green: #bfed54;             /* Verde del indicador */
   
   /* Neutral Colors - Para backgrounds y textos */
   --color-white: #ffffff;
@@ -23,6 +26,7 @@
   --color-gray-700: #404040;
   --color-gray-800: #262626;
   --color-gray-900: #171717;
+  --color-black: #050505;
   
   /* Text Colors */
   --color-text-primary: var(--color-gray-900);
@@ -38,6 +42,12 @@
   --color-border-light: var(--color-gray-200);
   --color-border-medium: var(--color-gray-300);
   --color-border-inverse: var(--color-white);
+  
+  /* Status Colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
 }
 
 /* ===================================================================
@@ -126,6 +136,56 @@
   --transition-slow: 0.5s ease-in-out;
 }
 
+.code-assess-layout,
+.frame,
+.frame-4,
+.frame-6,
+.frame-7,
+.frame-8,
+.frame-12,
+.frame-16 .empty-state,
+.frame-16 .project-preview {
+  transition: background-color var(--transition-base), 
+              border-color var(--transition-base),
+              color var(--transition-base);
+}
+
+/* ===================================================================
+   THEME TOGGLE BUTTON - Botón para cambiar tema
+   =================================================================== */
+.theme-toggle-btn {
+  position: fixed;
+  top: 30px;
+  right: 30px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: var(--code-assess-card-bg);
+  border: 2px solid var(--code-assess-card-border);
+  box-shadow: var(--code-assess-card-shadow);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-fixed);
+  transition: all var(--transition-fast);
+}
+
+.theme-toggle-btn:hover {
+  transform: scale(1.1) rotate(15deg);
+  box-shadow: 0 4px 12px rgba(120, 63, 242, 0.3);
+}
+
+.theme-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.theme-toggle-btn svg {
+  width: 24px;
+  height: 24px;
+  fill: var(--code-assess-text-primary);
+  transition: fill var(--transition-fast);
+}
 /* ===================================================================
    Z-INDEX SCALE
    =================================================================== */

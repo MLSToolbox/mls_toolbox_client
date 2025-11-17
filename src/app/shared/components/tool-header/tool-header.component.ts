@@ -3,10 +3,10 @@ import { Component, Input } from '@angular/core';
 @Component({
   selector: 'app-tool-header',
   templateUrl: './tool-header.component.html',
-  styleUrl: './tool-header.component.css'
+  standalone: false
 })
 export class ToolHeaderComponent {
-  @Input() toolName!: string;
-  @Input() toolDescription?: string;
-  @Input() iconClass?: string;
+  @Input() toolName = '';
+  @Input() toolDescription = '';
+  @Input() iconClass = '';
 }

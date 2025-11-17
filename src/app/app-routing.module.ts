@@ -14,11 +14,6 @@ const routes: Routes = [
       import("./features/home/home.module").then((m) => m.HomeModule),
   },
   {
-    path: "about",
-    loadChildren: () =>
-      import("./features/home/about.module").then((m) => m.AboutModule),
-  },
-  {
     path: "pipeline_generator",
     loadChildren: () =>
       import("./features/graph-editor/graph-editor.module").then(

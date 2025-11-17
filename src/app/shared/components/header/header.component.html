@@ -1,21 +1,43 @@
-<header class="header-container">
-  <div class="logo-section">
-    <a routerLink="/home" class="logo-link">
-      <img
-        class="logo-image"
-        src="../../assets/horizontal_negativo.png"
-        alt="MLS Toolbox"
-      />
-    </a>
+<nav class="bg-white border-b border-gray-100 sticky top-0 z-50 backdrop-blur-sm bg-white/95">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <!-- Logo y Título -->
+      <div class="flex items-center gap-3">
+        <a [routerLink]="['/']" class="flex items-center gap-3 group cursor-pointer">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:scale-105" 
+               style="background: linear-gradient(135deg, rgb(0, 32, 96) 0%, rgb(0, 50, 120) 100%);">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+            </svg>
+          </div>
+          <div>
+            <span class="text-xl font-bold tracking-tight" style="color: rgb(0, 32, 96);">MLS Toolbox</span>
+            <div class="h-0.5 w-0 group-hover:w-full transition-all duration-300 rounded-full" style="background-color: rgb(153, 204, 204);"></div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Navegación -->
+      <div class="flex gap-2">
+        <a 
+          [routerLink]="['/']" 
+          routerLinkActive="nav-active"
+          [routerLinkActiveOptions]="{exact: true}"
+          class="px-5 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-gray-50 relative overflow-hidden group"
+          style="color: rgb(0, 32, 96);">
+          <span class="relative z-10">Home</span>
+          <div class="absolute bottom-0 left-0 w-full h-0.5 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" 
+               style="background-color: rgb(153, 204, 204);"></div>
+        </a>
+        <button 
+          (click)="navigateToWiki()"
+          class="px-5 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-gray-50 relative overflow-hidden group"
+          style="color: rgb(0, 32, 96);">
+          <span class="relative z-10">About Us</span>
+          <div class="absolute bottom-0 left-0 w-full h-0.5 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" 
+               style="background-color: rgb(153, 204, 204);"></div>
+        </button>
+      </div>
+    </div>
   </div>
-  <nav>
-    <ul class="nav-bar">
-      <li>
-        <a routerLink="/home" routerLinkActive="active" class="nav-item-link">Home</a>
-      </li>
-      <li>
-        <a routerLink="/about" routerLinkActive="active" class="nav-item-link">About</a>
-      </li>
-    </ul>
-  </nav>
-</header>
+</nav>

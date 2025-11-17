@@ -1,5 +1,12 @@
+/* Imports primero (requerido por CSS) */
 @import './styles/base.css';
 
+/* Tailwind CSS directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos globales del proyecto */
 html, body {
   height: 100%;
 }

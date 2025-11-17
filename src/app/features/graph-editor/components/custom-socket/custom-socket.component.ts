@@ -5,7 +5,7 @@ import {
   ChangeDetectorRef,
   OnChanges,
 } from "@angular/core";
-import { ConfigurationService } from "@app/core";
+import { GraphEditorService } from "@app/core";
 
 @Component({
   selector: "app-custom-socket",
@@ -25,13 +25,13 @@ export class CustomSocketComponent implements OnChanges {
 
   constructor(
     private cdr: ChangeDetectorRef,
-    private configService: ConfigurationService
+    private editorService: GraphEditorService
   ) {
     this.cdr.detach();
   }
 
   ngOnChanges(): void {
-    let config = this.configService.getSocket(this.data.name);
+    let config = this.editorService.getSocket(this.data.name);
     this.custom_background = config["background-color"];
     this.custom_border = config["border-color"];
     this.cdr.detectChanges();

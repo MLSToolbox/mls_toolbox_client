@@ -1,5 +1,5 @@
 import { Component, HostListener } from "@angular/core";
-import { PanelFocusService } from "@app/core";
+import { GraphEditorService } from "@app/core";
 
 @Component({
   selector: "app-focus-handler",
@@ -7,10 +7,10 @@ import { PanelFocusService } from "@app/core";
   styleUrl: "./focus-handler.component.css",
 })
 export class FocusHandlerComponent {
-  constructor(private focusService: PanelFocusService) {}
+  constructor(private editorService: GraphEditorService) {}
 
   @HostListener("document:keyup", ["$event"])
   keyEvent(event: KeyboardEvent) {
-    this.focusService.keyUp(event);
+    this.editorService.keyUp(event);
   }
 }

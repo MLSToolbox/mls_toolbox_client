@@ -11,12 +11,12 @@ export class TemplateDialogComponent implements OnInit {
   availableTemplates: any[] = [];
 
   constructor(
-    public graphEditorService: GraphEditorService,
+    public editorService: GraphEditorService,
     private ref: DynamicDialogRef
   ) {}
 
   ngOnInit(): void {
-    this.availableTemplates = this.graphEditorService.getAvailableTemplates();
+    this.availableTemplates = this.editorService.getAvailableTemplates();
   }
 
   close(path: string) {
