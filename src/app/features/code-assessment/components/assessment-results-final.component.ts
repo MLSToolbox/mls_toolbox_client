@@ -143,55 +143,94 @@ interface FileMetricsData {
               <p class="text-yellow-700 text-sm mt-1">This {{ selectedNodeType }} was not analyzed or does not contain Python files</p>
             </div>
 
+
             <div class="space-y-6">
               <div *ngFor="let metricId of getMetricIds()" 
-                   class="bg-white rounded-xl border shadow-lg overflow-hidden"
+                   class="bg-white rounded-xl border shadow-lg overflow-hidden transition-all"
                    [ngClass]="{
-                     'border-red-200': selectedFileData[metricId].severity === 'error',
-                     'border-yellow-200': selectedFileData[metricId].severity === 'warning',
-                     'border-blue-200': selectedFileData[metricId].severity === 'info',
-                     'border-green-200': selectedFileData[metricId].severity === 'success',
-                     'border-gray-200': !selectedFileData[metricId].severity
+                     'border-emerald-300': getCohesionLevel(metricId) === 'very_high' || getCohesionLevel(metricId) === 'excellent',
+                     'border-green-200': getCohesionLevel(metricId) === 'high' || getCohesionLevel(metricId) === 'good',
+                     'border-yellow-200': getCohesionLevel(metricId) === 'medium' || getCohesionLevel(metricId) === 'moderate',
+                     'border-orange-200': getCohesionLevel(metricId) === 'low',
+                     'border-red-200': getCohesionLevel(metricId) === 'very_low',
+                     'border-gray-200': !getCohesionLevel(metricId)
                    }">
                 
-                <!-- Header with gradient -->
-                <div class="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
+                <!-- Collapsible Header -->
+                <div 
+                  class="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 cursor-pointer hover:from-blue-100 hover:to-indigo-100 transition-colors"
+                  (click)="toggleMetricCollapse(metricId)">
                   <div class="flex items-center justify-between">
-                    <div class="flex-1">
-                      <div class="flex items-center gap-3 mb-2">
-                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                        <h3 class="text-xl font-bold text-gray-900">{{ selectedFileData[metricId].metricName }}</h3>
+                    <div class="flex items-center gap-4 flex-1">
+                      <!-- Collapse/Expand Icon -->
+                      <svg class="w-5 h-5 text-gray-600 transition-transform" 
+                           [class.rotate-90]="!isMetricCollapsed(metricId)"
+                           fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                      </svg>
+                      
+                      <div class="flex-1">
+                        <div class="flex items-center gap-3">
+                          <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                          </svg>
+                          <h3 class="text-xl font-bold text-gray-900">{{ selectedFileData[metricId].metricName }}</h3>
+                        </div>
                       </div>
-                      <p class="text-sm text-gray-600 mb-2">
-                        {{ getMetricDescription(metricId) }}
-                      </p>
-                      <button 
-                        (click)="toggleMetricDetails(metricId)"
-                        class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-blue-700 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        {{ isMetricDetailsExpanded(metricId) ? 'Hide Details' : 'Learn More' }}
-                      </button>
                     </div>
                     
-                    <!-- Score Badge -->
-                    <div *ngIf="selectedFileData[metricId].score !== undefined" 
-                         class="flex flex-col items-center justify-center w-24 h-24 rounded-full shadow-lg"
-                         [ngClass]="{
-                           'bg-gradient-to-br from-red-400 to-red-600': selectedFileData[metricId].score! < 4,
-                           'bg-gradient-to-br from-yellow-400 to-yellow-600': selectedFileData[metricId].score! >= 4 && selectedFileData[metricId].score! < 7,
-                           'bg-gradient-to-br from-green-400 to-green-600': selectedFileData[metricId].score! >= 7
-                         }">
-                      <div class="text-3xl font-bold text-white">
-                        {{ selectedFileData[metricId].score!.toFixed(1) }}
+                    <!-- Score/Cohesion Badge -->
+                    <div class="flex items-center gap-3">
+                      <!-- Score Badge (if available) -->
+                      <div *ngIf="selectedFileData[metricId].score !== undefined" 
+                           class="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md"
+                           [ngClass]="{
+                             'bg-gradient-to-br from-red-500 to-red-700': selectedFileData[metricId].score! < 3,
+                             'bg-gradient-to-br from-orange-400 to-orange-600': selectedFileData[metricId].score! >= 3 && selectedFileData[metricId].score! < 5,
+                             'bg-gradient-to-br from-yellow-400 to-yellow-600': selectedFileData[metricId].score! >= 5 && selectedFileData[metricId].score! < 7,
+                             'bg-gradient-to-br from-green-400 to-green-600': selectedFileData[metricId].score! >= 7 && selectedFileData[metricId].score! < 9,
+                             'bg-gradient-to-br from-emerald-500 to-emerald-700': selectedFileData[metricId].score! >= 9
+                           }">
+                        <div class="text-2xl font-bold text-white">
+                          {{ selectedFileData[metricId].score!.toFixed(1) }}
+                        </div>
+                        <div class="text-xs text-white opacity-90">/10</div>
                       </div>
-                      <div class="text-xs text-white opacity-90">/ 10</div>
+                      
+                      <!-- Cohesion Badge (if available and no score) -->
+                      <div *ngIf="selectedFileData[metricId].score === undefined && getCohesionLevel(metricId)" 
+                           class="px-4 py-2 rounded-lg shadow-md font-bold text-white capitalize"
+                           [ngClass]="{
+                             'bg-gradient-to-br from-emerald-500 to-emerald-700': getCohesionLevel(metricId) === 'very_high' || getCohesionLevel(metricId) === 'excellent',
+                             'bg-gradient-to-br from-green-400 to-green-600': getCohesionLevel(metricId) === 'high' || getCohesionLevel(metricId) === 'good',
+                             'bg-gradient-to-br from-yellow-400 to-yellow-600': getCohesionLevel(metricId) === 'medium' || getCohesionLevel(metricId) === 'moderate',
+                             'bg-gradient-to-br from-orange-400 to-orange-600': getCohesionLevel(metricId) === 'low',
+                             'bg-gradient-to-br from-red-500 to-red-700': getCohesionLevel(metricId) === 'very_low',
+                             'bg-gradient-to-br from-gray-600 to-gray-800': getCohesionLevel(metricId) === 'not_applicable' || getCohesionLevel(metricId) === 'non_ml_file' || getCohesionLevel(metricId) === 'small_file' || getCohesionLevel(metricId) === 'no_class'
+                           }">
+                        {{ getCohesionLevel(metricId)?.replace('_', ' ') }}
+                      </div>
                     </div>
                   </div>
                 </div>
+
+                
+                <!-- Collapsible Content -->
+                <div *ngIf="!isMetricCollapsed(metricId)" class="transition-all">
+                  <!-- Description and Learn More Button -->
+                  <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                    <p class="text-sm text-gray-600 mb-3">
+                      {{ getMetricDescription(metricId) }}
+                    </p>
+                    <button 
+                      (click)="toggleMetricDetails(metricId); $event.stopPropagation()"
+                      class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-blue-700 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      {{ isMetricDetailsExpanded(metricId) ? 'Hide Details' : 'Learn More' }}
+                    </button>
+                  </div>
 
                 <!-- Expanded Metric Documentation -->
                 <div *ngIf="isMetricDetailsExpanded(metricId)" class="mx-6 mt-6 bg-gradient-to-br from-gray-50 to-blue-50 rounded-lg border-2 border-blue-200 overflow-hidden">
@@ -334,9 +373,11 @@ interface FileMetricsData {
                         <div class="text-xs font-semibold text-blue-600 mb-1">COHESION LEVEL</div>
                         <div class="text-2xl font-bold capitalize"
                              [ngClass]="{
+                               'text-emerald-700': selectedFileData[metricId].data.cohesion_level === 'very_high',
                                'text-green-700': selectedFileData[metricId].data.cohesion_level === 'high',
-                               'text-yellow-700': selectedFileData[metricId].data.cohesion_level === 'medium',
-                               'text-red-700': selectedFileData[metricId].data.cohesion_level === 'low',
+                               'text-yellow-600': selectedFileData[metricId].data.cohesion_level === 'medium',
+                               'text-orange-600': selectedFileData[metricId].data.cohesion_level === 'low',
+                               'text-red-700': selectedFileData[metricId].data.cohesion_level === 'very_low',
                                'text-gray-700': selectedFileData[metricId].data.cohesion_level === 'non_ml_file' || selectedFileData[metricId].data.cohesion_level === 'small_file'
                              }">
                           {{ selectedFileData[metricId].data.cohesion_level?.replace('_', ' ') || 'N/A' }}
@@ -415,9 +456,11 @@ interface FileMetricsData {
                         <div class="text-xs font-semibold text-purple-600 mb-1">COHESION LEVEL</div>
                         <div class="text-2xl font-bold capitalize"
                              [ngClass]="{
+                               'text-emerald-700': selectedFileData[metricId].data.cohesion_level === 'very_high',
                                'text-green-700': selectedFileData[metricId].data.cohesion_level === 'high',
-                               'text-yellow-700': selectedFileData[metricId].data.cohesion_level === 'medium',
-                               'text-red-700': selectedFileData[metricId].data.cohesion_level === 'low',
+                               'text-yellow-600': selectedFileData[metricId].data.cohesion_level === 'medium',
+                               'text-orange-600': selectedFileData[metricId].data.cohesion_level === 'low',
+                               'text-red-700': selectedFileData[metricId].data.cohesion_level === 'very_low',
                                'text-gray-700': selectedFileData[metricId].data.cohesion_level === 'not_applicable' || selectedFileData[metricId].data.cohesion_level === 'no_class'
                              }">
                           {{ selectedFileData[metricId].data.cohesion_level?.replace('_', ' ') || 'N/A' }}
@@ -505,9 +548,11 @@ interface FileMetricsData {
                         <div class="text-xs font-semibold text-orange-600 mb-1">COHESION LEVEL</div>
                         <div class="text-2xl font-bold capitalize"
                              [ngClass]="{
-                               'text-green-700': selectedFileData[metricId].data.cohesion_level === 'excellent' || selectedFileData[metricId].data.cohesion_level === 'good',
-                               'text-yellow-700': selectedFileData[metricId].data.cohesion_level === 'moderate',
-                               'text-red-700': selectedFileData[metricId].data.cohesion_level === 'low' || selectedFileData[metricId].data.cohesion_level === 'very_low',
+                               'text-emerald-700': selectedFileData[metricId].data.cohesion_level === 'excellent',
+                               'text-green-700': selectedFileData[metricId].data.cohesion_level === 'good',
+                               'text-yellow-600': selectedFileData[metricId].data.cohesion_level === 'moderate',
+                               'text-orange-600': selectedFileData[metricId].data.cohesion_level === 'low',
+                               'text-red-700': selectedFileData[metricId].data.cohesion_level === 'very_low',
                                'text-gray-700': selectedFileData[metricId].data.cohesion_level === 'not_applicable'
                              }">
                           {{ selectedFileData[metricId].data.cohesion_level?.replace('_', ' ') || 'N/A' }}
@@ -561,9 +606,11 @@ interface FileMetricsData {
                         <div class="text-xs font-semibold text-pink-600 mb-1">COHESION LEVEL</div>
                         <div class="text-2xl font-bold capitalize"
                              [ngClass]="{
-                               'text-green-700': selectedFileData[metricId].data.cohesion_level === 'excellent' || selectedFileData[metricId].data.cohesion_level === 'good',
-                               'text-yellow-700': selectedFileData[metricId].data.cohesion_level === 'moderate',
-                               'text-red-700': selectedFileData[metricId].data.cohesion_level === 'low' || selectedFileData[metricId].data.cohesion_level === 'very_low',
+                               'text-emerald-700': selectedFileData[metricId].data.cohesion_level === 'excellent',
+                               'text-green-700': selectedFileData[metricId].data.cohesion_level === 'good',
+                               'text-yellow-600': selectedFileData[metricId].data.cohesion_level === 'moderate',
+                               'text-orange-600': selectedFileData[metricId].data.cohesion_level === 'low',
+                               'text-red-700': selectedFileData[metricId].data.cohesion_level === 'very_low',
                                'text-gray-700': selectedFileData[metricId].data.cohesion_level === 'not_applicable'
                              }">
                           {{ selectedFileData[metricId].data.cohesion_level?.replace('_', ' ') || 'N/A' }}
@@ -632,6 +679,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
   fileMetricsMap: Map<string, FileMetricsData> = new Map();
   pathsWithMetrics: Set<string> = new Set();
   expandedMetricDetails: Set<string> = new Set();
+  collapsedMetrics: Set<string> = new Set(); // Track collapsed metrics
 
   ngOnInit(): void {
     this.processResults();
@@ -647,6 +695,12 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     this.allMetrics = Object.values(this.results.results);
     this.fileMetricsMap.clear();
     this.pathsWithMetrics.clear();
+
+    // Initialize all metrics as collapsed by default
+    this.collapsedMetrics.clear();
+    this.allMetrics.forEach(metric => {
+      this.collapsedMetrics.add(metric.analyzer_id);
+    });
 
     this.allMetrics.forEach(metric => {
       const metricId = metric.analyzer_id;
@@ -1098,8 +1152,8 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     this.newAnalysis.emit();
   }
 
-  onExport(): void {
-    this.exportResults.emit();
+  isMetricDetailsExpanded(metricId: string): boolean {
+    return this.expandedMetricDetails.has(metricId);
   }
 
   toggleMetricDetails(metricId: string): void {
@@ -1110,8 +1164,32 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     }
   }
 
-  isMetricDetailsExpanded(metricId: string): boolean {
-    return this.expandedMetricDetails.has(metricId);
+  isMetricCollapsed(metricId: string): boolean {
+    return this.collapsedMetrics.has(metricId);
+  }
+
+  toggleMetricCollapse(metricId: string): void {
+    if (this.collapsedMetrics.has(metricId)) {
+      this.collapsedMetrics.delete(metricId);
+    } else {
+      this.collapsedMetrics.add(metricId);
+    }
+  }
+
+  getCohesionLevel(metricId: string): string | null {
+    const data = this.selectedFileData[metricId]?.data;
+    if (!data) return null;
+
+    // Check for cohesion_level property in the data
+    if (data.cohesion_level) {
+      return data.cohesion_level;
+    }
+
+    return null;
+  }
+
+  onExportResults(): void {
+    this.exportResults.emit();
   }
 
   getMetricDescription(metricId: string): string {
