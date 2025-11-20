@@ -231,8 +231,12 @@ export class AssessmentStructureComponent implements OnInit {
       // If manual overrides exist, use them and disable all_files
       if (Object.keys(this.manualFileStages).length > 0) {
         payload.all_files = false;
+
+        // Merge auto-detected stages with manual overrides
+        const mergedStages = this.getMergedStages();
+
         payload.pipeline_overrides = {
-          file_stages: this.manualFileStages,
+          file_stages: mergedStages,
           excluded_files: []
         };
       }
@@ -241,16 +245,68 @@ export class AssessmentStructureComponent implements OnInit {
     }
   }
 
+  private getMergedStages(): { [key: string]: string[] } {
+    const merged: { [key: string]: string[] } = {};
+
+    // 1. Populate with auto-detected stages
+    if (this.autoDetectedPipeline?.detected_stages) {
+      const detectedStages = this.autoDetectedPipeline.detected_stages as any;
+      Object.entries(detectedStages).forEach(([stage, files]) => {
+        if (files && Array.isArray(files)) {
+          files.forEach((f: any) => {
+            const filePath = f.file;
+            if (!merged[filePath]) {
+              merged[filePath] = [];
+            }
+            if (!merged[filePath].includes(stage)) {
+              merged[filePath].push(stage);
+            }
+          });
+        }
+      });
+    }
+
+    // 2. Apply manual overrides
+    // This will overwrite auto-detected stages for files that have been manually edited
+    // If manualStages has an empty array for a file, it effectively removes it from analysis
+    Object.entries(this.manualFileStages).forEach(([file, stages]) => {
+      // We need to match the file path format. 
+      // Assuming manualFileStages uses the same path format as autoDetectedPipeline (or compatible)
+      // If manualFileStages uses absolute/full paths and autoDetected uses relative, we might have a mismatch.
+      // However, TreeNodeComponent uses node.path.
+      // Let's assume consistency for now.
+
+      // If stages is empty, we keep it as empty (file excluded)
+      // If stages has content, we use it.
+      merged[file] = stages;
+    });
+
+    // Filter out files with no stages?
+    // If the backend receives "file": [], does it analyze it?
+    // Probably not, or it analyzes with 0 stages (which might be fast/useless).
+    // To be clean, maybe we should remove keys with empty arrays?
+    // But if we remove the key, does 'all_files: false' mean it's ignored?
+    // Yes, usually 'all_files: false' means "only analyze files listed in overrides".
+    // So if we omit the key, it's ignored.
+    // If we send "file": [], it might be analyzed with 0 stages.
+    // Let's filter out empty arrays to be safe and clean.
+
+    const finalStages: { [key: string]: string[] } = {};
+    Object.entries(merged).forEach(([file, stages]) => {
+      if (stages.length > 0) {
+        finalStages[file] = stages;
+      }
+    });
+
+    return finalStages;
+  }
+
   toggleEditMode(): void {
     this.isEditingPipeline = !this.isEditingPipeline;
   }
 
   onFileStagesChange(event: { file: string, stages: string[] }): void {
-    if (event.stages.length > 0) {
-      this.manualFileStages[event.file] = event.stages;
-    } else {
-      delete this.manualFileStages[event.file];
-    }
+    this.manualFileStages[event.file] = event.stages;
   }
 
   onBack(): void {
@@ -279,13 +335,16 @@ export class AssessmentStructureComponent implements OnInit {
         <svg *ngIf="isDirectory" 
              class="w-5 h-5 flex-shrink-0"
              [class.text-blue-500]="isExpanded"
-             [class.text-gray-400]="!isExpanded"
+             [class.text-orange-500]="!isExpanded && hasSelectedContent"
+             [class.text-gray-400]="!isExpanded && !hasSelectedContent"
              fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
         </svg>
 
         <svg *ngIf="!isDirectory && isPythonFile" 
-             class="w-5 h-5 text-blue-600 flex-shrink-0" 
+             class="w-5 h-5 flex-shrink-0" 
+             [class.text-orange-500]="hasStages"
+             [class.text-blue-600]="!hasStages"
              fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
         </svg>
@@ -327,9 +386,10 @@ export class AssessmentStructureComponent implements OnInit {
             <button 
               (click)="toggleStageSelector()"
               class="p-1 rounded hover:bg-gray-200 transition-colors"
-              [class.text-blue-600]="isStageSelectorOpen || getManualStages().length > 0"
-              [class.bg-blue-50]="isStageSelectorOpen || getManualStages().length > 0"
-              [class.text-gray-400]="!isStageSelectorOpen && getManualStages().length === 0">
+              class="p-1 rounded hover:bg-gray-200 transition-colors"
+              [class.text-orange-500]="hasStages"
+              [class.bg-orange-50]="hasStages"
+              [class.text-gray-400]="!isStageSelectorOpen && !hasStages">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
               </svg>
@@ -351,9 +411,10 @@ export class AssessmentStructureComponent implements OnInit {
             </div>
           </div>
           
-          <div class="flex gap-1 ml-2">
-             <span *ngFor="let stage of getManualStages()" 
-                class="px-2 py-0.5 text-xs font-medium rounded bg-blue-100 text-blue-800">
+           <div class="flex gap-1 ml-2">
+             <span *ngFor="let stage of getEffectiveStages()" 
+                class="px-2 py-0.5 text-xs font-medium rounded"
+                [ngClass]="getStageColor(stage)">
             {{ formatStageName(stage) }}
           </span>
           </div>
@@ -401,6 +462,56 @@ export class TreeNodeComponent {
 
   get isPythonFile(): boolean {
     return this.node.name.endsWith('.py');
+  }
+
+  get hasStages(): boolean {
+    return this.getEffectiveStages().length > 0;
+  }
+
+  get hasSelectedContent(): boolean {
+    if (!this.isDirectory) return false;
+    return this.checkChildrenForStages(this.node);
+  }
+
+  private checkChildrenForStages(node: ChildChild): boolean {
+    if (node.type === 'file') {
+      // Check if this file has stages (either manual or detected)
+      // We need to replicate getEffectiveStages logic here but for a specific node
+      // This is a bit tricky since getEffectiveStages depends on 'this.node'
+      // But we can pass the node path to a helper
+      return this.getStagesForNode(node).length > 0;
+    }
+
+    if (node.children) {
+      return node.children.some(child => this.checkChildrenForStages(child));
+    }
+
+    return false;
+  }
+
+  private getStagesForNode(node: ChildChild): string[] {
+    // Check manual stages
+    for (const [path, stages] of Object.entries(this.manualStages)) {
+      if (node.path && (path === node.path || node.path.endsWith(path) || path.endsWith(node.path))) {
+        return stages;
+      }
+    }
+
+    // Check detected stages
+    if (!this.detectedPipeline?.detected_stages) {
+      return [];
+    }
+
+    const stages: string[] = [];
+    const detectedStages = this.detectedPipeline.detected_stages as any;
+    Object.entries(detectedStages).forEach(([stage, files]) => {
+      if (files && Array.isArray(files)) {
+        if (files.some((f: any) => node.path.endsWith(f.file) || f.file.endsWith(node.path))) {
+          stages.push(stage);
+        }
+      }
+    });
+    return stages;
   }
 
   toggleExpanded(): void {
@@ -458,12 +569,39 @@ export class TreeNodeComponent {
     return [];
   }
 
+  getEffectiveStages(): string[] {
+    const manual = this.getManualStages();
+    if (manual.length > 0) return manual;
+
+    // If explicit empty array in manual stages (user cleared selection), return empty
+    // We need to distinguish between "no override" and "override to empty"
+    // But current logic deletes key if empty, so "no key" means "use default"
+    // If we want to allow "clearing" stages, we need to keep empty array in manualStages
+    // But onFileStagesChange deletes the key if empty.
+    // So currently, if user deselects all, it reverts to auto-detected.
+    // To fix this, we should check if the key exists in manualStages, even if empty?
+    // But onFileStagesChange deletes it.
+    // Let's assume if key exists (even empty), use it.
+    // But getManualStages returns [] if not found.
+    // We need to check existence directly.
+
+    const hasManual = Object.keys(this.manualStages).some(path =>
+      this.node.path && (path === this.node.path || this.node.path.endsWith(path) || path.endsWith(this.node.path))
+    );
+
+    if (hasManual) {
+      return this.getManualStages();
+    }
+
+    return this.getDetectedStages();
+  }
+
   isStageSelected(stage: string): boolean {
-    return this.getManualStages().includes(stage);
+    return this.getEffectiveStages().includes(stage);
   }
 
   toggleStage(stage: string): void {
-    const currentStages = [...this.getManualStages()];
+    const currentStages = [...this.getEffectiveStages()];
     const index = currentStages.indexOf(stage);
 
     if (index > -1) {
