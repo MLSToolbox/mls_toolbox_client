@@ -88,7 +88,6 @@
       <app-assessment-structure
         [projectStructure]="state.uploadResponse?.tree_structure || null"
         [autoDetectedPipeline]="state.uploadResponse?.auto_detected_pipeline || null"
-        [availableMetrics]="availableMetrics"
         [isAnalyzing]="state.isAnalyzing"
         (runAnalysis)="onRunAnalysis($event)"
         (back)="onBackToUpload()">

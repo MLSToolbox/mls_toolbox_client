@@ -11,7 +11,7 @@ import { AssessmentState, AssessmentStep, AssessmentStepEnum } from '../models/a
 })
 export class AssessmentPageComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  
+
   state: AssessmentState = {
     currentStep: AssessmentStepEnum.UPLOAD,
     uploadedFile: null,
@@ -23,7 +23,7 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
     error: null,
     selectedMetrics: []
   };
-  
+
   steps: AssessmentStep[] = [
     { number: 1, label: 'Upload Code', completed: false, icon: 'upload' },
     { number: 2, label: 'Project & Metrics', completed: false, icon: 'folder' },
@@ -31,19 +31,19 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
     { number: 4, label: 'Results', completed: false, icon: 'check-circle' }
   ];
 
-  availableMetrics = this.assessmentService.getAvailableMetrics();
+
 
   // Expose enum to template
   readonly StepEnum = AssessmentStepEnum;
 
   constructor(
     private assessmentService: CodeAssessmentService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     console.log('🎬 AssessmentPageComponent initialized with steps:', this.steps);
     console.log('🎬 Initial state:', this.state);
-    
+
     this.assessmentService.state$
       .pipe(takeUntil(this.destroy$))
       .subscribe(state => {
@@ -113,9 +113,9 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
   /**
    * Handle metrics selection and run analysis
    */
-  onRunAnalysis(metrics: string[]): void {
-    console.log('🚀 Starting analysis with metrics:', metrics);
-    this.assessmentService.runAnalysis(metrics)
+  onRunAnalysis(options: { metrics: string[], all_files: boolean }): void {
+    console.log('🚀 Starting analysis with options:', options);
+    this.assessmentService.runAnalysis(options)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
@@ -162,7 +162,7 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
     const dataStr = JSON.stringify(this.state.analysisResponse, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = `code-assessment-${this.state.sessionId}-${new Date().toISOString().split('T')[0]}.json`;
@@ -209,7 +209,7 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
    */
   getStepDescription(): string {
     if (!this.state) return '';
-    
+
     switch (this.state.currentStep) {
       case AssessmentStepEnum.UPLOAD:
         return 'Upload your Python project as a ZIP file';

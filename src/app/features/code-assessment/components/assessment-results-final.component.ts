@@ -1,12 +1,14 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnChanges } from '@angular/core';
-import { 
-  AnalyzeResponse, 
+import {
+  AnalyzeResponse,
   AnalysisResult,
   FPCResult,
   FileStructureResult,
   LCCMLResult,
   PyLintResult,
-  PipelineDetectionResult
+  PipelineDetectionResult,
+  LDSCResult,
+  IFCMResult
 } from '@app/core/models';
 import { TreeStructure, ChildChild } from '@app/core/models/upload-zip.model';
 
@@ -494,6 +496,118 @@ interface FileMetricsData {
                       </div>
                     </div>
                   </div>
+
+                  <div *ngIf="metricId === 'ldsc'" class="space-y-4">
+                    <!-- Primary Metrics -->
+                    <div class="grid grid-cols-2 gap-4">
+                      <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
+                        <div class="text-xs font-semibold text-orange-600 mb-1">COHESION LEVEL</div>
+                        <div class="text-2xl font-bold capitalize"
+                             [ngClass]="{
+                               'text-green-700': selectedFileData[metricId].data.cohesion_level === 'excellent' || selectedFileData[metricId].data.cohesion_level === 'good',
+                               'text-yellow-700': selectedFileData[metricId].data.cohesion_level === 'moderate',
+                               'text-red-700': selectedFileData[metricId].data.cohesion_level === 'low' || selectedFileData[metricId].data.cohesion_level === 'very_low',
+                               'text-gray-700': selectedFileData[metricId].data.cohesion_level === 'not_applicable'
+                             }">
+                          {{ selectedFileData[metricId].data.cohesion_level?.replace('_', ' ') || 'N/A' }}
+                        </div>
+                      </div>
+
+                      <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
+                        <div class="text-xs font-semibold text-indigo-600 mb-1">LDSC SCORE</div>
+                        <div class="text-2xl font-bold text-indigo-700">
+                          {{ selectedFileData[metricId].data.ldsc !== null && selectedFileData[metricId].data.ldsc !== undefined 
+                             ? (selectedFileData[metricId].data.ldsc * 100).toFixed(1) + '%' 
+                             : 'N/A' }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Connection Metrics -->
+                    <div class="grid grid-cols-3 gap-4">
+                      <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                        <div class="text-xs font-semibold text-blue-600 mb-1">METHODS</div>
+                        <div class="text-2xl font-bold text-blue-700">
+                          {{ selectedFileData[metricId].data.n_methods || 0 }}
+                        </div>
+                      </div>
+                      
+                      <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border border-teal-200">
+                        <div class="text-xs font-semibold text-teal-600 mb-1">POSSIBLE PAIRS</div>
+                        <div class="text-2xl font-bold text-teal-700">
+                          {{ selectedFileData[metricId].data.n_possible_pairs || 0 }}
+                        </div>
+                      </div>
+
+                      <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                        <div class="text-xs font-semibold text-green-600 mb-1">SHARED PAIRS</div>
+                        <div class="text-2xl font-bold text-green-700">
+                          {{ selectedFileData[metricId].data.n_shared_pairs || 0 }}
+                        </div>
+                        <div class="text-xs text-green-600 mt-1">
+                          {{ selectedFileData[metricId].data.n_possible_pairs > 0 
+                             ? ((selectedFileData[metricId].data.n_shared_pairs / selectedFileData[metricId].data.n_possible_pairs) * 100).toFixed(0) + '%' 
+                             : '0%' }} shared
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div *ngIf="metricId === 'ifc_m'" class="space-y-4">
+                    <!-- Primary Metrics -->
+                    <div class="grid grid-cols-2 gap-4">
+                      <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg p-4 border border-pink-200">
+                        <div class="text-xs font-semibold text-pink-600 mb-1">COHESION LEVEL</div>
+                        <div class="text-2xl font-bold capitalize"
+                             [ngClass]="{
+                               'text-green-700': selectedFileData[metricId].data.cohesion_level === 'excellent' || selectedFileData[metricId].data.cohesion_level === 'good',
+                               'text-yellow-700': selectedFileData[metricId].data.cohesion_level === 'moderate',
+                               'text-red-700': selectedFileData[metricId].data.cohesion_level === 'low' || selectedFileData[metricId].data.cohesion_level === 'very_low',
+                               'text-gray-700': selectedFileData[metricId].data.cohesion_level === 'not_applicable'
+                             }">
+                          {{ selectedFileData[metricId].data.cohesion_level?.replace('_', ' ') || 'N/A' }}
+                        </div>
+                      </div>
+
+                      <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
+                        <div class="text-xs font-semibold text-indigo-600 mb-1">IFC-M SCORE</div>
+                        <div class="text-2xl font-bold text-indigo-700">
+                          {{ selectedFileData[metricId].data.ifc_m !== null && selectedFileData[metricId].data.ifc_m !== undefined 
+                             ? (selectedFileData[metricId].data.ifc_m * 100).toFixed(1) + '%' 
+                             : 'N/A' }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Connection Metrics -->
+                    <div class="grid grid-cols-3 gap-4">
+                      <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                        <div class="text-xs font-semibold text-blue-600 mb-1">METHODS</div>
+                        <div class="text-2xl font-bold text-blue-700">
+                          {{ selectedFileData[metricId].data.n_methods || 0 }}
+                        </div>
+                      </div>
+                      
+                      <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border border-teal-200">
+                        <div class="text-xs font-semibold text-teal-600 mb-1">POSSIBLE PAIRS</div>
+                        <div class="text-2xl font-bold text-teal-700">
+                          {{ selectedFileData[metricId].data.n_possible_pairs || 0 }}
+                        </div>
+                      </div>
+
+                      <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                        <div class="text-xs font-semibold text-green-600 mb-1">CONNECTED PAIRS</div>
+                        <div class="text-2xl font-bold text-green-700">
+                          {{ selectedFileData[metricId].data.n_connected_pairs || 0 }}
+                        </div>
+                        <div class="text-xs text-green-600 mt-1">
+                          {{ selectedFileData[metricId].data.n_possible_pairs > 0 
+                             ? ((selectedFileData[metricId].data.n_connected_pairs / selectedFileData[metricId].data.n_possible_pairs) * 100).toFixed(0) + '%' 
+                             : '0%' }} connected
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -550,6 +664,10 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
         this.processRadonMIMetric(metric, metricName, category);
       } else if (metricId === 'pipeline') {
         this.processPipelineDetectionMetric(metric as PipelineDetectionResult, metricName, category);
+      } else if (metricId === 'ldsc') {
+        this.processLDSCMetric(metric as LDSCResult, metricName, category);
+      } else if (metricId === 'ifc_m') {
+        this.processIFCMMetric(metric as IFCMResult, metricName, category);
       }
     });
   }
@@ -558,11 +676,11 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     Object.entries(metric.details?.files || {}).forEach(([filePath, fileData]) => {
       // Normalize path - add leading slash if not present
       const normalizedPath = filePath.startsWith('/') ? filePath : '/' + filePath;
-      
+
       if (!this.fileMetricsMap.has(normalizedPath)) {
         this.fileMetricsMap.set(normalizedPath, {});
       }
-      
+
       const fileMetrics = this.fileMetricsMap.get(normalizedPath)!;
       const messages: string[] = [];
       const detailedMessages: DetailedMessage[] = [];
@@ -570,9 +688,9 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
 
       // Get messages from metric.messages.by_file (standardized format)
       // Try with and without leading slash
-      const fileMessages = (metric.messages as any)?.by_file?.[filePath] || 
-                          (metric.messages as any)?.by_file?.[normalizedPath] || [];
-      
+      const fileMessages = (metric.messages as any)?.by_file?.[filePath] ||
+        (metric.messages as any)?.by_file?.[normalizedPath] || [];
+
       fileMessages.forEach((msg: any) => {
         // Store detailed message with diagnosis and recommendation separated
         detailedMessages.push({
@@ -586,7 +704,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
         const diagnosisText = msg.diagnosis || '';
         const recommendationText = msg.recommendation || '';
         messages.push(`${diagnosisText} ${recommendationText}`.trim());
-        
+
         // Determine overall severity (highest wins)
         if (msg.severity === 'high' || msg.severity === 'error') {
           severity = 'error';
@@ -631,7 +749,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
       if (!this.fileMetricsMap.has(normalizedPath)) {
         this.fileMetricsMap.set(normalizedPath, {});
       }
-      
+
       const fileMetrics = this.fileMetricsMap.get(normalizedPath)!;
       fileMetrics['file_structure'] = {
         metricName,
@@ -649,7 +767,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
       if (!this.fileMetricsMap.has(normalizedPath)) {
         this.fileMetricsMap.set(normalizedPath, {});
       }
-      
+
       const fileMetrics = this.fileMetricsMap.get(normalizedPath)!;
       const messages: string[] = [];
       let severity: 'error' | 'warning' | 'info' | 'success' = 'info';
@@ -681,7 +799,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
 
   processPyLintMetric(metric: PyLintResult, metricName: string, category: string): void {
     const messagesByFile: { [path: string]: any[] } = {};
-    
+
     (metric.details?.messages || []).forEach((msg: any) => {
       const normalizedPath = msg.path.startsWith('/') ? msg.path : '/' + msg.path;
       if (!messagesByFile[normalizedPath]) {
@@ -694,11 +812,11 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
       if (!this.fileMetricsMap.has(filePath)) {
         this.fileMetricsMap.set(filePath, {});
       }
-      
+
       const fileMetrics = this.fileMetricsMap.get(filePath)!;
       const errorCount = messages.filter(m => m.type === 'error' || m.type === 'fatal').length;
       const warningCount = messages.filter(m => m.type === 'warning').length;
-      
+
       let severity: 'error' | 'warning' | 'info' = 'info';
       const messageStrings: string[] = [];
 
@@ -734,7 +852,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
       if (!this.fileMetricsMap.has(normalizedPath)) {
         this.fileMetricsMap.set(normalizedPath, {});
       }
-      
+
       const fileMetrics = this.fileMetricsMap.get(normalizedPath)!;
       fileMetrics['radon_cc'] = {
         metricName,
@@ -751,7 +869,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
       if (!this.fileMetricsMap.has(normalizedPath)) {
         this.fileMetricsMap.set(normalizedPath, {});
       }
-      
+
       const fileMetrics = this.fileMetricsMap.get(normalizedPath)!;
       fileMetrics['radon_mi'] = {
         metricName,
@@ -764,7 +882,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
 
   processPipelineDetectionMetric(metric: PipelineDetectionResult, metricName: string, category: string): void {
     const fileStages: { [path: string]: string[] } = {};
-    
+
     Object.entries(metric.details?.detected_stages || {}).forEach(([stage, files]) => {
       files.forEach(fileInfo => {
         const normalizedPath = fileInfo.file.startsWith('/') ? fileInfo.file : '/' + fileInfo.file;
@@ -779,7 +897,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
       if (!this.fileMetricsMap.has(filePath)) {
         this.fileMetricsMap.set(filePath, {});
       }
-      
+
       const fileMetrics = this.fileMetricsMap.get(filePath)!;
       fileMetrics['pipeline'] = {
         metricName,
@@ -791,6 +909,78 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     });
   }
 
+  processLDSCMetric(metric: LDSCResult, metricName: string, category: string): void {
+    Object.entries(metric.details?.files || {}).forEach(([filePath, fileData]) => {
+      const normalizedPath = filePath.startsWith('/') ? filePath : '/' + filePath;
+      if (!this.fileMetricsMap.has(normalizedPath)) {
+        this.fileMetricsMap.set(normalizedPath, {});
+      }
+
+      const fileMetrics = this.fileMetricsMap.get(normalizedPath)!;
+      const messages: string[] = [];
+      let severity: 'error' | 'warning' | 'info' | 'success' = 'info';
+
+      if (fileData.ldsc === null) {
+        messages.push('LDSC not applicable (single method file)');
+        severity = 'info';
+      } else if (fileData.ldsc >= 0.6) {
+        severity = 'success';
+        messages.push('Good structural cohesion');
+      } else if (fileData.ldsc >= 0.4) {
+        severity = 'info';
+        messages.push('Moderate structural cohesion');
+      } else {
+        severity = 'warning';
+        messages.push(`Low structural cohesion: Few shared variables`);
+      }
+
+      fileMetrics['ldsc'] = {
+        metricName,
+        category,
+        data: fileData,
+        score: fileData.ldsc !== null ? fileData.ldsc * 10 : undefined,
+        severity,
+        messages
+      };
+    });
+  }
+
+  processIFCMMetric(metric: IFCMResult, metricName: string, category: string): void {
+    Object.entries(metric.details?.files || {}).forEach(([filePath, fileData]) => {
+      const normalizedPath = filePath.startsWith('/') ? filePath : '/' + filePath;
+      if (!this.fileMetricsMap.has(normalizedPath)) {
+        this.fileMetricsMap.set(normalizedPath, {});
+      }
+
+      const fileMetrics = this.fileMetricsMap.get(normalizedPath)!;
+      const messages: string[] = [];
+      let severity: 'error' | 'warning' | 'info' | 'success' = 'info';
+
+      if (fileData.ifc_m === null) {
+        messages.push('IFC-M not applicable (single method file)');
+        severity = 'info';
+      } else if (fileData.ifc_m >= 0.6) {
+        severity = 'success';
+        messages.push('Good functional cohesion');
+      } else if (fileData.ifc_m >= 0.4) {
+        severity = 'info';
+        messages.push('Moderate functional cohesion');
+      } else {
+        severity = 'warning';
+        messages.push(`Low functional cohesion: Weak information flow`);
+      }
+
+      fileMetrics['ifc_m'] = {
+        metricName,
+        category,
+        data: fileData,
+        score: fileData.ifc_m !== null ? fileData.ifc_m * 10 : undefined,
+        severity,
+        messages
+      };
+    });
+  }
+
   onNodeSelected(event: { path: string, type: 'file' | 'directory', node: any }): void {
     this.selectNode(event.path, event.type, event.node);
   }
@@ -798,7 +988,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
   selectNode(path: string, type: 'file' | 'directory', node: any): void {
     this.selectedPath = path;
     this.selectedNodeType = type;
-    
+
     if (type === 'file') {
       this.selectedFileData = this.fileMetricsMap.get(path) || {};
     } else {
@@ -808,7 +998,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
 
   aggregateDirectoryMetrics(node: any): FileMetricsData {
     const aggregated: FileMetricsData = {};
-    
+
     return aggregated;
   }
 
@@ -822,7 +1012,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
 
   getDataItems(data: any): Array<{ label: string, value: any }> {
     if (!data) return [];
-    
+
     return Object.entries(data)
       .filter(([key]) => !['recommendation', 'severity', 'messages', 'error_count', 'warning_count'].includes(key))
       .map(([key, value]) => ({
@@ -935,7 +1125,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
   getMetricInterpretationItems(metricId: string): { range: string, description: string }[] {
     const interpretation = this.getMetricInterpretation(metricId);
     if (!interpretation) return [];
-    
+
     return Object.entries(interpretation).map(([range, description]) => ({
       range,
       description: description as string

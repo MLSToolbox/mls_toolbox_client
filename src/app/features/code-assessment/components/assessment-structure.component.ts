@@ -2,6 +2,18 @@ import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { TreeStructure, ChildChild, AutoDetectedPipeline } from '@app/core/models/upload-zip.model';
 import { MetricOption } from '../models/assessment.models';
 
+interface MetricType {
+  id: string;
+  name: string;
+  description: string;
+  enabled: boolean;
+  selected: boolean;
+  config: {
+    metrics: string[];
+    all_files: boolean;
+  };
+}
+
 @Component({
   selector: 'app-assessment-structure',
   template: `
@@ -53,67 +65,46 @@ import { MetricOption } from '../models/assessment.models';
                 <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                 </svg>
-                <h2 class="text-xl font-bold text-gray-900">Select Metrics</h2>
+                <h2 class="text-xl font-bold text-gray-900">Select Type of Metrics</h2>
               </div>
-              <p class="text-sm text-gray-600 mt-2">Choose quality metrics to analyze</p>
+              <p class="text-sm text-gray-600 mt-2">Choose the type of analysis to perform</p>
             </div>
 
             <div class="p-6 space-y-4 max-h-[400px] overflow-y-auto">
-              <div *ngFor="let metric of availableMetrics" 
+              <div *ngFor="let type of metricTypes" 
                    class="border rounded-lg p-4 transition-all duration-200 cursor-pointer"
                    [ngClass]="{
-                     'border-blue-500 bg-blue-50': metric.selected,
-                     'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50': !metric.selected,
-                     'opacity-50 cursor-not-allowed': !metric.enabled
+                     'border-blue-500 bg-blue-50': type.selected,
+                     'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50': !type.selected && type.enabled,
+                     'opacity-50 cursor-not-allowed bg-gray-50': !type.enabled
                    }"
-                   (click)="toggleMetric(metric)">
+                   (click)="selectType(type)">
                 <div class="flex items-start gap-3">
                   <div class="flex-shrink-0 mt-1">
-                    <div class="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors"
+                    <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors"
                          [ngClass]="{
-                           'border-blue-500 bg-blue-500': metric.selected,
-                           'border-gray-300 bg-white': !metric.selected
+                           'border-blue-500 bg-blue-500': type.selected,
+                           'border-gray-300 bg-white': !type.selected
                          }">
-                      <svg *ngIf="metric.selected" class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                      </svg>
+                      <div *ngIf="type.selected" class="w-2 h-2 rounded-full bg-white"></div>
                     </div>
                   </div>
                   <div class="flex-1 min-w-0">
-                    <h3 class="text-sm font-semibold text-gray-900 mb-1">{{ metric.name }}</h3>
-                    <p class="text-xs text-gray-600 line-clamp-2">{{ metric.description }}</p>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mt-2"
-                          [ngClass]="{
-                            'bg-purple-100 text-purple-800': metric.category === 'cohesion',
-                            'bg-blue-100 text-blue-800': metric.category === 'complexity',
-                            'bg-green-100 text-green-800': metric.category === 'maintainability',
-                            'bg-yellow-100 text-yellow-800': metric.category === 'quality',
-                            'bg-orange-100 text-orange-800': metric.category === 'structure',
-                            'bg-gray-100 text-gray-800': metric.category === 'detection'
-                          }">
-                      {{ metric.category }}
+                    <h3 class="text-sm font-semibold text-gray-900 mb-1">{{ type.name }}</h3>
+                    <p class="text-xs text-gray-600 line-clamp-2">{{ type.description }}</p>
+                    <span *ngIf="!type.enabled" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mt-2 bg-gray-200 text-gray-600">
+                      Coming Soon
                     </span>
                   </div>
                 </div>
               </div>
-
-              <div *ngIf="availableMetrics.length === 0" class="text-center py-8 text-gray-500">
-                <p class="text-sm">No metrics available</p>
-              </div>
             </div>
 
             <div class="border-t border-gray-200 p-6">
-              <div class="mb-4">
-                <p class="text-sm text-gray-600">
-                  <span class="font-semibold text-gray-900">{{ selectedCount }}</span> 
-                  of {{ availableMetrics.length }} metrics selected
-                </p>
-              </div>
-
               <div class="flex flex-col gap-3">
                 <button
                   (click)="onContinue()"
-                  [disabled]="selectedCount === 0 || isAnalyzing"
+                  [disabled]="!hasSelection || isAnalyzing"
                   class="w-full px-6 py-3 text-sm font-medium text-white rounded-lg transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   style="background: linear-gradient(135deg, rgb(0, 32, 96) 0%, rgb(0, 50, 120) 100%);">
                   <svg *ngIf="!isAnalyzing" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -148,33 +139,71 @@ import { MetricOption } from '../models/assessment.models';
 export class AssessmentStructureComponent implements OnInit {
   @Input() projectStructure: TreeStructure | null = null;
   @Input() autoDetectedPipeline: AutoDetectedPipeline | null = null;
-  @Input() availableMetrics: MetricOption[] = [];
   @Input() isAnalyzing = false;
-  @Output() runAnalysis = new EventEmitter<string[]>();
+  @Output() runAnalysis = new EventEmitter<{ metrics: string[], all_files: boolean }>();
   @Output() back = new EventEmitter<void>();
 
+  metricTypes: MetricType[] = [
+    {
+      id: 'cohesion',
+      name: 'Cohesion',
+      description: 'Analyze code cohesion using FPC, LCCML, LDSC, and IFC_M metrics.',
+      enabled: true,
+      selected: false,
+      config: {
+        metrics: ['fpc', 'lccml', 'ldsc', 'ifc_m'],
+        all_files: true
+      }
+    },
+    {
+      id: 'coupling',
+      name: 'Coupling',
+      description: 'Analyze code coupling metrics.',
+      enabled: false,
+      selected: false,
+      config: {
+        metrics: [],
+        all_files: false
+      }
+    },
+    {
+      id: 'solid',
+      name: 'SOLID',
+      description: 'Analyze SOLID principles adherence.',
+      enabled: false,
+      selected: false,
+      config: {
+        metrics: [],
+        all_files: false
+      }
+    }
+  ];
+
   ngOnInit(): void {
-    if (this.availableMetrics.length === 0) {
-      console.warn('No metrics available');
+    // Select first enabled option by default
+    const firstEnabled = this.metricTypes.find(t => t.enabled);
+    if (firstEnabled) {
+      firstEnabled.selected = true;
     }
   }
 
-  get selectedCount(): number {
-    return this.availableMetrics.filter(m => m.selected).length;
+  get hasSelection(): boolean {
+    return this.metricTypes.some(t => t.selected);
   }
 
-  toggleMetric(metric: MetricOption): void {
-    if (!metric.enabled) return;
-    metric.selected = !metric.selected;
+  selectType(type: MetricType): void {
+    if (!type.enabled) return;
+
+    // Unselect all others (radio behavior)
+    this.metricTypes.forEach(t => t.selected = false);
+    type.selected = true;
   }
 
   onContinue(): void {
-    const selectedMetricIds = this.availableMetrics
-      .filter(m => m.selected)
-      .map(m => m.id);
-    
-    if (selectedMetricIds.length > 0) {
-      this.runAnalysis.emit(selectedMetricIds);
+    const selectedType = this.metricTypes.find(t => t.selected);
+
+    if (selectedType) {
+      this.runAnalysis.emit(selectedType.config);
     }
   }
 

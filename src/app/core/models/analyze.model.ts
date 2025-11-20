@@ -208,3 +208,57 @@ export interface PipelineEvidence {
   method: 'filename' | 'import' | 'keyword';
   value: string;
 }
+
+export interface LDSCResult extends AnalysisResult {
+  details: {
+    files: { [filePath: string]: LDSCFileResult };
+    summary: LDSCSummary;
+  };
+}
+
+export interface LDSCFileResult {
+  ldsc: number | null;
+  n_methods: number;
+  n_possible_pairs: number;
+  n_shared_pairs: number;
+  shared_pairs: [string, string][];
+  cohesion_level: string;
+}
+
+export interface LDSCSummary {
+  total_files: number;
+  high_cohesion: number;
+  good_cohesion: number;
+  moderate_cohesion: number;
+  low_cohesion: number;
+  very_low_cohesion: number;
+  single_method_files: number;
+  average_ldsc: number;
+}
+
+export interface IFCMResult extends AnalysisResult {
+  details: {
+    files: { [filePath: string]: IFCMFileResult };
+    summary: IFCMSummary;
+  };
+}
+
+export interface IFCMFileResult {
+  ifc_m: number | null;
+  n_methods: number;
+  n_possible_pairs: number;
+  n_connected_pairs: number;
+  connected_pairs: [string, string][];
+  cohesion_level: string;
+}
+
+export interface IFCMSummary {
+  total_files: number;
+  high_cohesion: number;
+  good_cohesion: number;
+  moderate_cohesion: number;
+  low_cohesion: number;
+  very_low_cohesion: number;
+  single_method_files: number;
+  average_ifc_m: number;
+}

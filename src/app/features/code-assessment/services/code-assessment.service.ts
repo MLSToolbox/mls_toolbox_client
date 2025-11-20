@@ -2,9 +2,9 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
 import { tap, catchError, finalize, map } from 'rxjs/operators';
 import { ApiService } from '@app/core/services/api.service';
-import { 
-  AssessmentState, 
-  UploadedFile, 
+import {
+  AssessmentState,
+  UploadedFile,
   AssessmentError,
   AssessmentStepEnum,
   MetricOption
@@ -70,7 +70,7 @@ export class CodeAssessmentService {
   private stateSubject = new BehaviorSubject<AssessmentState>(this.INITIAL_STATE);
   public state$ = this.stateSubject.asObservable();
 
-  constructor(private apiService: ApiService) {}
+  constructor(private apiService: ApiService) { }
 
   /**
    * Get current state snapshot
@@ -166,7 +166,7 @@ export class CodeAssessmentService {
   /**
    * Run analysis with selected metrics
    */
-  runAnalysis(metrics: string[]): Observable<void> {
+  runAnalysis(options: { metrics: string[], all_files?: boolean }): Observable<void> {
     const { sessionId } = this.currentState;
 
     if (!sessionId) {
@@ -181,13 +181,13 @@ export class CodeAssessmentService {
     this.updateState({
       isAnalyzing: true,
       error: null,
-      selectedMetrics: metrics,
+      selectedMetrics: options.metrics,
       currentStep: AssessmentStepEnum.ANALYSIS
     });
 
     const analysisData = {
-      analyzers: metrics,
-      all_files: false,
+      analyzers: options.metrics,
+      all_files: options.all_files || false,
       pipeline_overrides: {
         file_stages: {},
         excluded_files: []
@@ -230,7 +230,7 @@ export class CodeAssessmentService {
    */
   setStep(step: AssessmentStepEnum): void {
     const { sessionId } = this.currentState;
-    
+
     // Validate navigation
     if (step > AssessmentStepEnum.UPLOAD && !sessionId) {
       this.updateState({
@@ -274,20 +274,20 @@ export class CodeAssessmentService {
     }
 
     if (file.size > MAX_SIZE) {
-      return { 
-        valid: false, 
-        error: `File size exceeds 50MB limit. Current size: ${(file.size / 1024 / 1024).toFixed(2)}MB` 
+      return {
+        valid: false,
+        error: `File size exceeds 50MB limit. Current size: ${(file.size / 1024 / 1024).toFixed(2)}MB`
       };
     }
 
-    const isValidType = ALLOWED_TYPES.some(type => 
+    const isValidType = ALLOWED_TYPES.some(type =>
       file.name.endsWith('.zip') || file.type === type
     );
 
     if (!isValidType) {
-      return { 
-        valid: false, 
-        error: 'Only ZIP files are allowed' 
+      return {
+        valid: false,
+        error: 'Only ZIP files are allowed'
       };
     }
 
