@@ -166,7 +166,7 @@ export class CodeAssessmentService {
   /**
    * Run analysis with selected metrics
    */
-  runAnalysis(options: { metrics: string[], all_files?: boolean }): Observable<void> {
+  runAnalysis(options: { metrics: string[], all_files?: boolean, pipeline_overrides?: any }): Observable<void> {
     const { sessionId } = this.currentState;
 
     if (!sessionId) {
@@ -185,14 +185,19 @@ export class CodeAssessmentService {
       currentStep: AssessmentStepEnum.ANALYSIS
     });
 
-    const analysisData = {
+    const analysisData: any = {
       analyzers: options.metrics,
-      all_files: options.all_files || false,
-      pipeline_overrides: {
+      all_files: options.pipeline_overrides ? false : (options.all_files || false),
+    };
+
+    if (options.pipeline_overrides) {
+      analysisData.pipeline_overrides = options.pipeline_overrides;
+    } else {
+      analysisData.pipeline_overrides = {
         file_stages: {},
         excluded_files: []
-      }
-    };
+      };
+    }
 
     console.log('🔬 Sending analysis request:', analysisData);
 

@@ -79,6 +79,7 @@ interface FileMetricsData {
                   [node]="child" 
                   [level]="1"
                   [selectedPath]="selectedPath"
+                  [pathsWithMetrics]="pathsWithMetrics"
                   (nodeSelected)="onNodeSelected($event)">
                 </app-tree-node-clickable>
               </ng-container>
@@ -629,6 +630,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
   selectedFileData: FileMetricsData = {};
   allMetrics: AnalysisResult[] = [];
   fileMetricsMap: Map<string, FileMetricsData> = new Map();
+  pathsWithMetrics: Set<string> = new Set();
   expandedMetricDetails: Set<string> = new Set();
 
   ngOnInit(): void {
@@ -644,6 +646,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
 
     this.allMetrics = Object.values(this.results.results);
     this.fileMetricsMap.clear();
+    this.pathsWithMetrics.clear();
 
     this.allMetrics.forEach(metric => {
       const metricId = metric.analyzer_id;
@@ -668,6 +671,15 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
         this.processLDSCMetric(metric as LDSCResult, metricName, category);
       } else if (metricId === 'ifc_m') {
         this.processIFCMMetric(metric as IFCMResult, metricName, category);
+      }
+    });
+
+    // Populate pathsWithMetrics from fileMetricsMap
+    this.fileMetricsMap.forEach((_, path) => {
+      this.pathsWithMetrics.add(path);
+      // Also add without leading slash if it exists
+      if (path.startsWith('/')) {
+        this.pathsWithMetrics.add(path.substring(1));
       }
     });
   }
@@ -1187,6 +1199,9 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
               [class.text-gray-700]="!isDirectory && node.path !== selectedPath">
           {{ node.name }}
         </span>
+
+        <!-- Blue dot for files with metrics -->
+        <div *ngIf="hasMetrics" class="w-2 h-2 rounded-full bg-blue-500 ml-2" title="Has metrics"></div>
       </div>
 
       <div *ngIf="isDirectory && isExpanded && node.children">
@@ -1195,6 +1210,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
             [node]="child" 
             [level]="level + 1"
             [selectedPath]="selectedPath"
+            [pathsWithMetrics]="pathsWithMetrics"
             (nodeSelected)="nodeSelected.emit($event)">
           </app-tree-node-clickable>
         </ng-container>
@@ -1207,6 +1223,7 @@ export class TreeNodeClickableComponent {
   @Input() node!: ChildChild;
   @Input() level = 0;
   @Input() selectedPath: string | null = null;
+  @Input() pathsWithMetrics: Set<string> = new Set();
   @Output() nodeSelected = new EventEmitter<{ path: string, type: 'file' | 'directory', node: any }>();
 
   isExpanded = false;
@@ -1217,6 +1234,14 @@ export class TreeNodeClickableComponent {
 
   get isPythonFile(): boolean {
     return this.node.name.endsWith('.py');
+  }
+
+  get hasMetrics(): boolean {
+    return !this.isDirectory && (
+      this.pathsWithMetrics.has(this.node.path) ||
+      this.pathsWithMetrics.has('/' + this.node.path) ||
+      this.pathsWithMetrics.has(this.node.path.replace(/^\//, ''))
+    );
   }
 
   onNodeClick(): void {

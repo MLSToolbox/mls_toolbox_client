@@ -22,14 +22,27 @@ interface MetricType {
         
         <div class="lg:col-span-2">
           <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
-            <div class="border-b border-gray-200 px-6 py-4">
-              <div class="flex items-center gap-3">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
-                </svg>
-                <h2 class="text-xl font-bold text-gray-900">Project Structure</h2>
+            <div class="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+              <div>
+                <div class="flex items-center gap-3">
+                  <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                  </svg>
+                  <h2 class="text-xl font-bold text-gray-900">Project Structure</h2>
+                </div>
+                <p class="text-sm text-gray-600 mt-2">Review the detected files and folders from your project</p>
               </div>
-              <p class="text-sm text-gray-600 mt-2">Review the detected files and folders from your project</p>
+              <button 
+                (click)="toggleEditMode()"
+                class="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                [class.bg-blue-100]="isEditingPipeline"
+                [class.text-blue-600]="isEditingPipeline"
+                [class.text-gray-500]="!isEditingPipeline"
+                title="Edit Pipeline Stages">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                </svg>
+              </button>
             </div>
             
             <div class="p-6 max-h-[600px] overflow-y-auto">
@@ -43,7 +56,14 @@ interface MetricType {
                 
                 <div class="ml-4" *ngIf="projectStructure.children">
                   <ng-container *ngFor="let child of projectStructure.children">
-                    <app-tree-node [node]="child" [level]="1" [detectedPipeline]="autoDetectedPipeline"></app-tree-node>
+                    <app-tree-node 
+                      [node]="child" 
+                      [level]="1" 
+                      [detectedPipeline]="autoDetectedPipeline"
+                      [isEditing]="isEditingPipeline"
+                      [manualStages]="manualFileStages"
+                      (stagesChange)="onFileStagesChange($event)">
+                    </app-tree-node>
                   </ng-container>
                 </div>
               </div>
@@ -140,8 +160,11 @@ export class AssessmentStructureComponent implements OnInit {
   @Input() projectStructure: TreeStructure | null = null;
   @Input() autoDetectedPipeline: AutoDetectedPipeline | null = null;
   @Input() isAnalyzing = false;
-  @Output() runAnalysis = new EventEmitter<{ metrics: string[], all_files: boolean }>();
+  @Output() runAnalysis = new EventEmitter<{ metrics: string[], all_files: boolean, pipeline_overrides?: any }>();
   @Output() back = new EventEmitter<void>();
+
+  isEditingPipeline = false;
+  manualFileStages: { [key: string]: string[] } = {};
 
   metricTypes: MetricType[] = [
     {
@@ -203,7 +226,30 @@ export class AssessmentStructureComponent implements OnInit {
     const selectedType = this.metricTypes.find(t => t.selected);
 
     if (selectedType) {
-      this.runAnalysis.emit(selectedType.config);
+      const payload: any = { ...selectedType.config };
+
+      // If manual overrides exist, use them and disable all_files
+      if (Object.keys(this.manualFileStages).length > 0) {
+        payload.all_files = false;
+        payload.pipeline_overrides = {
+          file_stages: this.manualFileStages,
+          excluded_files: []
+        };
+      }
+
+      this.runAnalysis.emit(payload);
+    }
+  }
+
+  toggleEditMode(): void {
+    this.isEditingPipeline = !this.isEditingPipeline;
+  }
+
+  onFileStagesChange(event: { file: string, stages: string[] }): void {
+    if (event.stages.length > 0) {
+      this.manualFileStages[event.file] = event.stages;
+    } else {
+      delete this.manualFileStages[event.file];
     }
   }
 
@@ -267,7 +313,7 @@ export class AssessmentStructureComponent implements OnInit {
           Invalid Syntax
         </span>
 
-        <div *ngIf="!isDirectory && getDetectedStages().length > 0" class="flex gap-1 flex-shrink-0">
+        <div *ngIf="!isDirectory && !isEditing && getDetectedStages().length > 0" class="flex gap-1 flex-shrink-0">
           <span *ngFor="let stage of getDetectedStages()" 
                 class="px-2 py-0.5 text-xs font-medium rounded"
                 [ngClass]="getStageColor(stage)"
@@ -275,11 +321,55 @@ export class AssessmentStructureComponent implements OnInit {
             {{ formatStageName(stage) }}
           </span>
         </div>
+
+        <div *ngIf="!isDirectory && isEditing" class="flex gap-1 flex-shrink-0 ml-auto" (click)="$event.stopPropagation()">
+          <div class="relative">
+            <button 
+              (click)="toggleStageSelector()"
+              class="p-1 rounded hover:bg-gray-200 transition-colors"
+              [class.text-blue-600]="isStageSelectorOpen || getManualStages().length > 0"
+              [class.bg-blue-50]="isStageSelectorOpen || getManualStages().length > 0"
+              [class.text-gray-400]="!isStageSelectorOpen && getManualStages().length === 0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+              </svg>
+            </button>
+            
+            <div *ngIf="isStageSelectorOpen" class="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 w-64 p-2">
+              <div class="flex justify-between items-center mb-2 px-2">
+                <span class="text-xs font-semibold text-gray-500">Select Stages (Max 5)</span>
+                <button (click)="toggleStageSelector()" class="text-gray-400 hover:text-gray-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+              <div *ngFor="let stage of availableStages" class="flex items-center gap-2 p-1 hover:bg-gray-50 rounded cursor-pointer" (click)="toggleStage(stage)">
+                <input type="checkbox" [checked]="isStageSelected(stage)" class="rounded text-blue-600 focus:ring-blue-500 pointer-events-none">
+                <span class="text-sm text-gray-700">{{ formatStageName(stage) }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex gap-1 ml-2">
+             <span *ngFor="let stage of getManualStages()" 
+                class="px-2 py-0.5 text-xs font-medium rounded bg-blue-100 text-blue-800">
+            {{ formatStageName(stage) }}
+          </span>
+          </div>
+        </div>
       </div>
 
       <div *ngIf="isDirectory && isExpanded && node.children">
         <ng-container *ngFor="let child of node.children">
-          <app-tree-node [node]="child" [level]="level + 1" [detectedPipeline]="detectedPipeline"></app-tree-node>
+          <app-tree-node 
+            [node]="child" 
+            [level]="level + 1" 
+            [detectedPipeline]="detectedPipeline"
+            [isEditing]="isEditing"
+            [manualStages]="manualStages"
+            (stagesChange)="stagesChange.emit($event)">
+          </app-tree-node>
         </ng-container>
       </div>
     </div>
@@ -290,8 +380,20 @@ export class TreeNodeComponent {
   @Input() node!: ChildChild;
   @Input() level = 0;
   @Input() detectedPipeline: AutoDetectedPipeline | null = null;
+  @Input() isEditing = false;
+  @Input() manualStages: { [key: string]: string[] } = {};
+  @Output() stagesChange = new EventEmitter<{ file: string, stages: string[] }>();
+
+  availableStages = [
+    'data_collection',
+    'data_cleaning',
+    'feature_engineering',
+    'model_training',
+    'model_evaluation'
+  ];
 
   isExpanded = false;
+  isStageSelectorOpen = false;
 
   get isDirectory(): boolean {
     return this.node.type === 'directory';
@@ -345,5 +447,39 @@ export class TreeNodeComponent {
       'model_evaluation': 'bg-pink-100 text-pink-800'
     };
     return colors[stage] || 'bg-gray-100 text-gray-800';
+  }
+
+  getManualStages(): string[] {
+    for (const [path, stages] of Object.entries(this.manualStages)) {
+      if (this.node.path && (path === this.node.path || this.node.path.endsWith(path) || path.endsWith(this.node.path))) {
+        return stages;
+      }
+    }
+    return [];
+  }
+
+  isStageSelected(stage: string): boolean {
+    return this.getManualStages().includes(stage);
+  }
+
+  toggleStage(stage: string): void {
+    const currentStages = [...this.getManualStages()];
+    const index = currentStages.indexOf(stage);
+
+    if (index > -1) {
+      currentStages.splice(index, 1);
+    } else {
+      if (currentStages.length < 5) {
+        currentStages.push(stage);
+      }
+    }
+
+    this.stagesChange.emit({
+      file: this.node.path || this.node.name,
+      stages: currentStages
+    });
+  }
+  toggleStageSelector(): void {
+    this.isStageSelectorOpen = !this.isStageSelectorOpen;
   }
 }
