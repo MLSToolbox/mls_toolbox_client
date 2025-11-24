@@ -81,14 +81,14 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Handle file upload
+   * Handle source upload (file or Git URL)
    */
-  onFileSelected(file: File): void {
-    this.assessmentService.uploadFile(file)
+  onFileSelected(source: File | string): void {
+    this.assessmentService.uploadFile(source)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          console.log('File uploaded successfully');
+          console.log('Source uploaded successfully');
         },
         error: (error) => {
           console.error('Upload failed:', error);

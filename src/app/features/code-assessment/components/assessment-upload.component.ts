@@ -1,10 +1,41 @@
 import { Component, Output, EventEmitter, Input, ViewChild, ElementRef } from '@angular/core';
 
+type UploadMode = 'zip' | 'git';
+type UploadSource = File | string;
+
 @Component({
   selector: 'app-assessment-upload',
   template: `
     <div class="flex items-center justify-center py-12 px-8 bg-gray-50">
       <div class="max-w-2xl w-full">
+        <!-- Mode Selector Tabs -->
+        <div class="flex justify-center mb-8">
+          <div class="inline-flex rounded-lg border border-gray-200 bg-white p-1">
+            <button
+              (click)="setMode('zip')"
+              [class.bg-blue-600]="uploadMode === 'zip'"
+              [class.text-white]="uploadMode === 'zip'"
+              [class.text-gray-700]="uploadMode !== 'zip'"
+              class="px-6 py-2.5 rounded-md font-medium transition-all duration-200 flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+              </svg>
+              Upload ZIP
+            </button>
+            <button
+              (click)="setMode('git')"
+              [class.bg-blue-600]="uploadMode === 'git'"
+              [class.text-white]="uploadMode === 'git'"
+              [class.text-gray-700]="uploadMode !== 'git'"
+              class="px-6 py-2.5 rounded-md font-medium transition-all duration-200 flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+              </svg>
+              Git Repository
+            </button>
+          </div>
+        </div>
+
         <!-- Icon -->
         <div class="flex justify-center mb-6">
           <div 
@@ -46,78 +77,115 @@ import { Component, Output, EventEmitter, Input, ViewChild, ElementRef } from '@
 
         <!-- Title -->
         <h2 class="text-2xl font-bold text-center mb-2" style="color: rgb(0, 32, 96);">
-          {{ isUploading ? 'Uploading...' : (uploadedFileName ? 'File Uploaded Successfully!' : 'Upload Your Project') }}
+          {{ isUploading ? 'Uploading...' : (uploadedFileName ? 'Source Uploaded Successfully!' : getTitleText()) }}
         </h2>
         
         <!-- Subtitle -->
         <p class="text-center text-gray-600 mb-8">
-          {{ isUploading ? 'Please wait while we process your file' : 'Drag your .zip file here or click to select' }}
+          {{ isUploading ? 'Please wait while we process your source' : getSubtitleText() }}
         </p>
 
-        <!-- Upload Area -->
-        <div 
-          class="border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300"
-          [ngClass]="{
-            'border-gray-300 bg-white hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer': !isDragging && !uploadedFileName && !isUploading,
-            'border-blue-500 bg-blue-50': isDragging && !isUploading,
-            'border-green-500 bg-green-50': uploadedFileName && !isUploading,
-            'border-gray-300 bg-gray-50 cursor-not-allowed opacity-60': isUploading
-          }"
-          [class.pointer-events-none]="isUploading"
-          (click)="!isUploading && fileInput.click()"
-          (dragover)="onDragOver($event)"
-          (dragleave)="onDragLeave($event)"
-          (drop)="onDrop($event)">
-          
-          <!-- Upload Icon -->
-          <div *ngIf="!uploadedFileName && !isUploading" class="mb-4">
-            <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-          </div>
-
-          <!-- Loading State -->
-          <div *ngIf="isUploading" class="mb-4">
-            <div class="w-16 h-16 mx-auto relative">
-              <svg class="w-16 h-16 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+        <!-- ZIP Upload Mode -->
+        <div *ngIf="uploadMode === 'zip'">
+          <div 
+            class="border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300"
+            [ngClass]="{
+              'border-gray-300 bg-white hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer': !isDragging && !uploadedFileName && !isUploading,
+              'border-blue-500 bg-blue-50': isDragging && !isUploading,
+              'border-green-500 bg-green-50': uploadedFileName && !isUploading,
+              'border-gray-300 bg-gray-50 cursor-not-allowed opacity-60': isUploading
+            }"
+            [class.pointer-events-none]="isUploading"
+            (click)="!isUploading && fileInput.click()"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)"
+            (drop)="onDrop($event)">
+            
+            <!-- Upload Icon -->
+            <div *ngIf="!uploadedFileName && !isUploading" class="mb-4">
+              <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
               </svg>
             </div>
+
+            <!-- Loading State -->
+            <div *ngIf="isUploading" class="mb-4">
+              <div class="w-16 h-16 mx-auto relative">
+                <svg class="w-16 h-16 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Success Icon -->
+            <div *ngIf="uploadedFileName && !isUploading" class="mb-4">
+              <svg class="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+
+            <!-- Text -->
+            <p class="text-lg font-medium mb-2" [ngClass]="{
+              'text-gray-700': !uploadedFileName && !isUploading,
+              'text-green-700': uploadedFileName && !isUploading,
+              'text-blue-700': isUploading
+            }">
+              {{ getDisplayText() }}
+            </p>
+            
+            <!-- File Size -->
+            <p *ngIf="fileSize && uploadedFileName" class="text-sm text-gray-600 mb-2">
+              {{ fileSize }}
+            </p>
+            
+            <p class="text-sm text-gray-500">
+              ZIP files only (Max 50MB)
+            </p>
+
+            <!-- Hidden Input -->
+            <input 
+              #fileInput
+              type="file" 
+              accept=".zip,application/zip,application/x-zip-compressed"
+              class="hidden"
+              [disabled]="isUploading"
+              (change)="onFileSelected($event)">
           </div>
+        </div>
 
-          <!-- Success Icon -->
-          <div *ngIf="uploadedFileName && !isUploading" class="mb-4">
-            <svg class="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
+        <!-- Git Repository URL Mode -->
+        <div *ngIf="uploadMode === 'git'">
+          <div class="bg-white border-2 border-gray-200 rounded-xl p-8">
+            <label class="block text-sm font-medium text-gray-700 mb-3">
+              Git Repository URL
+            </label>
+            <div class="flex gap-3">
+              <input
+                #gitUrlInput
+                type="text"
+                [(ngModel)]="gitUrl"
+                [disabled]="isUploading"
+                placeholder="https://github.com/username/repository.git"
+                class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:cursor-not-allowed"
+                (keyup.enter)="onGitUrlSubmit()">
+              <button
+                (click)="onGitUrlSubmit()"
+                [disabled]="isUploading || !isValidGitUrl()"
+                class="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200 flex items-center gap-2">
+                <svg *ngIf="!isUploading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                </svg>
+                <svg *ngIf="isUploading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {{ isUploading ? 'Cloning...' : 'Clone' }}
+              </button>
+            </div>
+            <p class="text-sm text-gray-500 mt-3">
+              Enter the .git URL of a public repository (must end with .git)
+            </p>
           </div>
-
-          <!-- Text -->
-          <p class="text-lg font-medium mb-2" [ngClass]="{
-            'text-gray-700': !uploadedFileName && !isUploading,
-            'text-green-700': uploadedFileName && !isUploading,
-            'text-blue-700': isUploading
-          }">
-            {{ getDisplayText() }}
-          </p>
-          
-          <!-- File Size -->
-          <p *ngIf="fileSize && uploadedFileName" class="text-sm text-gray-600 mb-2">
-            {{ fileSize }}
-          </p>
-          
-          <p class="text-sm text-gray-500">
-            ZIP files only (Max 50MB)
-          </p>
-
-          <!-- Hidden Input -->
-          <input 
-            #fileInput
-            type="file" 
-            accept=".zip,application/zip,application/x-zip-compressed"
-            class="hidden"
-            [disabled]="isUploading"
-            (change)="onFileSelected($event)">
         </div>
 
         <!-- Error Message -->
@@ -142,7 +210,9 @@ import { Component, Output, EventEmitter, Input, ViewChild, ElementRef } from '@
             <div>
               <p class="text-sm font-medium text-blue-900 mb-1">What to upload?</p>
               <p class="text-sm text-blue-700">
-                Upload a ZIP file containing your Python project source code for quality assessment.
+                {{ uploadMode === 'zip' 
+                  ? 'Upload a ZIP file containing your Python project source code for quality assessment.'
+                  : 'Provide the Git URL of a public repository containing Python code. The repository will be cloned for analysis.' }}
               </p>
             </div>
           </div>
@@ -156,7 +226,7 @@ import { Component, Output, EventEmitter, Input, ViewChild, ElementRef } from '@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
             </svg>
-            Upload Different File
+            Upload Different Source
           </button>
         </div>
       </div>
@@ -169,22 +239,62 @@ export class AssessmentUploadComponent {
   @Input() isUploading = false;
   @Input() errorMessage: string | null = null;
   @Input() fileSize: string | null = null;
-  @Output() fileSelected = new EventEmitter<File>();
+  @Output() sourceSelected = new EventEmitter<UploadSource>();
   @Output() reset = new EventEmitter<void>();
-  
+
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
-  
+  @ViewChild('gitUrlInput') gitUrlInput!: ElementRef<HTMLInputElement>;
+
+  uploadMode: UploadMode = 'zip';
+  gitUrl = '';
   isDragging = false;
   private readonly MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
+  setMode(mode: UploadMode): void {
+    if (this.isUploading) return;
+    this.uploadMode = mode;
+    this.gitUrl = '';
+  }
+
+  getTitleText(): string {
+    return this.uploadMode === 'zip'
+      ? 'Upload Your Project'
+      : 'Clone Git Repository';
+  }
+
+  getSubtitleText(): string {
+    return this.uploadMode === 'zip'
+      ? 'Drag your .zip file here or click to select'
+      : 'Enter the repository URL to clone and analyze';
+  }
+
   getDisplayText(): string {
     if (this.isUploading) {
-      return 'Processing your file...';
+      return this.uploadMode === 'zip' ? 'Processing your file...' : 'Cloning repository...';
     }
     if (this.uploadedFileName) {
       return this.uploadedFileName;
     }
     return 'Click to upload or drag and drop';
+  }
+
+  isValidGitUrl(): boolean {
+    if (!this.gitUrl) return false;
+    const trimmed = this.gitUrl.trim();
+    return trimmed.endsWith('.git') &&
+      (trimmed.startsWith('http://') || trimmed.startsWith('https://'));
+  }
+
+  onGitUrlSubmit(): void {
+    if (!this.isValidGitUrl() || this.isUploading) return;
+
+    console.group('🔗 Git URL Submission');
+    console.log('Git URL:', this.gitUrl);
+    console.log('✅ Validation passed');
+    console.log('🚀 Emitting Git URL to parent component');
+    console.groupEnd();
+
+    this.sourceSelected.emit(this.gitUrl.trim());
   }
 
   onFileSelected(event: Event): void {
@@ -231,10 +341,10 @@ export class AssessmentUploadComponent {
     });
 
     // Validate file type
-    const isZip = file.name.toLowerCase().endsWith('.zip') || 
-                  file.type === 'application/zip' || 
-                  file.type === 'application/x-zip-compressed';
-    
+    const isZip = file.name.toLowerCase().endsWith('.zip') ||
+      file.type === 'application/zip' ||
+      file.type === 'application/x-zip-compressed';
+
     if (!isZip) {
       console.error('❌ Invalid file type');
       this.errorMessage = 'Please upload a valid ZIP file';
@@ -256,11 +366,12 @@ export class AssessmentUploadComponent {
     console.groupEnd();
 
     // Emit file for upload
-    this.fileSelected.emit(file);
+    this.sourceSelected.emit(file);
   }
 
   resetUpload(): void {
     this.reset.emit();
+    this.gitUrl = '';
     if (this.fileInput) {
       this.fileInput.nativeElement.value = '';
     }

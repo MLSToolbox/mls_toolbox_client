@@ -17,6 +17,8 @@ export interface UploadedFile {
 export interface AssessmentState {
   currentStep: number;
   uploadedFile: UploadedFile | null;
+  uploadSource?: 'zip' | 'git'; // Track which upload method was used
+  gitUrl?: string; // Store Git URL if using Git upload
   sessionId: string | null;
   uploadResponse: UploadZipResponse | null;
   analysisResponse: AnalyzeResponse | null;

@@ -10,28 +10,48 @@ import { ApiResponse, UploadZipResponse, AnalyzeResponse } from "../models";
 export class ApiService {
   private baseURL = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /**
-   * Upload ZIP file
-   * Note: No Content-Type header is set to allow browser to set multipart/form-data with boundary
+   * Upload code source (ZIP file or Git repository)
+   * 
+   * @param source - File object for ZIP or string URL for Git repository
+   * @returns Observable with upload response
    */
-  uploadZip(file: File): Observable<ApiResponse<UploadZipResponse>> {
+  upload(source: File | string): Observable<ApiResponse<UploadZipResponse>> {
     const formData = new FormData();
-    formData.append("file", file, file.name);
-    
-    console.log('🚀 Uploading to:', `${this.baseURL}/upload-zip`);
-    console.log('📦 File details:', {
-      name: file.name,
-      size: file.size,
-      type: file.type
-    });
-    
+
+    if (source instanceof File) {
+      // ZIP file upload
+      formData.append("file", source, source.name);
+
+      console.log('🚀 Uploading ZIP to:', `${this.baseURL}/upload`);
+      console.log('📦 File details:', {
+        name: source.name,
+        size: source.size,
+        type: source.type
+      });
+    } else {
+      // Git repository URL
+      formData.append("git_url", source);
+
+      console.log('🚀 Uploading Git repository to:', `${this.baseURL}/upload`);
+      console.log('🔗 Git URL:', source);
+    }
+
     return this.http.post<ApiResponse<UploadZipResponse>>(
-      `${this.baseURL}/upload-zip`,
+      `${this.baseURL}/upload`,
       formData
       // No headers - let Angular/browser set Content-Type automatically
     );
+  }
+
+  /**
+   * @deprecated Use upload() instead
+   * Upload ZIP file
+   */
+  uploadZip(file: File): Observable<ApiResponse<UploadZipResponse>> {
+    return this.upload(file);
   }
 
   /**
@@ -50,3 +70,4 @@ export class ApiService {
     );
   }
 }
+

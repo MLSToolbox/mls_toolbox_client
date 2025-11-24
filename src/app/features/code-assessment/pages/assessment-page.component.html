@@ -78,7 +78,7 @@
         [isUploading]="state.isUploading"
         [errorMessage]="getUploadErrorMessage()"
         [fileSize]="getFileSize()"
-        (fileSelected)="onFileSelected($event)"
+        (sourceSelected)="onFileSelected($event)"
         (reset)="onUploadReset()">
       </app-assessment-upload>
     </div>

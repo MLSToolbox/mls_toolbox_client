@@ -177,44 +177,75 @@ export class CodeAssessmentService {
   }
 
   /**
-   * Upload ZIP file to backend
+   * Upload source (ZIP file or Git URL) to backend
    */
-  uploadFile(file: File): Observable<void> {
-    console.log('📤 Starting file upload:', {
-      name: file.name,
-      size: file.size,
-      type: file.type
-    });
+  uploadFile(source: File | string): Observable<void> {
+    const isFile = source instanceof File;
 
-    // Validate file
-    const validation = this.validateFile(file);
-    if (!validation.valid) {
-      console.error('❌ File validation failed:', validation.error);
-      this.updateState({
-        error: {
-          message: validation.error || 'Invalid file',
-          code: 'VALIDATION_ERROR'
-        }
-      });
-      return throwError(() => new Error(validation.error));
+    console.log(isFile ? '📤 Starting file upload:' : '🔗 Starting Git repository upload:',
+      isFile ? { name: (source as File).name, size: (source as File).size, type: (source as File).type } : source
+    );
+
+    // Validate source
+    if (isFile) {
+      const validation = this.validateFile(source as File);
+      if (!validation.valid) {
+        console.error('❌ File validation failed:', validation.error);
+        this.updateState({
+          error: {
+            message: validation.error || 'Invalid file',
+            code: 'VALIDATION_ERROR'
+          }
+        });
+        return throwError(() => new Error(validation.error));
+      }
+    } else {
+      const validation = this.validateGitUrl(source as string);
+      if (!validation.valid) {
+        console.error('❌ Git URL validation failed:', validation.error);
+        this.updateState({
+          error: {
+            message: validation.error || 'Invalid Git URL',
+            code: 'VALIDATION_ERROR'
+          }
+        });
+        return throwError(() => new Error(validation.error));
+      }
     }
 
-    const uploadedFile: UploadedFile = {
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      file
-    };
-
-    this.updateState({
-      uploadedFile,
+    // Prepare state based on source type
+    const stateUpdate: Partial<AssessmentState> = {
       isUploading: true,
       error: null
-    });
+    };
 
-    console.log('✅ File validated, sending to API...');
+    if (isFile) {
+      const file = source as File;
+      const uploadedFile: UploadedFile = {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        file
+      };
+      stateUpdate.uploadedFile = uploadedFile;
+      stateUpdate.uploadSource = 'zip';
+    } else {
+      stateUpdate.uploadSource = 'git';
+      stateUpdate.gitUrl = source as string;
+      // Create a pseudo UploadedFile for Git URLs
+      stateUpdate.uploadedFile = {
+        name: (source as string).split('/').pop() || 'repository',
+        size: 0,
+        type: 'git',
+        file: null as any
+      };
+    }
 
-    return this.apiService.uploadZip(file).pipe(
+    this.updateState(stateUpdate);
+
+    console.log('✅ Source validated, sending to API...');
+
+    return this.apiService.upload(source).pipe(
       tap(response => {
         console.log('📥 Upload response received:', response);
         if (response.success && response.data) {
@@ -233,7 +264,7 @@ export class CodeAssessmentService {
       catchError(error => {
         console.error('❌ Upload error:', error);
         const errorObj: AssessmentError = {
-          message: error?.error?.message || error?.message || 'Failed to upload file',
+          message: error?.error?.error?.message || error?.error?.message || error?.message || 'Failed to upload source',
           code: 'UPLOAD_ERROR',
           details: error
         };
@@ -381,6 +412,27 @@ export class CodeAssessmentService {
         valid: false,
         error: 'Only ZIP files are allowed'
       };
+    }
+
+    return { valid: true };
+  }
+
+  /**
+   * Validate Git URL before upload
+   */
+  private validateGitUrl(url: string): { valid: boolean; error?: string } {
+    if (!url || !url.trim()) {
+      return { valid: false, error: 'Git URL cannot be empty' };
+    }
+
+    const trimmed = url.trim();
+
+    if (!trimmed.endsWith('.git')) {
+      return { valid: false, error: 'Git URL must end with .git' };
+    }
+
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+      return { valid: false, error: 'Git URL must start with http:// or https://' };
     }
 
     return { valid: true };

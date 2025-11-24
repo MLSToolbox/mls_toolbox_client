@@ -1,5 +1,6 @@
 import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 import { HttpClientModule } from "@angular/common/http";
 import { CodeAssessmentRoutingModule } from "./code-assessment-routing.module";
 import { SharedModule } from "@shared/shared.module";
@@ -29,9 +30,11 @@ import { AssessmentResultsFinalComponent, TreeNodeClickableComponent } from "./c
   ],
   imports: [
     CommonModule,
+    FormsModule,
     HttpClientModule,
     SharedModule,
     CodeAssessmentRoutingModule,
   ],
 })
-export class CodeAssessmentModule {}
+export class CodeAssessmentModule { }
+
