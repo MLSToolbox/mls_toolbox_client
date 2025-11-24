@@ -262,3 +262,142 @@ export interface IFCMSummary {
   single_method_files: number;
   average_ifc_m: number;
 }
+
+export interface IFCPResult extends AnalysisResult {
+  details: {
+    packages: { [packagePath: string]: IFCPPackageResult };
+    summary: IFCPSummary;
+  };
+}
+
+export interface IFCPPackageResult {
+  ifc_p: number | null;
+  n_modules: number;
+  n_possible_pairs: number;
+  n_connected_pairs: number;
+  connected_pairs: [string, string][];
+  cohesion_level: string;
+}
+
+export interface IFCPSummary {
+  total_packages: number;
+  high_cohesion: number;
+  good_cohesion: number;
+  moderate_cohesion: number;
+  low_cohesion: number;
+  very_low_cohesion: number;
+  average_ifc_p: number;
+}
+
+export interface LPCMLResult extends AnalysisResult {
+  details: {
+    packages: { [packagePath: string]: LPCMLPackageResult };
+    summary: LPCMLSummary;
+  };
+}
+
+export interface LPCMLPackageResult {
+  lpcml: number | null;
+  n_elements: number;
+  n_components: number;
+  cohesion_ratio: number;
+  cohesive_clusters: { members: string[], shared_resources: any }[];
+  isolated_elements: string[];
+  cohesion_level: string;
+}
+
+export interface LPCMLSummary {
+  total_packages: number;
+  excellent_cohesion: number;
+  acceptable_cohesion: number;
+  moderate_cohesion: number;
+  poor_cohesion: number;
+  average_components: number;
+  average_cohesion_ratio: number;
+}
+
+export interface PMCRResult extends AnalysisResult {
+  details: {
+    packages: { [packagePath: string]: PMCRPackageResult };
+    summary: PMCRSummary;
+  };
+}
+
+export interface PMCRPackageResult {
+  pmcr: number | null;
+  n_modules: number;
+  n_possible_pairs: number;
+  n_connected_pairs: number;
+  connected_components: number;
+  cohesion_level: string;
+  direct_connections: any[];
+}
+
+export interface PMCRSummary {
+  total_packages: number;
+  average_pmcr: number;
+  high_cohesion: number;
+  good_cohesion: number;
+  moderate_cohesion: number;
+  low_cohesion: number;
+  very_low_cohesion: number;
+}
+
+export interface PDSCResult extends AnalysisResult {
+  details: {
+    packages: { [packagePath: string]: PDSCPackageResult };
+    summary: PDSCSummary;
+  };
+}
+
+export interface PDSCPackageResult {
+  pdsc: number | null;
+  n_modules: number;
+  n_possible_pairs: number;
+  n_shared_pairs: number;
+  shared_pairs: [string, string][];
+  resources_per_file: { [fileName: string]: string[] };
+}
+
+export interface PDSCSummary {
+  total_packages: number;
+  high_cohesion: number;
+  good_cohesion: number;
+  moderate_cohesion: number;
+  low_cohesion: number;
+  very_low_cohesion: number;
+  average_pdsc: number;
+}
+
+export interface PFPResult extends AnalysisResult {
+  details: {
+    packages: { [packagePath: string]: PFPPackageResult };
+    summary: PFPSummary;
+  };
+}
+
+export interface PFPPackageResult {
+  metrics: {
+    total_modules: number;
+    ml_modules: number;
+    pfp_score: number;
+    purity_level: string;
+  };
+  phases_detected: string[];
+  stages_detected: string[];
+  quality_indicators: {
+    needs_refactoring: boolean;
+    has_ml_content: boolean;
+    is_pure_package: boolean;
+  };
+}
+
+export interface PFPSummary {
+  total_packages_analyzed: number;
+  average_pfp_score: number;
+  overall_quality: string;
+  packages_needing_attention: number;
+  packages_with_good_purity: number;
+  etapas_max: number;
+  purity_summary: { [level: string]: number };
+}

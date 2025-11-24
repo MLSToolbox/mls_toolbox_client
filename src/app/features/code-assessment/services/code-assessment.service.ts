@@ -52,6 +52,93 @@ export class CodeAssessmentService {
         'LCOM4 - Hitz & Montazeri, 1995',
         'Adapted for ML pipelines'
       ]
+    },
+    {
+      id: 'ifc_p',
+      name: 'Information Flow Cohesion - Package',
+      description: 'Measures the functional cooperation between modules of the same package via information flow (invocations or data consumption).',
+      category: 'cohesion',
+      enabled: true,
+      selected: false,
+      formula: 'IFC-P(P) = (2 * sum(F_ij)) / (m * (m - 1))',
+      ideal_range: { min: 0, max: 1.0, optimal: '>0.8', acceptable: '0.6-0.8', warning: '<0.6' },
+      interpretation: {
+        '0.8-1.0': 'Excellent - high functional cooperation',
+        '0.6-0.79': 'Good - reasonable cooperation',
+        '0.4-0.59': 'Moderate - some cooperation',
+        '0.2-0.39': 'Low - little cooperation',
+        '0.0-0.19': 'Very Low - almost no cooperation'
+      },
+      references: []
+    },
+    {
+      id: 'lpcml',
+      name: 'Loose Package Cohesion Modified for ML',
+      description: 'Measures the number of connected components within a package. A connected component represents a group of modules related through dependencies, shared data, model files, or ML library usage.',
+      category: 'cohesion',
+      enabled: true,
+      selected: false,
+      formula: 'LPCML(P) = |CC(G_P)|',
+      ideal_range: { min: 1, max: 10, optimal: '1', acceptable: '<=3', warning: '>5' },
+      interpretation: {
+        '1': 'Excellent - single connected component',
+        '<=3': 'Acceptable - few connected components',
+        '<=5': 'Moderate - some fragmentation',
+        '>5': 'Poor - highly fragmented'
+      },
+      references: []
+    },
+    {
+      id: 'pmcr',
+      name: 'Package Module Cohesion Ratio',
+      description: 'Measures the proportion of interconnected modules in a package, considering both code dependencies and shared ML resources (datasets, models, APIs).',
+      category: 'cohesion',
+      enabled: true,
+      selected: false,
+      formula: 'PMCR(P) = Mc / (n * (n - 1) / 2)',
+      ideal_range: { min: 0, max: 1.0, optimal: '>0.8', acceptable: '0.6-0.8', warning: '<0.6' },
+      interpretation: {
+        '0.8-1.0': 'Excellent - high interconnection',
+        '0.6-0.79': 'Good - reasonable interconnection',
+        '0.4-0.59': 'Moderate - some interconnection',
+        '0.2-0.39': 'Low - little interconnection',
+        '0.0-0.19': 'Very Low - almost no interconnection'
+      },
+      references: []
+    },
+    {
+      id: 'pdsc',
+      name: 'Package Data Structure Cohesion',
+      description: 'Measures the structural sharing of data or models between modules of the same package.',
+      category: 'cohesion',
+      enabled: true,
+      selected: false,
+      formula: 'PDSC(P) = (2 * sum(Q_ij)) / (m * (m - 1))',
+      ideal_range: { min: 0, max: 1.0, optimal: '>0.8', acceptable: '0.6-0.8', warning: '<0.6' },
+      interpretation: {
+        '0.8-1.0': 'Excellent - high data sharing',
+        '0.6-0.79': 'Good - reasonable data sharing',
+        '0.4-0.59': 'Moderate - some data sharing',
+        '0.2-0.39': 'Low - little data sharing',
+        '0.0-0.19': 'Very Low - almost no data sharing'
+      },
+      references: []
+    },
+    {
+      id: 'pfp',
+      name: 'Package Functional Purity',
+      description: 'Measures how focused a package is on a specific ML pipeline function.',
+      category: 'cohesion',
+      enabled: true,
+      selected: false,
+      formula: 'PFP = (N_ml / N_total) * (1 / N_etapas)',
+      ideal_range: { min: 0, max: 1.0, optimal: '>0.8', acceptable: '0.6-0.8', warning: '<0.6' },
+      interpretation: {
+        'High': 'Package is focused on a single ML stage',
+        'Moderate': 'Package has some focus but mixes stages',
+        'Low': 'Package is unfocused or has little ML content'
+      },
+      references: []
     }
   ];
 
