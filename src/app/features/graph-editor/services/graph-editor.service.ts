@@ -126,7 +126,7 @@ export class GraphEditorService {
     const url = `${environment.apiUrl}`;
 
     try {
-      const response = await fetch(url, {
+      const response = await fetch(url+"/create_app", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
