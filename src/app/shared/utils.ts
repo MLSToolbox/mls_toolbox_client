@@ -41,7 +41,7 @@ export function getColorFromCategory(category: string): string {
 
 export function getBaseURL(suffix = ""): string {
   if (isDevMode()) {
-    return "http://localhost:5030" + suffix;
+    return "http://localhost:5000" + suffix;
   }
 
   return "https://gessi.cs.upc.edu:1446" + suffix;
