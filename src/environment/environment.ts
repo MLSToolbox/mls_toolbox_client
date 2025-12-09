@@ -1,7 +1,7 @@
 import { validateEnvironment } from './environment.schema';
 
 const config = {
-  apiUrl: 'http://localhost:5000/api',
+  apiUrl: 'http://localhost:5001/api',
   apiTimeout: 30000,
 };
 
