@@ -20,7 +20,7 @@ import { Component, Output, EventEmitter } from '@angular/core';
             <div>
               <p class="text-sm font-medium text-blue-900 mb-1">Available Metrics</p>
               <p class="text-sm text-blue-700">
-                We'll analyze your code using FPC (File, Pipeline, Class) metrics to assess code quality.
+                We'll analyze your code using CCPM (Conceptual Cohesion of Pipeline Modules) metrics to assess code quality.
               </p>
             </div>
           </div>
@@ -36,7 +36,7 @@ import { Component, Output, EventEmitter } from '@angular/core';
                 </svg>
               </div>
               <div class="flex-1">
-                <h3 class="text-base font-semibold text-gray-900 mb-1">FPC Metrics (Default)</h3>
+                <h3 class="text-base font-semibold text-gray-900 mb-1">CCPM Metrics (Default)</h3>
                 <p class="text-sm text-gray-600 mb-2">
                   Comprehensive quality assessment including:
                 </p>
@@ -113,13 +113,13 @@ import { Component, Output, EventEmitter } from '@angular/core';
 export class AssessmentMetricsComponent {
   @Output() runAnalysis = new EventEmitter<string[]>();
   @Output() back = new EventEmitter<void>();
-  
+
   isAnalyzing = false;
 
   onRunAnalysis(): void {
     this.isAnalyzing = true;
-    // For now, we only support FPC metrics
-    this.runAnalysis.emit(['fpc']);
+    // For now, we only support CCPM metrics
+    this.runAnalysis.emit(['ccpm']);
   }
 
   onBack(): void {

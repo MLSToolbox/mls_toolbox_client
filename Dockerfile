@@ -5,14 +5,32 @@
 # while generating the docker image
 FROM node:20-alpine AS build
 
+# Build arguments para configuración del ambiente
+ARG API_URL=http://localhost:5000/api
+ARG API_TIMEOUT=30000
+ARG ENVIRONMENT=local
+
 RUN mkdir -p /app
 
 # Create a Virtual directory inside the docker image
 WORKDIR /app
+
 # Copy files to virtual directory
 COPY package.json /app
+
 # Copy files from local machine to virtual directory in docker image
 COPY . .
+
+# Crear archivo de environment con las variables de build
+RUN echo "import { validateEnvironment } from './environment.schema';" > /app/src/environment/environment.ts && \
+    echo "" >> /app/src/environment/environment.ts && \
+    echo "const config = {" >> /app/src/environment/environment.ts && \
+    echo "  apiUrl: '${API_URL}'," >> /app/src/environment/environment.ts && \
+    echo "  apiTimeout: ${API_TIMEOUT}," >> /app/src/environment/environment.ts && \
+    echo "};" >> /app/src/environment/environment.ts && \
+    echo "" >> /app/src/environment/environment.ts && \
+    echo "export const environment = validateEnvironment(config);" >> /app/src/environment/environment.ts
+
 RUN npm install
 RUN npm run build --omit=dev
 

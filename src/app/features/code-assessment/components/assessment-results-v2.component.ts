@@ -1,14 +1,10 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { 
-  AnalyzeResponse, 
+import {
+  AnalyzeResponse,
   AnalysisResult,
-  FPCResult,
-  FileStructureResult,
-  LCCMLResult,
-  PyLintResult,
-  RadonCCResult,
-  RadonMIResult,
-  PipelineDetectionResult
+  CCPMResult,
+  SCPMResult,
+  FCPMResult
 } from '@app/core/models';
 
 interface FileRecommendation {
@@ -260,58 +256,50 @@ export class AssessmentResultsV2Component implements OnInit {
       const metricId = result.analyzer_id;
       const metricName = result.documentation.name;
 
-      if (metricId === 'fpc') {
-        const fpcResult = result as FPCResult;
-        (fpcResult.messages || []).forEach((msg: any) => {
-          this.fileRecommendations.push({
-            filePath: msg.file,
-            metricId,
-            metricName,
-            severity: msg.severity,
-            message: `${msg.diagnosis} - ${msg.recommendation}`,
-            details: msg
-          });
-        });
-      } else if (metricId === 'file_structure') {
-        const fsResult = result as FileStructureResult;
-        Object.entries(fsResult.details.files || {}).forEach(([filePath, fileData]) => {
-          if (fileData.recommendation && fileData.severity) {
+      if (metricId === 'ccpm') {
+        const ccpmResult = result as CCPMResult;
+        // Process file-specific messages from by_file structure
+        Object.entries((ccpmResult.messages as any)?.by_file || {}).forEach(([filePath, messages]) => {
+          (messages as any[]).forEach((msg: any) => {
+            const severity = msg.severity === 'critical' || msg.severity === 'high' ? 'error' :
+                           msg.severity === 'medium' ? 'warning' : 'info';
             this.fileRecommendations.push({
               filePath,
               metricId,
               metricName,
-              severity: fileData.severity,
-              message: fileData.recommendation,
-              details: fileData
+              severity,
+              message: `${msg.diagnosis}${msg.recommendation ? ' - ' + msg.recommendation : ''}`,
+              details: msg
             });
-          }
+          });
         });
-      } else if (metricId === 'lccml') {
-        const lccmlResult = result as LCCMLResult;
-        Object.entries(lccmlResult.details.files || {}).forEach(([filePath, fileData]) => {
-          if (fileData.lccml !== null && fileData.lccml < 0.5) {
+      } else if (metricId === 'scpm') {
+        const scpmResult = result as SCPMResult;
+        Object.entries(scpmResult.details?.files || {}).forEach(([filePath, fileData]) => {
+          if (fileData.scpm !== null && fileData.scpm < 0.4) {
             this.fileRecommendations.push({
               filePath,
               metricId,
               metricName,
-              severity: fileData.lccml < 0.2 ? 'error' : 'warning',
-              message: `Low cohesion detected (${fileData.lccml.toFixed(2)}). ${fileData.n_disconnected_pairs || 0} disconnected method pairs.`,
+              severity: fileData.scpm < 0.2 ? 'error' : 'warning',
+              message: `Low structural cohesion (${(fileData.scpm * 100).toFixed(1)}%). Few shared variables between methods.`,
               details: fileData
             });
           }
         });
-      } else if (metricId === 'pylint') {
-        const pylintResult = result as PyLintResult;
-        (pylintResult.details?.messages || []).forEach((msg: any) => {
-          this.fileRecommendations.push({
-            filePath: msg.path,
-            metricId,
-            metricName,
-            severity: msg.type === 'error' || msg.type === 'fatal' ? 'error' : 
-                     msg.type === 'warning' ? 'warning' : 'info',
-            message: `[${msg.symbol}] ${msg.message} (Line ${msg.line})`,
-            details: msg
-          });
+      } else if (metricId === 'fcpm') {
+        const fcpmResult = result as FCPMResult;
+        Object.entries(fcpmResult.details?.files || {}).forEach(([filePath, fileData]) => {
+          if (fileData.fcpm !== null && fileData.fcpm < 0.4) {
+            this.fileRecommendations.push({
+              filePath,
+              metricId,
+              metricName,
+              severity: fileData.fcpm < 0.2 ? 'error' : 'warning',
+              message: `Low functional cohesion (${(fileData.fcpm * 100).toFixed(1)}%). Few method call connections.`,
+              details: fileData
+            });
+          }
         });
       }
     });
@@ -354,13 +342,13 @@ export class AssessmentResultsV2Component implements OnInit {
   getScoreInterpretation(metric: AnalysisResult): string {
     const score = metric.score;
     const interpretation = metric.documentation.interpretation;
-    
+
     for (const [range, description] of Object.entries(interpretation)) {
       if (this.isScoreInRange(score, range)) {
         return description;
       }
     }
-    
+
     return 'No interpretation available';
   }
 
@@ -378,7 +366,7 @@ export class AssessmentResultsV2Component implements OnInit {
     return false;
   }
 
-  getInterpretationItems(metric: AnalysisResult): Array<{range: string, description: string}> {
+  getInterpretationItems(metric: AnalysisResult): Array<{ range: string, description: string }> {
     return Object.entries(metric.documentation.interpretation).map(([range, description]) => ({
       range,
       description

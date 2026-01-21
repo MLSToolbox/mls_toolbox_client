@@ -170,11 +170,11 @@ export class AssessmentStructureComponent implements OnInit {
     {
       id: 'cohesion',
       name: 'Cohesion',
-      description: 'Analyze code cohesion using file and package-level metrics.',
+      description: 'Analyze code cohesion using file-level metrics (CCPM, FCPM, SCPM).',
       enabled: true,
       selected: false,
       config: {
-        metrics: ['fpc', 'lccml', 'ldsc', 'ifc_m', 'ifc_p', 'lpcml', 'pmcr', 'pdsc', 'pfp'],
+        metrics: ['ccpm', 'fcpm', 'scpm'],
         all_files: true
       }
     },

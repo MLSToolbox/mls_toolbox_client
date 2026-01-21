@@ -2,18 +2,9 @@ import { Component, Input, Output, EventEmitter, OnInit, OnChanges } from '@angu
 import {
   AnalyzeResponse,
   AnalysisResult,
-  FPCResult,
-  FileStructureResult,
-  LCCMLResult,
-  PyLintResult,
-  PipelineDetectionResult,
-  LDSCResult,
-  IFCMResult,
-  IFCPResult,
-  LPCMLResult,
-  PMCRResult,
-  PDSCResult,
-  PFPResult
+  CCPMResult,
+  SCPMResult,
+  FCPMResult
 } from '@app/core/models';
 import { TreeStructure, ChildChild } from '@app/core/models/upload-zip.model';
 
@@ -371,7 +362,7 @@ interface FileMetricsData {
 
                 <!-- Key Metrics Grid -->
                 <div class="px-6 py-6">
-                  <div *ngIf="metricId === 'fpc'" class="space-y-4">
+                  <div *ngIf="metricId === 'ccpm'" class="space-y-4">
                     <!-- Primary Metrics -->
                     <div class="grid grid-cols-2 gap-4">
                       <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
@@ -421,10 +412,13 @@ interface FileMetricsData {
                       <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border border-teal-200">
                         <div class="text-xs font-semibold text-teal-600 mb-1">ML CONTENT</div>
                         <div class="text-lg font-bold text-teal-700">
-                          {{ selectedFileData[metricId].data.ml_content ? 'Yes' : 'No' }}
+                          {{ selectedFileData[metricId].data.ml_content_only ? 'Only ML' : 'Mixed' }}
                         </div>
                         <div class="text-xs text-teal-600 mt-1">
                           {{ selectedFileData[metricId].data.is_script_file ? 'Script file' : 'Structured file' }}
+                        </div>
+                        <div *ngIf="selectedFileData[metricId].data.non_ml_keywords_found?.length > 0" class="text-xs text-red-600 mt-1">
+                          Non-ML: {{ selectedFileData[metricId].data.non_ml_keywords_found.length }} keywords
                         </div>
                       </div>
                     </div>
@@ -452,110 +446,50 @@ interface FileMetricsData {
                         </span>
                       </div>
                     </div>
-                  </div>
 
-                  <div *ngIf="metricId === 'lccml'" class="space-y-4">
-                    <!-- Primary Metrics -->
-                    <div class="grid grid-cols-2 gap-4">
-                      <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
-                        <div class="text-xs font-semibold text-purple-600 mb-1">COHESION LEVEL</div>
-                        <div class="text-2xl font-bold capitalize"
-                             [ngClass]="{
-                               'text-emerald-700': selectedFileData[metricId].data.cohesion_level === 'very_high',
-                               'text-green-700': selectedFileData[metricId].data.cohesion_level === 'high',
-                               'text-yellow-600': selectedFileData[metricId].data.cohesion_level === 'medium',
-                               'text-orange-600': selectedFileData[metricId].data.cohesion_level === 'low',
-                               'text-red-700': selectedFileData[metricId].data.cohesion_level === 'very_low',
-                               'text-gray-700': selectedFileData[metricId].data.cohesion_level === 'not_applicable' || selectedFileData[metricId].data.cohesion_level === 'no_class'
-                             }">
-                          {{ selectedFileData[metricId].data.cohesion_level?.replace('_', ' ') || 'N/A' }}
-                        </div>
-                      </div>
-
-                      <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
-                        <div class="text-xs font-semibold text-indigo-600 mb-1">LCCML SCORE</div>
-                        <div class="text-2xl font-bold text-indigo-700">
-                          {{ selectedFileData[metricId].data.lccml !== null && selectedFileData[metricId].data.lccml !== undefined 
-                             ? (selectedFileData[metricId].data.lccml * 100).toFixed(1) + '%' 
-                             : 'N/A' }}
+                    <!-- Non-ML Keywords Found (Warning) -->
+                    <div *ngIf="selectedFileData[metricId].data.non_ml_keywords_found && selectedFileData[metricId].data.non_ml_keywords_found.length > 0"
+                         class="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-4 border border-red-200">
+                      <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        <div class="flex-1">
+                          <div class="text-xs font-bold text-red-700 mb-2 uppercase tracking-wide">Non-ML Keywords Detected</div>
+                          <p class="text-xs text-red-800 mb-2">This file contains non-ML code, which affects cohesion:</p>
+                          <div class="flex flex-wrap gap-2">
+                            <span *ngFor="let keyword of selectedFileData[metricId].data.non_ml_keywords_found"
+                                  class="px-2 py-1 text-xs font-medium rounded bg-white border border-red-300 text-red-700">
+                              {{ keyword }}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
 
-                    <!-- Connection Metrics -->
-                    <div class="grid grid-cols-3 gap-4">
-                      <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                        <div class="text-xs font-semibold text-blue-600 mb-1">METHODS</div>
-                        <div class="text-2xl font-bold text-blue-700">
-                          {{ selectedFileData[metricId].data.n_methods || 0 }}
-                        </div>
-                        <div class="text-xs text-blue-600 mt-1">In class</div>
-                      </div>
-                      
-                      <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border border-teal-200">
-                        <div class="text-xs font-semibold text-teal-600 mb-1">POSSIBLE PAIRS</div>
-                        <div class="text-2xl font-bold text-teal-700">
-                          {{ selectedFileData[metricId].data.n_possible_pairs || 0 }}
-                        </div>
-                        <div class="text-xs text-teal-600 mt-1">Total combinations</div>
-                      </div>
-
-                      <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
-                        <div class="text-xs font-semibold text-green-600 mb-1">CONNECTED PAIRS</div>
-                        <div class="text-2xl font-bold text-green-700">
-                          {{ selectedFileData[metricId].data.n_connected_pairs || 0 }}
-                        </div>
-                        <div class="text-xs text-green-600 mt-1">
-                          {{ selectedFileData[metricId].data.n_possible_pairs > 0 
-                             ? ((selectedFileData[metricId].data.n_connected_pairs / selectedFileData[metricId].data.n_possible_pairs) * 100).toFixed(0) + '%' 
-                             : '0%' }} connected
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Connection Breakdown -->
-                    <div *ngIf="selectedFileData[metricId].data.connection_breakdown" 
-                         class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
-                      <div class="text-xs font-semibold text-blue-700 mb-3 uppercase tracking-wide">Connection Breakdown</div>
-                      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <div class="bg-white rounded-lg p-3 border border-blue-200 text-center">
-                          <div class="text-xs text-gray-600 mb-1">Method Calls</div>
-                          <div class="text-xl font-bold text-blue-700">
-                            {{ selectedFileData[metricId].data.connection_breakdown.by_method_calls || 0 }}
-                          </div>
-                        </div>
-                        <div class="bg-white rounded-lg p-3 border border-purple-200 text-center">
-                          <div class="text-xs text-gray-600 mb-1">Variables</div>
-                          <div class="text-xl font-bold text-purple-700">
-                            {{ selectedFileData[metricId].data.connection_breakdown.by_variables || 0 }}
-                          </div>
-                        </div>
-                        <div class="bg-white rounded-lg p-3 border border-teal-200 text-center">
-                          <div class="text-xs text-gray-600 mb-1">ML Functions</div>
-                          <div class="text-xl font-bold text-teal-700">
-                            {{ selectedFileData[metricId].data.connection_breakdown.by_ml_functions || 0 }}
-                          </div>
-                        </div>
-                        <div class="bg-white rounded-lg p-3 border border-indigo-200 text-center">
-                          <div class="text-xs text-gray-600 mb-1">Files</div>
-                          <div class="text-xl font-bold text-indigo-700">
-                            {{ selectedFileData[metricId].data.connection_breakdown.by_files || 0 }}
-                          </div>
-                        </div>
+                    <!-- Detection Source Info -->
+                    <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                      <div class="flex items-center gap-2 text-xs text-gray-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>Detection source: <strong class="text-gray-900">{{ selectedFileData[metricId].data.source }}</strong></span>
                       </div>
                     </div>
                   </div>
 
-                  <div *ngIf="metricId === 'ldsc'" class="space-y-4">
+                  <!-- LCCML TEMPLATE REMOVED - Metric no longer used -->
+
+                  <div *ngIf="metricId === 'scpm'" class="space-y-4">
                     <!-- Primary Metrics -->
                     <div class="grid grid-cols-2 gap-4">
                       <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
                         <div class="text-xs font-semibold text-orange-600 mb-1">COHESION LEVEL</div>
                         <div class="text-2xl font-bold capitalize"
                              [ngClass]="{
-                               'text-emerald-700': selectedFileData[metricId].data.cohesion_level === 'excellent',
-                               'text-green-700': selectedFileData[metricId].data.cohesion_level === 'good',
-                               'text-yellow-600': selectedFileData[metricId].data.cohesion_level === 'moderate',
+                               'text-emerald-700': selectedFileData[metricId].data.cohesion_level === 'very_high',
+                               'text-green-700': selectedFileData[metricId].data.cohesion_level === 'high',
+                               'text-yellow-600': selectedFileData[metricId].data.cohesion_level === 'medium',
                                'text-orange-600': selectedFileData[metricId].data.cohesion_level === 'low',
                                'text-red-700': selectedFileData[metricId].data.cohesion_level === 'very_low',
                                'text-gray-700': selectedFileData[metricId].data.cohesion_level === 'not_applicable'
@@ -565,17 +499,17 @@ interface FileMetricsData {
                       </div>
 
                       <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
-                        <div class="text-xs font-semibold text-indigo-600 mb-1">LDSC SCORE</div>
+                        <div class="text-xs font-semibold text-indigo-600 mb-1">SCPM SCORE</div>
                         <div class="text-2xl font-bold text-indigo-700">
-                          {{ selectedFileData[metricId].data.ldsc !== null && selectedFileData[metricId].data.ldsc !== undefined 
-                             ? (selectedFileData[metricId].data.ldsc * 100).toFixed(1) + '%' 
+                          {{ selectedFileData[metricId].data.scpm !== null && selectedFileData[metricId].data.scpm !== undefined 
+                             ? (selectedFileData[metricId].data.scpm * 100).toFixed(1) + '%'  
                              : 'N/A' }}
                         </div>
                       </div>
                     </div>
 
                     <!-- Connection Metrics -->
-                    <div class="grid grid-cols-3 gap-4">
+                    <div class="grid grid-cols-4 gap-4">
                       <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
                         <div class="text-xs font-semibold text-blue-600 mb-1">METHODS</div>
                         <div class="text-2xl font-bold text-blue-700">
@@ -601,18 +535,123 @@ interface FileMetricsData {
                              : '0%' }} shared
                         </div>
                       </div>
+
+                      <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                        <div class="text-xs font-semibold text-purple-600 mb-1">COMPONENTS</div>
+                        <div class="text-2xl font-bold text-purple-700">
+                          {{ selectedFileData[metricId].data.n_components || 0 }}
+                        </div>
+                        <div class="text-xs text-purple-600 mt-1">Structural groups</div>
+                      </div>
+                    </div>
+
+                    <!-- Shared Resources Summary -->
+                    <div class="grid grid-cols-3 gap-4">
+                      <div class="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-4 border border-cyan-200">
+                        <div class="text-xs font-semibold text-cyan-600 mb-1">SHARED TYPE</div>
+                        <div class="text-lg font-bold capitalize text-cyan-700">
+                          {{ selectedFileData[metricId].data.shared_type || 'N/A' }}
+                        </div>
+                      </div>
+
+                      <div class="bg-gradient-to-br from-lime-50 to-lime-100 rounded-lg p-4 border border-lime-200">
+                        <div class="text-xs font-semibold text-lime-600 mb-1">SHARED VARIABLES</div>
+                        <div class="text-2xl font-bold text-lime-700">
+                          {{ selectedFileData[metricId].data.shared_variable_count || 0 }}
+                        </div>
+                      </div>
+
+                      <div class="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-4 border border-amber-200">
+                        <div class="text-xs font-semibold text-amber-600 mb-1">SHARED FILES</div>
+                        <div class="text-2xl font-bold text-amber-700">
+                          {{ selectedFileData[metricId].data.shared_file_count || 0 }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Breakdown Metrics -->
+                    <div *ngIf="selectedFileData[metricId].data.breakdown" class="grid grid-cols-2 gap-4">
+                      <div class="bg-gradient-to-br from-violet-50 to-violet-100 rounded-lg p-4 border border-violet-200">
+                        <div class="text-xs font-semibold text-violet-600 mb-1">PAIRS VIA VARIABLES</div>
+                        <div class="text-2xl font-bold text-violet-700">
+                          {{ selectedFileData[metricId].data.breakdown.pairs_via_variables || 0 }}
+                        </div>
+                      </div>
+
+                      <div class="bg-gradient-to-br from-rose-50 to-rose-100 rounded-lg p-4 border border-rose-200">
+                        <div class="text-xs font-semibold text-rose-600 mb-1">PAIRS VIA FILES</div>
+                        <div class="text-2xl font-bold text-rose-700">
+                          {{ selectedFileData[metricId].data.breakdown.pairs_via_files || 0 }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Disconnected Methods Warning -->
+                    <div *ngIf="selectedFileData[metricId].data.disconnected_methods && selectedFileData[metricId].data.disconnected_methods.length > 0"
+                         class="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-4 border border-red-200">
+                      <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        <div class="flex-1">
+                          <div class="text-xs font-bold text-red-700 mb-2 uppercase tracking-wide">Disconnected Methods ({{ selectedFileData[metricId].data.n_disconnected_methods }})</div>
+                          <p class="text-xs text-red-800 mb-2">These methods don't share variables/files with others:</p>
+                          <div class="flex flex-wrap gap-2">
+                            <span *ngFor="let method of selectedFileData[metricId].data.disconnected_methods"
+                                  class="px-2 py-1 text-xs font-mono rounded bg-white border border-red-300 text-red-700">
+                              {{ method }}()
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Shared Variables List -->
+                    <div *ngIf="selectedFileData[metricId].data.shared_vars && selectedFileData[metricId].data.shared_vars.length > 0"
+                         class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
+                      <div class="text-xs font-semibold text-green-700 mb-2 uppercase tracking-wide">Shared Variables</div>
+                      <div class="flex flex-wrap gap-2">
+                        <span *ngFor="let variable of selectedFileData[metricId].data.shared_vars"
+                              class="px-3 py-1 text-xs font-mono rounded-full bg-white border border-green-300 text-green-700">
+                          {{ variable }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Shared Files List -->
+                    <div *ngIf="selectedFileData[metricId].data.shared_files && selectedFileData[metricId].data.shared_files.length > 0"
+                         class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg p-4 border border-blue-200">
+                      <div class="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">Shared Files</div>
+                      <div class="flex flex-wrap gap-2">
+                        <span *ngFor="let file of selectedFileData[metricId].data.shared_files"
+                              class="px-3 py-1 text-xs font-mono rounded-full bg-white border border-blue-300 text-blue-700">
+                          {{ file }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Shared Pairs List -->
+                    <div *ngIf="selectedFileData[metricId].data.shared_pairs && selectedFileData[metricId].data.shared_pairs.length > 0"
+                         class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div class="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">Shared Method Pairs</div>
+                      <div class="flex flex-wrap gap-2">
+                        <span *ngFor="let pair of selectedFileData[metricId].data.shared_pairs"
+                              class="px-3 py-1 text-xs font-mono rounded-full bg-white border border-gray-300 text-gray-700">
+                          {{ pair[0] }}() ↔ {{ pair[1] }}()
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  <div *ngIf="metricId === 'ifc_m'" class="space-y-4">
+                  <div *ngIf="metricId === 'fcpm'" class="space-y-4">
                     <!-- Primary Metrics -->
                     <div class="grid grid-cols-2 gap-4">
                       <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg p-4 border border-pink-200">
                         <div class="text-xs font-semibold text-pink-600 mb-1">COHESION LEVEL</div>
                         <div class="text-2xl font-bold capitalize"
                              [ngClass]="{
-                               'text-emerald-700': selectedFileData[metricId].data.cohesion_level === 'excellent',
-                               'text-green-700': selectedFileData[metricId].data.cohesion_level === 'good',
+                               'text-emerald-700': selectedFileData[metricId].data.cohesion_level === 'very_high',
+                               'text-green-700': selectedFileData[metricId].data.cohesion_level === 'high',
                                'text-yellow-600': selectedFileData[metricId].data.cohesion_level === 'moderate',
                                'text-orange-600': selectedFileData[metricId].data.cohesion_level === 'low',
                                'text-red-700': selectedFileData[metricId].data.cohesion_level === 'very_low',
@@ -623,17 +662,17 @@ interface FileMetricsData {
                       </div>
 
                       <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
-                        <div class="text-xs font-semibold text-indigo-600 mb-1">IFC-M SCORE</div>
+                        <div class="text-xs font-semibold text-indigo-600 mb-1">FCPM SCORE</div>
                         <div class="text-2xl font-bold text-indigo-700">
-                          {{ selectedFileData[metricId].data.ifc_m !== null && selectedFileData[metricId].data.ifc_m !== undefined 
-                             ? (selectedFileData[metricId].data.ifc_m * 100).toFixed(1) + '%' 
+                          {{ selectedFileData[metricId].data.fcpm !== null && selectedFileData[metricId].data.fcpm !== undefined 
+                             ? (selectedFileData[metricId].data.fcpm * 100).toFixed(1) + '%'  
                              : 'N/A' }}
                         </div>
                       </div>
                     </div>
 
                     <!-- Connection Metrics -->
-                    <div class="grid grid-cols-3 gap-4">
+                    <div class="grid grid-cols-4 gap-4">
                       <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
                         <div class="text-xs font-semibold text-blue-600 mb-1">METHODS</div>
                         <div class="text-2xl font-bold text-blue-700">
@@ -657,6 +696,83 @@ interface FileMetricsData {
                           {{ selectedFileData[metricId].data.n_possible_pairs > 0 
                              ? ((selectedFileData[metricId].data.n_connected_pairs / selectedFileData[metricId].data.n_possible_pairs) * 100).toFixed(0) + '%' 
                              : '0%' }} connected
+                        </div>
+                      </div>
+
+                      <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
+                        <div class="text-xs font-semibold text-orange-600 mb-1">COMPONENTS</div>
+                        <div class="text-2xl font-bold text-orange-700">
+                          {{ selectedFileData[metricId].data.n_components || 0 }}
+                        </div>
+                        <div class="text-xs text-orange-600 mt-1">Functional groups</div>
+                      </div>
+                    </div>
+
+                    <!-- Breakdown Metrics -->
+                    <div *ngIf="selectedFileData[metricId].data.breakdown" class="grid grid-cols-2 gap-4">
+                      <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                        <div class="text-xs font-semibold text-purple-600 mb-1">DIRECT INVOCATIONS</div>
+                        <div class="text-2xl font-bold text-purple-700">
+                          {{ selectedFileData[metricId].data.breakdown.direct_invocations || 0 }}
+                        </div>
+                      </div>
+
+                      <div class="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-4 border border-cyan-200">
+                        <div class="text-xs font-semibold text-cyan-600 mb-1">INDIRECT INVOCATIONS</div>
+                        <div class="text-2xl font-bold text-cyan-700">
+                          {{ selectedFileData[metricId].data.breakdown.indirect_invocations || 0 }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Disconnected Methods Warning -->
+                    <div *ngIf="selectedFileData[metricId].data.disconnected_methods && selectedFileData[metricId].data.disconnected_methods.length > 0"
+                         class="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-4 border border-red-200">
+                      <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        <div class="flex-1">
+                          <div class="text-xs font-bold text-red-700 mb-2 uppercase tracking-wide">Disconnected Methods ({{ selectedFileData[metricId].data.n_disconnected_methods }})</div>
+                          <p class="text-xs text-red-800 mb-2">These methods are not called by any other method in the file:</p>
+                          <div class="flex flex-wrap gap-2">
+                            <span *ngFor="let method of selectedFileData[metricId].data.disconnected_methods"
+                                  class="px-2 py-1 text-xs font-mono rounded bg-white border border-red-300 text-red-700">
+                              {{ method }}()
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Connected Pairs List -->
+                    <div *ngIf="selectedFileData[metricId].data.connected_pairs && selectedFileData[metricId].data.connected_pairs.length > 0"
+                         class="bg-gradient-to-r from-green-50 to-teal-50 rounded-lg p-4 border border-green-200">
+                      <div class="text-xs font-semibold text-green-700 mb-2 uppercase tracking-wide">Connected Method Pairs</div>
+                      <div class="flex flex-wrap gap-2">
+                        <span *ngFor="let pair of selectedFileData[metricId].data.connected_pairs"
+                              class="px-3 py-1 text-xs font-mono rounded-full bg-white border border-green-300 text-green-700">
+                          {{ pair[0] }}() → {{ pair[1] }}()
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Call Graph Visualization -->
+                    <div *ngIf="selectedFileData[metricId].data.call_graph && Object.keys(selectedFileData[metricId].data.call_graph).length > 0"
+                         class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div class="text-xs font-semibold text-gray-700 mb-3 uppercase tracking-wide">Call Graph</div>
+                      <div class="space-y-2">
+                        <div *ngFor="let entry of getCallGraphEntries(selectedFileData[metricId].data.call_graph)" 
+                             class="flex items-start gap-3 p-2 bg-white rounded border border-gray-200">
+                          <span class="text-xs font-mono font-bold text-gray-700 min-w-[100px]">{{ entry[0] }}()</span>
+                          <span class="text-gray-400">→</span>
+                          <div class="flex-1 flex flex-wrap gap-1">
+                            <span *ngIf="entry[1].length === 0" class="text-xs text-gray-400 italic">No calls</span>
+                            <span *ngFor="let callee of entry[1]"
+                                  class="px-2 py-0.5 text-xs font-mono rounded bg-blue-50 border border-blue-200 text-blue-700">
+                              {{ callee }}()
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -932,6 +1048,9 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
   pathsWithMetrics: Set<string> = new Set();
   expandedMetricDetails: Set<string> = new Set();
   collapsedMetrics: Set<string> = new Set(); // Track collapsed metrics
+  
+  // Make Object available in template
+  Object = Object;
 
   ngOnInit(): void {
     this.processResults();
@@ -959,34 +1078,12 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
       const metricName = metric.documentation.name;
       const category = metric.documentation.category;
 
-      if (metricId === 'fpc') {
-        this.processFPCMetric(metric as FPCResult, metricName, category);
-      } else if (metricId === 'file_structure') {
-        this.processFileStructureMetric(metric as FileStructureResult, metricName, category);
-      } else if (metricId === 'lccml') {
-        this.processLCCMLMetric(metric as LCCMLResult, metricName, category);
-      } else if (metricId === 'pylint') {
-        this.processPyLintMetric(metric as PyLintResult, metricName, category);
-      } else if (metricId === 'radon_cc') {
-        this.processRadonCCMetric(metric, metricName, category);
-      } else if (metricId === 'radon_mi') {
-        this.processRadonMIMetric(metric, metricName, category);
-      } else if (metricId === 'pipeline') {
-        this.processPipelineDetectionMetric(metric as PipelineDetectionResult, metricName, category);
-      } else if (metricId === 'ldsc') {
-        this.processLDSCMetric(metric as LDSCResult, metricName, category);
-      } else if (metricId === 'ifc_m') {
-        this.processIFCMMetric(metric as IFCMResult, metricName, category);
-      } else if (metricId === 'ifc_p') {
-        this.processIFCPMetric(metric as IFCPResult, metricName, category);
-      } else if (metricId === 'lpcml') {
-        this.processLPCMLMetric(metric as LPCMLResult, metricName, category);
-      } else if (metricId === 'pmcr') {
-        this.processPMCRMetric(metric as PMCRResult, metricName, category);
-      } else if (metricId === 'pdsc') {
-        this.processPDSCMetric(metric as PDSCResult, metricName, category);
-      } else if (metricId === 'pfp') {
-        this.processPFPMetric(metric as PFPResult, metricName, category);
+      if (metricId === 'ccpm') {
+        this.processCCPMMetric(metric as CCPMResult, metricName, category);
+      } else if (metricId === 'scpm') {
+        this.processSCPMMetric(metric as SCPMResult, metricName, category);
+      } else if (metricId === 'fcpm') {
+        this.processFCPMMetric(metric as FCPMResult, metricName, category);
       }
     });
 
@@ -996,7 +1093,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     });
   }
 
-  processFPCMetric(metric: FPCResult, metricName: string, category: string): void {
+  processCCPMMetric(metric: CCPMResult, metricName: string, category: string): void {
     Object.entries(metric.details?.files || {}).forEach(([filePath, fileData]) => {
       // Normalize path - add leading slash if not present
       const normalizedPath = filePath.startsWith('/') ? filePath : '/' + filePath;
@@ -1041,22 +1138,28 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
 
       // Fallback to cohesion_level if no messages
       if (messages.length === 0) {
-        if (fileData.cohesion_level === 'high') {
+        if (fileData.cohesion_level === 'very_high') {
+          severity = 'success';
+          messages.push('Very high cohesion - Perfect SRP (Single Responsibility Principle)');
+        } else if (fileData.cohesion_level === 'high') {
           severity = 'success';
           messages.push('High cohesion - Well-organized code');
         } else if (fileData.cohesion_level === 'medium') {
           severity = 'warning';
-          messages.push('Medium cohesion - Consider improvements');
+          messages.push('Medium cohesion - Consider splitting into separate stages');
         } else if (fileData.cohesion_level === 'low') {
           severity = 'error';
-          messages.push('Low cohesion - Needs refactoring');
-        } else if (fileData.cohesion_level === 'non_ml' || fileData.cohesion_level === 'small_file') {
+          messages.push('Low cohesion - Multiple phases, needs refactoring');
+        } else if (fileData.cohesion_level === 'very_low') {
+          severity = 'error';
+          messages.push('Very low cohesion - Multiple phases with non-ML code, critical refactoring needed');
+        } else if (fileData.cohesion_level === 'non_ml_file') {
           severity = 'info';
-          messages.push(fileData.cohesion_level === 'non_ml' ? 'Non-ML file detected' : 'File too small for analysis');
+          messages.push('Non-ML file detected');
         }
       }
 
-      fileMetrics['fpc'] = {
+      fileMetrics['ccpm'] = {
         metricName,
         category,
         data: fileData,
@@ -1067,25 +1170,17 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     });
   }
 
-  processFileStructureMetric(metric: FileStructureResult, metricName: string, category: string): void {
-    Object.entries(metric.details?.files || {}).forEach(([filePath, fileData]) => {
-      const normalizedPath = filePath.startsWith('/') ? filePath : '/' + filePath;
-      if (!this.fileMetricsMap.has(normalizedPath)) {
-        this.fileMetricsMap.set(normalizedPath, {});
-      }
 
-      const fileMetrics = this.fileMetricsMap.get(normalizedPath)!;
-      fileMetrics['file_structure'] = {
-        metricName,
-        category,
-        data: fileData,
-        severity: fileData.severity,
-        messages: fileData.recommendation ? [fileData.recommendation] : []
-      };
-    });
-  }
 
-  processLCCMLMetric(metric: LCCMLResult, metricName: string, category: string): void {
+
+
+
+
+
+
+
+
+  processSCPMMetric(metric: SCPMResult, metricName: string, category: string): void {
     Object.entries(metric.details?.files || {}).forEach(([filePath, fileData]) => {
       const normalizedPath = filePath.startsWith('/') ? filePath : '/' + filePath;
       if (!this.fileMetricsMap.has(normalizedPath)) {
@@ -1094,146 +1189,73 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
 
       const fileMetrics = this.fileMetricsMap.get(normalizedPath)!;
       const messages: string[] = [];
+      const detailedMessages: DetailedMessage[] = [];
       let severity: 'error' | 'warning' | 'info' | 'success' = 'info';
 
-      if (fileData.lccml === null) {
-        messages.push('LCCML not applicable (single method file)');
-        severity = 'info';
-      } else if (fileData.lccml >= 0.7) {
-        severity = 'success';
-        messages.push('Excellent cohesion');
-      } else if (fileData.lccml >= 0.5) {
-        severity = 'info';
-        messages.push('Good cohesion');
-      } else {
-        severity = 'warning';
-        messages.push(`Low cohesion detected: ${fileData.n_disconnected_pairs} disconnected method pairs`);
-      }
+      // Get messages from metric.messages.by_file (standardized format)
+      const fileMessages = (metric.messages as any)?.by_file?.[filePath] ||
+        (metric.messages as any)?.by_file?.[normalizedPath] || [];
 
-      fileMetrics['lccml'] = {
-        metricName,
-        category,
-        data: fileData,
-        score: fileData.lccml !== null ? fileData.lccml * 10 : undefined,
-        severity,
-        messages
-      };
-    });
-  }
+      fileMessages.forEach((msg: any) => {
+        // Store detailed message with diagnosis and recommendation separated
+        detailedMessages.push({
+          diagnosis: msg.diagnosis || '',
+          recommendation: msg.recommendation || '',
+          severity: msg.severity || 'info',
+          rule_id: msg.rule_id
+        });
 
-  processPyLintMetric(metric: PyLintResult, metricName: string, category: string): void {
-    const messagesByFile: { [path: string]: any[] } = {};
+        // Also create simple message for backward compatibility
+        const diagnosisText = msg.diagnosis || '';
+        const recommendationText = msg.recommendation || '';
+        messages.push(`${diagnosisText} ${recommendationText}`.trim());
 
-    (metric.details?.messages || []).forEach((msg: any) => {
-      const normalizedPath = msg.path.startsWith('/') ? msg.path : '/' + msg.path;
-      if (!messagesByFile[normalizedPath]) {
-        messagesByFile[normalizedPath] = [];
-      }
-      messagesByFile[normalizedPath].push(msg);
-    });
-
-    Object.entries(messagesByFile).forEach(([filePath, messages]) => {
-      if (!this.fileMetricsMap.has(filePath)) {
-        this.fileMetricsMap.set(filePath, {});
-      }
-
-      const fileMetrics = this.fileMetricsMap.get(filePath)!;
-      const errorCount = messages.filter(m => m.type === 'error' || m.type === 'fatal').length;
-      const warningCount = messages.filter(m => m.type === 'warning').length;
-
-      let severity: 'error' | 'warning' | 'info' = 'info';
-      const messageStrings: string[] = [];
-
-      if (errorCount > 0) {
-        severity = 'error';
-        messageStrings.push(`${errorCount} error(s) found`);
-      } else if (warningCount > 0) {
-        severity = 'warning';
-        messageStrings.push(`${warningCount} warning(s) found`);
-      }
-
-      messages.slice(0, 5).forEach(msg => {
-        messageStrings.push(`[Line ${msg.line}] ${msg.symbol}: ${msg.message}`);
-      });
-
-      if (messages.length > 5) {
-        messageStrings.push(`... and ${messages.length - 5} more issues`);
-      }
-
-      fileMetrics['pylint'] = {
-        metricName,
-        category,
-        data: { messages, error_count: errorCount, warning_count: warningCount },
-        severity,
-        messages: messageStrings
-      };
-    });
-  }
-
-  processRadonCCMetric(metric: AnalysisResult, metricName: string, category: string): void {
-    Object.entries((metric.details as any)?.files || {}).forEach(([filePath, fileData]) => {
-      const normalizedPath = filePath.startsWith('/') ? filePath : '/' + filePath;
-      if (!this.fileMetricsMap.has(normalizedPath)) {
-        this.fileMetricsMap.set(normalizedPath, {});
-      }
-
-      const fileMetrics = this.fileMetricsMap.get(normalizedPath)!;
-      fileMetrics['radon_cc'] = {
-        metricName,
-        category,
-        data: fileData,
-        score: metric.score
-      };
-    });
-  }
-
-  processRadonMIMetric(metric: AnalysisResult, metricName: string, category: string): void {
-    Object.entries((metric.details as any)?.files || {}).forEach(([filePath, fileData]) => {
-      const normalizedPath = filePath.startsWith('/') ? filePath : '/' + filePath;
-      if (!this.fileMetricsMap.has(normalizedPath)) {
-        this.fileMetricsMap.set(normalizedPath, {});
-      }
-
-      const fileMetrics = this.fileMetricsMap.get(normalizedPath)!;
-      fileMetrics['radon_mi'] = {
-        metricName,
-        category,
-        data: fileData,
-        score: metric.score
-      };
-    });
-  }
-
-  processPipelineDetectionMetric(metric: PipelineDetectionResult, metricName: string, category: string): void {
-    const fileStages: { [path: string]: string[] } = {};
-
-    Object.entries(metric.details?.detected_stages || {}).forEach(([stage, files]) => {
-      files.forEach(fileInfo => {
-        const normalizedPath = fileInfo.file.startsWith('/') ? fileInfo.file : '/' + fileInfo.file;
-        if (!fileStages[normalizedPath]) {
-          fileStages[normalizedPath] = [];
+        // Determine overall severity (highest wins)
+        if (msg.severity === 'high' || msg.severity === 'error' || msg.severity === 'critical') {
+          severity = 'error';
+        } else if (msg.severity === 'medium' && severity !== 'error') {
+          severity = 'warning';
+        } else if (msg.severity === 'low' && severity === 'info') {
+          severity = 'info';
         }
-        fileStages[normalizedPath].push(stage);
       });
-    });
 
-    Object.entries(fileStages).forEach(([filePath, stages]) => {
-      if (!this.fileMetricsMap.has(filePath)) {
-        this.fileMetricsMap.set(filePath, {});
+      // Fallback to cohesion_level if no messages
+      if (messages.length === 0) {
+        if (fileData.cohesion_level === 'very_high') {
+          severity = 'success';
+          messages.push('Very high structural cohesion - Excellent variable sharing');
+        } else if (fileData.cohesion_level === 'high') {
+          severity = 'success';
+          messages.push('High structural cohesion - Strong data connections');
+        } else if (fileData.cohesion_level === 'medium') {
+          severity = 'info';
+          messages.push('Medium structural cohesion - Acceptable variable sharing');
+        } else if (fileData.cohesion_level === 'low') {
+          severity = 'warning';
+          messages.push('Low structural cohesion - Few shared variables/files');
+        } else if (fileData.cohesion_level === 'very_low') {
+          severity = 'error';
+          messages.push('Very low structural cohesion - Critical refactoring needed');
+        } else if (fileData.cohesion_level === 'not_applicable') {
+          severity = 'info';
+          messages.push('SCPM not applicable (single method file)');
+        }
       }
 
-      const fileMetrics = this.fileMetricsMap.get(filePath)!;
-      fileMetrics['pipeline'] = {
+      fileMetrics['scpm'] = {
         metricName,
         category,
-        data: { stages },
-        messages: [`Detected stages: ${stages.join(', ')}`],
-        severity: 'info'
+        data: fileData,
+        score: fileData.scpm !== null ? fileData.scpm * 10 : undefined,
+        severity,
+        messages,
+        detailedMessages
       };
     });
   }
 
-  processLDSCMetric(metric: LDSCResult, metricName: string, category: string): void {
+  processFCPMMetric(metric: FCPMResult, metricName: string, category: string): void {
     Object.entries(metric.details?.files || {}).forEach(([filePath, fileData]) => {
       const normalizedPath = filePath.startsWith('/') ? filePath : '/' + filePath;
       if (!this.fileMetricsMap.has(normalizedPath)) {
@@ -1242,68 +1264,70 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
 
       const fileMetrics = this.fileMetricsMap.get(normalizedPath)!;
       const messages: string[] = [];
+      const detailedMessages: DetailedMessage[] = [];
       let severity: 'error' | 'warning' | 'info' | 'success' = 'info';
 
-      if (fileData.ldsc === null) {
-        messages.push('LDSC not applicable (single method file)');
-        severity = 'info';
-      } else if (fileData.ldsc >= 0.6) {
-        severity = 'success';
-        messages.push('Good structural cohesion');
-      } else if (fileData.ldsc >= 0.4) {
-        severity = 'info';
-        messages.push('Moderate structural cohesion');
-      } else {
-        severity = 'warning';
-        messages.push(`Low structural cohesion: Few shared variables`);
+      // Get messages from metric.messages.by_file (standardized format)
+      const fileMessages = (metric.messages as any)?.by_file?.[filePath] ||
+        (metric.messages as any)?.by_file?.[normalizedPath] || [];
+
+      fileMessages.forEach((msg: any) => {
+        // Store detailed message with diagnosis and recommendation separated
+        detailedMessages.push({
+          diagnosis: msg.diagnosis || '',
+          recommendation: msg.recommendation || '',
+          severity: msg.severity || 'info',
+          rule_id: msg.rule_id
+        });
+
+        // Also create simple message for backward compatibility
+        const diagnosisText = msg.diagnosis || '';
+        const recommendationText = msg.recommendation || '';
+        messages.push(`${diagnosisText} ${recommendationText}`.trim());
+
+        // Determine overall severity (highest wins)
+        if (msg.severity === 'high' || msg.severity === 'error' || msg.severity === 'critical') {
+          severity = 'error';
+        } else if (msg.severity === 'medium' && severity !== 'error') {
+          severity = 'warning';
+        } else if (msg.severity === 'low' && severity === 'info') {
+          severity = 'info';
+        }
+      });
+
+      // Fallback to cohesion_level if no messages
+      if (messages.length === 0) {
+        if (fileData.cohesion_level === 'very_high') {
+          severity = 'success';
+          messages.push('Very high functional cohesion - Excellent method call structure');
+        } else if (fileData.cohesion_level === 'high') {
+          severity = 'success';
+          messages.push('High functional cohesion - Strong information flow');
+        } else if (fileData.cohesion_level === 'moderate') {
+          severity = 'info';
+          messages.push('Moderate functional cohesion - Acceptable method interactions');
+        } else if (fileData.cohesion_level === 'low') {
+          severity = 'warning';
+          messages.push('Low functional cohesion - Weak method connections');
+        } else if (fileData.cohesion_level === 'very_low') {
+          severity = 'error';
+          messages.push('Very low functional cohesion - Critical refactoring needed');
+        } else if (fileData.cohesion_level === 'not_applicable') {
+          severity = 'info';
+          messages.push('FCPM not applicable (single method file)');
+        }
       }
 
-      fileMetrics['ldsc'] = {
+      fileMetrics['fcpm'] = {
         metricName,
         category,
         data: fileData,
-        score: fileData.ldsc !== null ? fileData.ldsc * 10 : undefined,
+        score: fileData.fcpm !== null ? fileData.fcpm * 10 : undefined,
         severity,
-        messages
+        messages,
+        detailedMessages
       };
     });
-  }
-
-  processIFCMMetric(metric: IFCMResult, metricName: string, category: string): void {
-    Object.entries(metric.details?.files || {}).forEach(([filePath, fileData]) => {
-      const normalizedPath = filePath.startsWith('/') ? filePath : '/' + filePath;
-      if (!this.fileMetricsMap.has(normalizedPath)) {
-        this.fileMetricsMap.set(normalizedPath, {});
-      }
-
-      const fileMetrics = this.fileMetricsMap.get(normalizedPath)!;
-      const messages: string[] = [];
-      let severity: 'error' | 'warning' | 'info' | 'success' = 'info';
-
-      if (fileData.ifc_m === null) {
-        messages.push('IFC-M not applicable (single method file)');
-        severity = 'info';
-      } else if (fileData.ifc_m >= 0.6) {
-        severity = 'success';
-        messages.push('Good functional cohesion');
-      } else if (fileData.ifc_m >= 0.4) {
-        severity = 'info';
-        messages.push('Moderate functional cohesion');
-      } else {
-        severity = 'warning';
-        messages.push(`Low functional cohesion: Weak information flow`);
-      }
-
-      fileMetrics['ifc_m'] = {
-        metricName,
-        category,
-        data: fileData,
-        score: fileData.ifc_m !== null ? fileData.ifc_m * 10 : undefined,
-        severity,
-        messages
-      };
-    });
-    const detailedMessages: DetailedMessage[] = [];
   }
 
   private registerMetric(path: string, metricId: string, metricData: any): void {
@@ -1344,308 +1368,15 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     });
   }
 
-  processIFCPMetric(metric: IFCPResult, metricName: string, category: string): void {
-    Object.entries(metric.details?.packages || {}).forEach(([packagePath, packageData]) => {
-      const messages: string[] = [];
-      const detailedMessages: DetailedMessage[] = [];
-      let severity: 'error' | 'warning' | 'info' | 'success' = 'info';
 
-      // Get messages from metric.messages.by_file (standardized format)
-      // Try with and without leading slash
-      const normalizedPathForMessages = packagePath.startsWith('/') ? packagePath : '/' + packagePath;
-      const fileMessages = (metric.messages as any)?.by_file?.[packagePath] ||
-        (metric.messages as any)?.by_file?.[normalizedPathForMessages] || [];
 
-      fileMessages.forEach((msg: any) => {
-        detailedMessages.push({
-          diagnosis: msg.diagnosis || '',
-          recommendation: msg.recommendation || '',
-          severity: msg.severity || 'info',
-          rule_id: msg.rule_id
-        });
 
-        const diagnosisText = msg.diagnosis || '';
-        const recommendationText = msg.recommendation || '';
-        messages.push(`${diagnosisText} ${recommendationText}`.trim());
 
-        if (msg.severity === 'high' || msg.severity === 'error') {
-          severity = 'error';
-        } else if (msg.severity === 'medium' && severity !== 'error') {
-          severity = 'warning';
-        } else if (msg.severity === 'low' && severity === 'info') {
-          severity = 'info';
-        }
-      });
 
-      // Fallback if no messages from backend
-      if (messages.length === 0) {
-        if (packageData.cohesion_level === 'excellent' || packageData.cohesion_level === 'good') {
-          severity = 'success';
-          messages.push('High package cohesion');
-        } else if (packageData.cohesion_level === 'moderate') {
-          severity = 'warning';
-          messages.push('Moderate package cohesion');
-        } else {
-          severity = 'error';
-          messages.push('Low package cohesion');
-        }
-      }
 
-      const metricData = {
-        metricName,
-        category,
-        data: packageData,
-        score: packageData.ifc_p !== null ? packageData.ifc_p * 10 : undefined,
-        severity,
-        messages,
-        detailedMessages
-      };
 
-      this.registerMetric(packagePath, 'ifc_p', metricData);
-    });
-  }
 
-  processLPCMLMetric(metric: LPCMLResult, metricName: string, category: string): void {
-    Object.entries(metric.details?.packages || {}).forEach(([packagePath, packageData]) => {
-      const messages: string[] = [];
-      const detailedMessages: DetailedMessage[] = [];
-      let severity: 'error' | 'warning' | 'info' | 'success' = 'info';
 
-      const normalizedPathForMessages = packagePath.startsWith('/') ? packagePath : '/' + packagePath;
-      const fileMessages = (metric.messages as any)?.by_file?.[packagePath] ||
-        (metric.messages as any)?.by_file?.[normalizedPathForMessages] || [];
-
-      fileMessages.forEach((msg: any) => {
-        detailedMessages.push({
-          diagnosis: msg.diagnosis || '',
-          recommendation: msg.recommendation || '',
-          severity: msg.severity || 'info',
-          rule_id: msg.rule_id
-        });
-
-        const diagnosisText = msg.diagnosis || '';
-        const recommendationText = msg.recommendation || '';
-        messages.push(`${diagnosisText} ${recommendationText}`.trim());
-
-        if (msg.severity === 'high' || msg.severity === 'error') {
-          severity = 'error';
-        } else if (msg.severity === 'medium' && severity !== 'error') {
-          severity = 'warning';
-        } else if (msg.severity === 'low' && severity === 'info') {
-          severity = 'info';
-        }
-      });
-
-      if (messages.length === 0) {
-        if (packageData.cohesion_level === 'excellent') {
-          severity = 'success';
-          messages.push('Single connected component');
-        } else if (packageData.cohesion_level === 'acceptable') {
-          severity = 'info';
-          messages.push('Few connected components');
-        } else if (packageData.cohesion_level === 'moderate') {
-          severity = 'warning';
-          messages.push('Some fragmentation detected');
-        } else {
-          severity = 'error';
-          messages.push('High fragmentation detected');
-        }
-      }
-
-      const metricData = {
-        metricName,
-        category,
-        data: packageData,
-        score: packageData.cohesion_ratio * 10, // Derived score
-        severity,
-        messages,
-        detailedMessages
-      };
-
-      this.registerMetric(packagePath, 'lpcml', metricData);
-    });
-  }
-
-  processPMCRMetric(metric: PMCRResult, metricName: string, category: string): void {
-    Object.entries(metric.details?.packages || {}).forEach(([packagePath, packageData]) => {
-      const messages: string[] = [];
-      const detailedMessages: DetailedMessage[] = [];
-      let severity: 'error' | 'warning' | 'info' | 'success' = 'info';
-
-      const normalizedPathForMessages = packagePath.startsWith('/') ? packagePath : '/' + packagePath;
-      const fileMessages = (metric.messages as any)?.by_file?.[packagePath] ||
-        (metric.messages as any)?.by_file?.[normalizedPathForMessages] || [];
-
-      fileMessages.forEach((msg: any) => {
-        detailedMessages.push({
-          diagnosis: msg.diagnosis || '',
-          recommendation: msg.recommendation || '',
-          severity: msg.severity || 'info',
-          rule_id: msg.rule_id
-        });
-
-        const diagnosisText = msg.diagnosis || '';
-        const recommendationText = msg.recommendation || '';
-        messages.push(`${diagnosisText} ${recommendationText}`.trim());
-
-        if (msg.severity === 'high' || msg.severity === 'error') {
-          severity = 'error';
-        } else if (msg.severity === 'medium' && severity !== 'error') {
-          severity = 'warning';
-        } else if (msg.severity === 'low' && severity === 'info') {
-          severity = 'info';
-        }
-      });
-
-      if (messages.length === 0) {
-        if (packageData.cohesion_level === 'excellent' || packageData.cohesion_level === 'good') {
-          severity = 'success';
-          messages.push('High module interconnection');
-        } else if (packageData.cohesion_level === 'moderate') {
-          severity = 'warning';
-          messages.push('Moderate module interconnection');
-        } else {
-          severity = 'error';
-          messages.push('Low module interconnection');
-        }
-      }
-
-      const metricData = {
-        metricName,
-        category,
-        data: packageData,
-        score: packageData.pmcr !== null ? packageData.pmcr * 10 : undefined,
-        severity,
-        messages,
-        detailedMessages
-      };
-
-      this.registerMetric(packagePath, 'pmcr', metricData);
-    });
-  }
-
-  processPDSCMetric(metric: PDSCResult, metricName: string, category: string): void {
-    Object.entries(metric.details?.packages || {}).forEach(([packagePath, packageData]) => {
-      const messages: string[] = [];
-      const detailedMessages: DetailedMessage[] = [];
-      let severity: 'error' | 'warning' | 'info' | 'success' = 'info';
-
-      const normalizedPathForMessages = packagePath.startsWith('/') ? packagePath : '/' + packagePath;
-      const fileMessages = (metric.messages as any)?.by_file?.[packagePath] ||
-        (metric.messages as any)?.by_file?.[normalizedPathForMessages] || [];
-
-      fileMessages.forEach((msg: any) => {
-        detailedMessages.push({
-          diagnosis: msg.diagnosis || '',
-          recommendation: msg.recommendation || '',
-          severity: msg.severity || 'info',
-          rule_id: msg.rule_id
-        });
-
-        const diagnosisText = msg.diagnosis || '';
-        const recommendationText = msg.recommendation || '';
-        messages.push(`${diagnosisText} ${recommendationText}`.trim());
-
-        if (msg.severity === 'high' || msg.severity === 'error') {
-          severity = 'error';
-        } else if (msg.severity === 'medium' && severity !== 'error') {
-          severity = 'warning';
-        } else if (msg.severity === 'low' && severity === 'info') {
-          severity = 'info';
-        }
-      });
-
-      if (messages.length === 0) {
-        if (packageData.pdsc !== null) {
-          if (packageData.pdsc >= 0.6) {
-            severity = 'success';
-            messages.push('High data structure sharing');
-          } else if (packageData.pdsc >= 0.4) {
-            severity = 'warning';
-            messages.push('Moderate data structure sharing');
-          } else {
-            severity = 'error';
-            messages.push('Low data structure sharing');
-          }
-        }
-      }
-
-      const metricData = {
-        metricName,
-        category,
-        data: packageData,
-        score: packageData.pdsc !== null ? packageData.pdsc * 10 : undefined,
-        severity,
-        messages,
-        detailedMessages
-      };
-
-      this.registerMetric(packagePath, 'pdsc', metricData);
-    });
-  }
-
-  processPFPMetric(metric: PFPResult, metricName: string, category: string): void {
-    Object.entries(metric.details?.packages || {}).forEach(([packagePath, packageData]) => {
-      const messages: string[] = [];
-      const detailedMessages: DetailedMessage[] = [];
-      let severity: 'error' | 'warning' | 'info' | 'success' = 'info';
-
-      const normalizedPathForMessages = packagePath.startsWith('/') ? packagePath : '/' + packagePath;
-      const fileMessages = (metric.messages as any)?.by_file?.[packagePath] ||
-        (metric.messages as any)?.by_file?.[normalizedPathForMessages] || [];
-
-      fileMessages.forEach((msg: any) => {
-        detailedMessages.push({
-          diagnosis: msg.diagnosis || '',
-          recommendation: msg.recommendation || '',
-          severity: msg.severity || 'info',
-          rule_id: msg.rule_id
-        });
-
-        const diagnosisText = msg.diagnosis || '';
-        const recommendationText = msg.recommendation || '';
-        messages.push(`${diagnosisText} ${recommendationText}`.trim());
-
-        if (msg.severity === 'high' || msg.severity === 'error') {
-          severity = 'error';
-        } else if (msg.severity === 'medium' && severity !== 'error') {
-          severity = 'warning';
-        } else if (msg.severity === 'low' && severity === 'info') {
-          severity = 'info';
-        }
-      });
-
-      if (messages.length === 0) {
-        if (packageData.metrics.purity_level === 'High') {
-          severity = 'success';
-          messages.push('High functional purity');
-        } else if (packageData.metrics.purity_level === 'Moderate') {
-          severity = 'warning';
-          messages.push('Moderate functional purity');
-        } else {
-          severity = 'error';
-          messages.push('Low functional purity');
-        }
-
-        if (packageData.quality_indicators.needs_refactoring) {
-          messages.push('Refactoring recommended');
-          if (severity !== 'error') severity = 'warning';
-        }
-      }
-
-      const metricData = {
-        metricName,
-        category,
-        data: packageData,
-        score: packageData.metrics.pfp_score * 10,
-        severity,
-        messages,
-        detailedMessages
-      };
-
-      this.registerMetric(packagePath, 'pfp', metricData);
-    });
-  }
 
   onNodeSelected(event: { path: string, type: 'file' | 'directory', node: any }): void {
     this.selectNode(event.path, event.type, event.node);
@@ -1832,6 +1563,10 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     this.exportResults.emit();
   }
 
+  getCallGraphEntries(callGraph: { [method: string]: string[] }): Array<[string, string[]]> {
+    return Object.entries(callGraph) as Array<[string, string[]]>;
+  }
+
   getMetricDescription(metricId: string): string {
     const metric = this.allMetrics.find(m => m.analyzer_id === metricId);
     return metric?.documentation?.description || '';
@@ -1867,7 +1602,6 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     return metric?.documentation?.references || [];
   }
 
-  Object = Object;
 }
 
 @Component({
