@@ -46,174 +46,81 @@ export interface CCPMResult extends AnalysisResult {
 }
 
 export interface CCPMFileResult {
+  // Detección de Etapas/Fases ML
   unique_stages: number;
   unique_phases: number;
   stages_detected: string[];
   phases_detected: string[];
-  cohesion_level: 'high' | 'medium' | 'low' | 'non_ml' | 'small_file';
+  
+  // Análisis de Cohesión
+  cohesion_level: 'very_high' | 'high' | 'medium' | 'low' | 'very_low' | 'non_ml_file';
+  
+  // Detalle de Funciones
   function_stages: { [funcName: string]: string[] };
-  ml_content: boolean;
-  non_ml_keywords: string[];
-  nloc: number;
-  above_nloc_threshold: boolean;
-  is_script_file: boolean;
+  
+  // Contenido ML
+  ml_content_only: boolean;          // true = solo código ML, false = tiene código no-ML
+  non_ml_keywords_found: string[];   // Keywords no-ML encontrados
+  
+  // Métricas de Tamaño
+  nloc: number;                      // Non-comment Lines of Code
+  above_nloc_threshold: boolean;     // Si excede el umbral (default: 30)
+  
+  // Tipo de Archivo
+  is_script_file: boolean;           // true si es script (sin funciones/clases)
+  source: 'pipeline_metadata' | 'heuristic'; // Origen de detección de etapas
 }
 
 export interface CCPMSummary {
   total_files: number;
-  high_cohesion: number;
-  medium_cohesion: number;
-  low_cohesion: number;
-  non_ml_files: number;
-  small_files: number;
-  scan_mode: string;
-  nloc_threshold: number;
+  
+  // Contadores por nivel de cohesión
+  very_high_cohesion: number;        // 1 etapa, solo ML (SRP perfecto)
+  high_cohesion: number;             // 1 etapa con problemas menores
+  medium_cohesion: number;           // 1 fase, múltiples etapas
+  low_cohesion: number;              // Múltiples fases, solo ML
+  very_low_cohesion: number;         // Múltiples fases + código no-ML
+  
+  // Archivos especiales
+  non_ml_files: number;              // Archivos sin contenido ML
+  small_files: number;               // Archivos bajo el umbral NLOC
+  
+  // Configuración
+  scan_mode: string;                 // "all_files" | "ml_pipeline_only"
+  nloc_threshold: number;            // Umbral NLOC (default: 30)
 }
 
 export interface CCPMMessage {
   file: string;
-  severity: 'error' | 'warning' | 'info';
+  severity: 'critical' | 'high' | 'medium' | 'low' | 'info';
   category: string;
   diagnosis: string;
-  recommendation: string;
+  recommendation: string | null;     // null si no hay recomendación
+  rule_id?: number;                  // ID de la regla aplicada (1-10)
 }
 
-export interface FileStructureResult extends AnalysisResult {
-  details: {
-    files: { [filePath: string]: FileStructureFileResult };
-    summary: FileStructureSummary;
-  };
-  messages: {
-    messages: string[];
-  };
-}
 
-export interface FileStructureFileResult {
-  pattern: 'classes_only' | 'functions_only' | 'script_only' | 'mixed' | 'mixed_script';
-  num_classes: number;
-  num_functions: number;
-  num_methods: number;
-  num_loose_statements: number;
-  total_components: number;
-  recommendation?: string;
-  severity?: 'error' | 'warning' | 'info';
-}
 
-export interface FileStructureSummary {
-  total_files: number;
-  classes_only: number;
-  functions_only: number;
-  script_only: number;
-  mixed: number;
-  mixed_script: number;
-  scan_mode: string;
-}
 
-export interface LCCMLResult extends AnalysisResult {
-  details: {
-    files: { [filePath: string]: LCCMLFileResult };
-    summary: LCCMLSummary;
-  };
-  messages: {
-    messages: string[];
-  };
-}
 
-export interface LCCMLFileResult {
-  lccml: number | null;
-  n_methods: number;
-  n_possible_pairs: number;
-  n_connected_pairs: number;
-  n_disconnected_pairs?: number;
-  disconnected_pairs?: [string, string][];
-  connection_breakdown: {
-    by_variables: number;
-    by_files: number;
-    by_ml_functions: number;
-    by_method_calls: number;
-  };
-  cohesion_level: string;
-}
 
-export interface LCCMLSummary {
-  total_files: number;
-  high_cohesion: number;
-  good_cohesion: number;
-  moderate_cohesion: number;
-  low_cohesion: number;
-  very_low_cohesion: number;
-  single_method_files: number;
-  average_lccml: number;
-}
 
-export interface PyLintResult extends AnalysisResult {
-  messages: {
-    convention: number;
-    refactor: number;
-    warning: number;
-    error: number;
-    fatal: number;
-    info: number;
-  };
-  details: {
-    messages: PyLintMessage[];
-    statistics: any;
-    config: any;
-  };
-}
 
-export interface PyLintMessage {
-  type: string;
-  module: string;
-  obj: string;
-  line: number;
-  column: number;
-  endLine?: number;
-  endColumn?: number;
-  path: string;
-  symbol: string;
-  message: string;
-  messageId: string;
-}
-
-export interface RadonCCResult extends AnalysisResult {
-  messages: {};
-  details: {
-    complexity_method: string;
-  };
-}
-
-export interface RadonMIResult extends AnalysisResult {
-  messages: {};
-  details: {
-    maintainability_method: string;
-  };
-}
-
-export interface PipelineDetectionResult extends AnalysisResult {
-  details: {
-    detected_stages: { [stage: string]: PipelineStageFile[] };
-    files_analyzed: number;
-    is_valid_pipeline: boolean;
-    missing_stages: string[];
-  };
-}
-
-export interface PipelineStageFile {
-  file: string;
-  evidences: PipelineEvidence[];
-}
-
-export interface PipelineEvidence {
-  method: 'filename' | 'import' | 'keyword';
-  value: string;
-}
 
 export interface SCPMResult extends AnalysisResult {
+  messages: SCPMMessage[] | { by_file: { [filePath: string]: SCPMMessage[] } };
   details: {
     files: { [filePath: string]: SCPMFileResult };
     summary: SCPMSummary;
   };
+}
+
+export interface SCPMMessage {
+  file: string;
+  severity: 'critical' | 'high' | 'medium' | 'low' | 'info';
+  diagnosis: string;
+  recommendation: string | null;
+  rule_id?: number;
 }
 
 export interface SCPMFileResult {
@@ -222,25 +129,47 @@ export interface SCPMFileResult {
   n_possible_pairs: number;
   n_shared_pairs: number;
   shared_pairs: [string, string][];
-  cohesion_level: string;
+  shared_variable_count: number;
+  shared_file_count: number;
+  shared_vars: string[];
+  shared_files: string[];
+  shared_type: 'variables' | 'files' | 'mixed';
+  breakdown: {
+    pairs_via_variables: number;
+    pairs_via_files: number;
+  };
+  cohesion_level: 'very_high' | 'high' | 'medium' | 'low' | 'very_low' | 'not_applicable';
+  n_components: number;
+  n_disconnected_methods: number;
+  disconnected_methods: string[];
 }
 
 export interface SCPMSummary {
   total_files: number;
+  very_high_cohesion: number;
   high_cohesion: number;
-  good_cohesion: number;
-  moderate_cohesion: number;
+  medium_cohesion: number;
   low_cohesion: number;
   very_low_cohesion: number;
   single_method_files: number;
   average_scpm: number;
+  modules_with_multiple_components: number;
 }
 
 export interface FCPMResult extends AnalysisResult {
+  messages: FCPMMessage[] | { by_file: { [filePath: string]: FCPMMessage[] } };
   details: {
     files: { [filePath: string]: FCPMFileResult };
     summary: FCPMSummary;
   };
+}
+
+export interface FCPMMessage {
+  file: string;
+  severity: 'critical' | 'high' | 'medium' | 'low' | 'info';
+  diagnosis: string;
+  recommendation: string | null;
+  rule_id?: number;
 }
 
 export interface FCPMFileResult {
@@ -249,13 +178,21 @@ export interface FCPMFileResult {
   n_possible_pairs: number;
   n_connected_pairs: number;
   connected_pairs: [string, string][];
-  cohesion_level: string;
+  call_graph: { [method: string]: string[] };
+  breakdown: {
+    direct_invocations: number;
+    indirect_invocations: number;
+  };
+  cohesion_level: 'very_high' | 'high' | 'moderate' | 'low' | 'very_low' | 'not_applicable';
+  n_components: number;
+  n_disconnected_methods: number;
+  disconnected_methods: string[];
 }
 
 export interface FCPMSummary {
   total_files: number;
+  very_high_cohesion: number;
   high_cohesion: number;
-  good_cohesion: number;
   moderate_cohesion: number;
   low_cohesion: number;
   very_low_cohesion: number;
@@ -263,141 +200,11 @@ export interface FCPMSummary {
   average_fcpm: number;
 }
 
-export interface IFCPResult extends AnalysisResult {
-  details: {
-    packages: { [packagePath: string]: IFCPPackageResult };
-    summary: IFCPSummary;
-  };
-}
 
-export interface IFCPPackageResult {
-  ifc_p: number | null;
-  n_modules: number;
-  n_possible_pairs: number;
-  n_connected_pairs: number;
-  connected_pairs: [string, string][];
-  cohesion_level: string;
-}
 
-export interface IFCPSummary {
-  total_packages: number;
-  high_cohesion: number;
-  good_cohesion: number;
-  moderate_cohesion: number;
-  low_cohesion: number;
-  very_low_cohesion: number;
-  average_ifc_p: number;
-}
 
-export interface LPCMLResult extends AnalysisResult {
-  details: {
-    packages: { [packagePath: string]: LPCMLPackageResult };
-    summary: LPCMLSummary;
-  };
-}
 
-export interface LPCMLPackageResult {
-  lpcml: number | null;
-  n_elements: number;
-  n_components: number;
-  cohesion_ratio: number;
-  cohesive_clusters: { members: string[], shared_resources: any }[];
-  isolated_elements: string[];
-  cohesion_level: string;
-}
 
-export interface LPCMLSummary {
-  total_packages: number;
-  excellent_cohesion: number;
-  acceptable_cohesion: number;
-  moderate_cohesion: number;
-  poor_cohesion: number;
-  average_components: number;
-  average_cohesion_ratio: number;
-}
 
-export interface PMCRResult extends AnalysisResult {
-  details: {
-    packages: { [packagePath: string]: PMCRPackageResult };
-    summary: PMCRSummary;
-  };
-}
 
-export interface PMCRPackageResult {
-  pmcr: number | null;
-  n_modules: number;
-  n_possible_pairs: number;
-  n_connected_pairs: number;
-  connected_components: number;
-  cohesion_level: string;
-  direct_connections: any[];
-}
 
-export interface PMCRSummary {
-  total_packages: number;
-  average_pmcr: number;
-  high_cohesion: number;
-  good_cohesion: number;
-  moderate_cohesion: number;
-  low_cohesion: number;
-  very_low_cohesion: number;
-}
-
-export interface PDSCResult extends AnalysisResult {
-  details: {
-    packages: { [packagePath: string]: PDSCPackageResult };
-    summary: PDSCSummary;
-  };
-}
-
-export interface PDSCPackageResult {
-  pdsc: number | null;
-  n_modules: number;
-  n_possible_pairs: number;
-  n_shared_pairs: number;
-  shared_pairs: [string, string][];
-  resources_per_file: { [fileName: string]: string[] };
-}
-
-export interface PDSCSummary {
-  total_packages: number;
-  high_cohesion: number;
-  good_cohesion: number;
-  moderate_cohesion: number;
-  low_cohesion: number;
-  very_low_cohesion: number;
-  average_pdsc: number;
-}
-
-export interface PFPResult extends AnalysisResult {
-  details: {
-    packages: { [packagePath: string]: PFPPackageResult };
-    summary: PFPSummary;
-  };
-}
-
-export interface PFPPackageResult {
-  metrics: {
-    total_modules: number;
-    ml_modules: number;
-    pfp_score: number;
-    purity_level: string;
-  };
-  phases_detected: string[];
-  stages_detected: string[];
-  quality_indicators: {
-    needs_refactoring: boolean;
-    has_ml_content: boolean;
-    is_pure_package: boolean;
-  };
-}
-
-export interface PFPSummary {
-  total_packages_analyzed: number;
-  average_pfp_score: number;
-  overall_quality: string;
-  packages_needing_attention: number;
-  packages_with_good_purity: number;
-  etapas_max: number;
-  purity_summary: { [level: string]: number };
-}

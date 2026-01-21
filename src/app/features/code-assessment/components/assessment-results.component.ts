@@ -62,7 +62,25 @@ import { AnalyzeResponse } from '@app/core/models';
             Code Cohesion Distribution
           </h3>
           
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <!-- Very High Cohesion -->
+            <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 bg-emerald-600 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-xs font-medium text-emerald-700">Very High</div>
+                    <div class="text-2xl font-bold text-emerald-900">{{ ccpmResults?.details?.summary?.very_high_cohesion || 0 }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="text-xs text-emerald-700">Perfect SRP</div>
+            </div>
+
             <!-- High Cohesion -->
             <div class="bg-green-50 border border-green-200 rounded-lg p-6 hover:shadow-md transition-shadow">
               <div class="flex items-center justify-between mb-4">
@@ -73,12 +91,12 @@ import { AnalyzeResponse } from '@app/core/models';
                     </svg>
                   </div>
                   <div>
-                    <div class="text-sm font-medium text-green-700">High Cohesion</div>
+                    <div class="text-xs font-medium text-green-700">High</div>
                     <div class="text-2xl font-bold text-green-900">{{ ccpmResults?.details?.summary?.high_cohesion || 0 }}</div>
                   </div>
                 </div>
               </div>
-              <div class="text-xs text-green-700">Well-structured modules with focused responsibilities</div>
+              <div class="text-xs text-green-700">Well-structured</div>
             </div>
 
             <!-- Medium Cohesion -->
@@ -91,15 +109,33 @@ import { AnalyzeResponse } from '@app/core/models';
                     </svg>
                   </div>
                   <div>
-                    <div class="text-sm font-medium text-yellow-700">Medium Cohesion</div>
+                    <div class="text-xs font-medium text-yellow-700">Medium</div>
                     <div class="text-2xl font-bold text-yellow-900">{{ ccpmResults?.details?.summary?.medium_cohesion || 0 }}</div>
                   </div>
                 </div>
               </div>
-              <div class="text-xs text-yellow-700">Acceptable structure, some improvement possible</div>
+              <div class="text-xs text-yellow-700">Acceptable structure</div>
             </div>
 
             <!-- Low Cohesion -->
+            <div class="bg-orange-50 border border-orange-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-xs font-medium text-orange-700">Low</div>
+                    <div class="text-2xl font-bold text-orange-900">{{ ccpmResults?.details?.summary?.low_cohesion || 0 }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="text-xs text-orange-700">Improvement needed</div>
+            </div>
+
+            <!-- Very Low Cohesion -->
             <div class="bg-red-50 border border-red-200 rounded-lg p-6 hover:shadow-md transition-shadow">
               <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-3">
@@ -109,12 +145,12 @@ import { AnalyzeResponse } from '@app/core/models';
                     </svg>
                   </div>
                   <div>
-                    <div class="text-sm font-medium text-red-700">Low Cohesion</div>
-                    <div class="text-2xl font-bold text-red-900">{{ ccpmResults?.details?.summary?.low_cohesion || 0 }}</div>
+                    <div class="text-xs font-medium text-red-700">Very Low</div>
+                    <div class="text-2xl font-bold text-red-900">{{ ccpmResults?.details?.summary?.very_low_cohesion || 0 }}</div>
                   </div>
                 </div>
               </div>
-              <div class="text-xs text-red-700">Needs refactoring for better organization</div>
+              <div class="text-xs text-red-700">Critical refactoring</div>
             </div>
           </div>
 
@@ -125,6 +161,12 @@ import { AnalyzeResponse } from '@app/core/models';
               <span class="text-sm text-gray-500">{{ getTotalFiles() }} files analyzed</span>
             </div>
             <div class="w-full h-4 bg-gray-200 rounded-full overflow-hidden flex">
+              <div 
+                *ngIf="getVeryHighCohesionPercent() > 0"
+                class="bg-emerald-600 h-full transition-all duration-1000"
+                [style.width.%]="getVeryHighCohesionPercent()"
+                [title]="'Very High: ' + getVeryHighCohesionPercent().toFixed(1) + '%'">
+              </div>
               <div 
                 *ngIf="getHighCohesionPercent() > 0"
                 class="bg-green-500 h-full transition-all duration-1000"
@@ -139,15 +181,23 @@ import { AnalyzeResponse } from '@app/core/models';
               </div>
               <div 
                 *ngIf="getLowCohesionPercent() > 0"
-                class="bg-red-500 h-full transition-all duration-1000"
+                class="bg-orange-500 h-full transition-all duration-1000"
                 [style.width.%]="getLowCohesionPercent()"
                 [title]="'Low: ' + getLowCohesionPercent().toFixed(1) + '%'">
               </div>
+              <div 
+                *ngIf="getVeryLowCohesionPercent() > 0"
+                class="bg-red-500 h-full transition-all duration-1000"
+                [style.width.%]="getVeryLowCohesionPercent()"
+                [title]="'Very Low: ' + getVeryLowCohesionPercent().toFixed(1) + '%'">
+              </div>
             </div>
             <div class="flex justify-between text-xs text-gray-600 mt-1">
+              <span>{{ getVeryHighCohesionPercent().toFixed(0) }}% Very High</span>
               <span>{{ getHighCohesionPercent().toFixed(0) }}% High</span>
               <span>{{ getMediumCohesionPercent().toFixed(0) }}% Medium</span>
               <span>{{ getLowCohesionPercent().toFixed(0) }}% Low</span>
+              <span>{{ getVeryLowCohesionPercent().toFixed(0) }}% Very Low</span>
             </div>
           </div>
         </div>
@@ -291,7 +341,17 @@ export class AssessmentResultsComponent {
   getTotalFiles(): number {
     const summary = this.ccpmResults?.details?.summary;
     if (!summary) return 0;
-    return summary.high_cohesion + summary.medium_cohesion + summary.low_cohesion;
+    return (summary.very_high_cohesion || 0) + 
+           (summary.high_cohesion || 0) + 
+           (summary.medium_cohesion || 0) + 
+           (summary.low_cohesion || 0) + 
+           (summary.very_low_cohesion || 0);
+  }
+
+  getVeryHighCohesionPercent(): number {
+    const total = this.getTotalFiles();
+    if (total === 0) return 0;
+    return (this.ccpmResults?.details?.summary?.very_high_cohesion || 0) / total * 100;
   }
 
   getHighCohesionPercent(): number {
@@ -310,6 +370,12 @@ export class AssessmentResultsComponent {
     const total = this.getTotalFiles();
     if (total === 0) return 0;
     return (this.ccpmResults?.details?.summary?.low_cohesion || 0) / total * 100;
+  }
+
+  getVeryLowCohesionPercent(): number {
+    const total = this.getTotalFiles();
+    if (total === 0) return 0;
+    return (this.ccpmResults?.details?.summary?.very_low_cohesion || 0) / total * 100;
   }
 
   getScoreColor(score: number): string {
@@ -335,13 +401,22 @@ export class AssessmentResultsComponent {
 
   getCohesionBadgeClass(level: string): string {
     const normalizedLevel = level?.toLowerCase() || '';
+    if (normalizedLevel.includes('very') && normalizedLevel.includes('high')) {
+      return 'bg-emerald-100 text-emerald-800';
+    }
     if (normalizedLevel.includes('high')) {
       return 'bg-green-100 text-green-800';
     }
     if (normalizedLevel.includes('medium')) {
       return 'bg-yellow-100 text-yellow-800';
     }
-    return 'bg-red-100 text-red-800';
+    if (normalizedLevel.includes('very') && normalizedLevel.includes('low')) {
+      return 'bg-red-100 text-red-800';
+    }
+    if (normalizedLevel.includes('low')) {
+      return 'bg-orange-100 text-orange-800';
+    }
+    return 'bg-gray-100 text-gray-800';
   }
 
   getFileName(path: string): string {
