@@ -2,13 +2,13 @@ import { Component, Input, Output, EventEmitter, OnInit, OnChanges } from '@angu
 import {
   AnalyzeResponse,
   AnalysisResult,
-  FPCResult,
+  CCPMResult,
   FileStructureResult,
   LCCMLResult,
   PyLintResult,
   PipelineDetectionResult,
-  LDSCResult,
-  IFCMResult,
+  SCPMResult,
+  FCPMResult,
   IFCPResult,
   LPCMLResult,
   PMCRResult,
@@ -371,7 +371,7 @@ interface FileMetricsData {
 
                 <!-- Key Metrics Grid -->
                 <div class="px-6 py-6">
-                  <div *ngIf="metricId === 'fpc'" class="space-y-4">
+                  <div *ngIf="metricId === 'ccpm'" class="space-y-4">
                     <!-- Primary Metrics -->
                     <div class="grid grid-cols-2 gap-4">
                       <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
@@ -546,7 +546,7 @@ interface FileMetricsData {
                     </div>
                   </div>
 
-                  <div *ngIf="metricId === 'ldsc'" class="space-y-4">
+                  <div *ngIf="metricId === 'scpm'" class="space-y-4">
                     <!-- Primary Metrics -->
                     <div class="grid grid-cols-2 gap-4">
                       <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
@@ -565,10 +565,10 @@ interface FileMetricsData {
                       </div>
 
                       <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
-                        <div class="text-xs font-semibold text-indigo-600 mb-1">LDSC SCORE</div>
+                        <div class="text-xs font-semibold text-indigo-600 mb-1">SCPM SCORE</div>
                         <div class="text-2xl font-bold text-indigo-700">
-                          {{ selectedFileData[metricId].data.ldsc !== null && selectedFileData[metricId].data.ldsc !== undefined 
-                             ? (selectedFileData[metricId].data.ldsc * 100).toFixed(1) + '%' 
+                          {{ selectedFileData[metricId].data.scpm !== null && selectedFileData[metricId].data.scpm !== undefined 
+                             ? (selectedFileData[metricId].data.scpm * 100).toFixed(1) + '%'  
                              : 'N/A' }}
                         </div>
                       </div>
@@ -604,7 +604,7 @@ interface FileMetricsData {
                     </div>
                   </div>
 
-                  <div *ngIf="metricId === 'ifc_m'" class="space-y-4">
+                  <div *ngIf="metricId === 'fcpm'" class="space-y-4">
                     <!-- Primary Metrics -->
                     <div class="grid grid-cols-2 gap-4">
                       <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg p-4 border border-pink-200">
@@ -623,10 +623,10 @@ interface FileMetricsData {
                       </div>
 
                       <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
-                        <div class="text-xs font-semibold text-indigo-600 mb-1">IFC-M SCORE</div>
+                        <div class="text-xs font-semibold text-indigo-600 mb-1">FCPM SCORE</div>
                         <div class="text-2xl font-bold text-indigo-700">
-                          {{ selectedFileData[metricId].data.ifc_m !== null && selectedFileData[metricId].data.ifc_m !== undefined 
-                             ? (selectedFileData[metricId].data.ifc_m * 100).toFixed(1) + '%' 
+                          {{ selectedFileData[metricId].data.fcpm !== null && selectedFileData[metricId].data.fcpm !== undefined 
+                             ? (selectedFileData[metricId].data.fcpm * 100).toFixed(1) + '%'  
                              : 'N/A' }}
                         </div>
                       </div>
@@ -959,8 +959,8 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
       const metricName = metric.documentation.name;
       const category = metric.documentation.category;
 
-      if (metricId === 'fpc') {
-        this.processFPCMetric(metric as FPCResult, metricName, category);
+      if (metricId === 'ccpm') {
+        this.processCCPMMetric(metric as CCPMResult, metricName, category);
       } else if (metricId === 'file_structure') {
         this.processFileStructureMetric(metric as FileStructureResult, metricName, category);
       } else if (metricId === 'lccml') {
@@ -973,10 +973,10 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
         this.processRadonMIMetric(metric, metricName, category);
       } else if (metricId === 'pipeline') {
         this.processPipelineDetectionMetric(metric as PipelineDetectionResult, metricName, category);
-      } else if (metricId === 'ldsc') {
-        this.processLDSCMetric(metric as LDSCResult, metricName, category);
-      } else if (metricId === 'ifc_m') {
-        this.processIFCMMetric(metric as IFCMResult, metricName, category);
+      } else if (metricId === 'scpm') {
+        this.processSCPMMetric(metric as SCPMResult, metricName, category);
+      } else if (metricId === 'fcpm') {
+        this.processFCPMMetric(metric as FCPMResult, metricName, category);
       } else if (metricId === 'ifc_p') {
         this.processIFCPMetric(metric as IFCPResult, metricName, category);
       } else if (metricId === 'lpcml') {
@@ -996,7 +996,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     });
   }
 
-  processFPCMetric(metric: FPCResult, metricName: string, category: string): void {
+  processCCPMMetric(metric: CCPMResult, metricName: string, category: string): void {
     Object.entries(metric.details?.files || {}).forEach(([filePath, fileData]) => {
       // Normalize path - add leading slash if not present
       const normalizedPath = filePath.startsWith('/') ? filePath : '/' + filePath;
@@ -1056,7 +1056,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
         }
       }
 
-      fileMetrics['fpc'] = {
+      fileMetrics['ccpm'] = {
         metricName,
         category,
         data: fileData,
@@ -1233,7 +1233,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     });
   }
 
-  processLDSCMetric(metric: LDSCResult, metricName: string, category: string): void {
+  processSCPMMetric(metric: SCPMResult, metricName: string, category: string): void {
     Object.entries(metric.details?.files || {}).forEach(([filePath, fileData]) => {
       const normalizedPath = filePath.startsWith('/') ? filePath : '/' + filePath;
       if (!this.fileMetricsMap.has(normalizedPath)) {
@@ -1244,13 +1244,13 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
       const messages: string[] = [];
       let severity: 'error' | 'warning' | 'info' | 'success' = 'info';
 
-      if (fileData.ldsc === null) {
-        messages.push('LDSC not applicable (single method file)');
+      if (fileData.scpm === null) {
+        messages.push('SCPM not applicable (single method file)');
         severity = 'info';
-      } else if (fileData.ldsc >= 0.6) {
+      } else if (fileData.scpm >= 0.6) {
         severity = 'success';
         messages.push('Good structural cohesion');
-      } else if (fileData.ldsc >= 0.4) {
+      } else if (fileData.scpm >= 0.4) {
         severity = 'info';
         messages.push('Moderate structural cohesion');
       } else {
@@ -1258,18 +1258,18 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
         messages.push(`Low structural cohesion: Few shared variables`);
       }
 
-      fileMetrics['ldsc'] = {
+      fileMetrics['scpm'] = {
         metricName,
         category,
         data: fileData,
-        score: fileData.ldsc !== null ? fileData.ldsc * 10 : undefined,
+        score: fileData.scpm !== null ? fileData.scpm * 10 : undefined,
         severity,
         messages
       };
     });
   }
 
-  processIFCMMetric(metric: IFCMResult, metricName: string, category: string): void {
+  processFCPMMetric(metric: FCPMResult, metricName: string, category: string): void {
     Object.entries(metric.details?.files || {}).forEach(([filePath, fileData]) => {
       const normalizedPath = filePath.startsWith('/') ? filePath : '/' + filePath;
       if (!this.fileMetricsMap.has(normalizedPath)) {
@@ -1280,13 +1280,13 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
       const messages: string[] = [];
       let severity: 'error' | 'warning' | 'info' | 'success' = 'info';
 
-      if (fileData.ifc_m === null) {
-        messages.push('IFC-M not applicable (single method file)');
+      if (fileData.fcpm === null) {
+        messages.push('FCPM not applicable (single method file)');
         severity = 'info';
-      } else if (fileData.ifc_m >= 0.6) {
+      } else if (fileData.fcpm >= 0.6) {
         severity = 'success';
         messages.push('Good functional cohesion');
-      } else if (fileData.ifc_m >= 0.4) {
+      } else if (fileData.fcpm >= 0.4) {
         severity = 'info';
         messages.push('Moderate functional cohesion');
       } else {
@@ -1294,11 +1294,11 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
         messages.push(`Low functional cohesion: Weak information flow`);
       }
 
-      fileMetrics['ifc_m'] = {
+      fileMetrics['fcpm'] = {
         metricName,
         category,
         data: fileData,
-        score: fileData.ifc_m !== null ? fileData.ifc_m * 10 : undefined,
+        score: fileData.fcpm !== null ? fileData.fcpm * 10 : undefined,
         severity,
         messages
       };

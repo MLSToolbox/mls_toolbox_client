@@ -37,15 +37,15 @@ export interface IdealRange {
   warning?: string;
 }
 
-export interface FPCResult extends AnalysisResult {
+export interface CCPMResult extends AnalysisResult {
   details: {
-    files: { [filePath: string]: FPCFileResult };
-    summary: FPCSummary;
+    files: { [filePath: string]: CCPMFileResult };
+    summary: CCPMSummary;
   };
-  messages: FPCMessage[];
+  messages: CCPMMessage[];
 }
 
-export interface FPCFileResult {
+export interface CCPMFileResult {
   unique_stages: number;
   unique_phases: number;
   stages_detected: string[];
@@ -59,7 +59,7 @@ export interface FPCFileResult {
   is_script_file: boolean;
 }
 
-export interface FPCSummary {
+export interface CCPMSummary {
   total_files: number;
   high_cohesion: number;
   medium_cohesion: number;
@@ -70,7 +70,7 @@ export interface FPCSummary {
   nloc_threshold: number;
 }
 
-export interface FPCMessage {
+export interface CCPMMessage {
   file: string;
   severity: 'error' | 'warning' | 'info';
   category: string;
@@ -209,15 +209,15 @@ export interface PipelineEvidence {
   value: string;
 }
 
-export interface LDSCResult extends AnalysisResult {
+export interface SCPMResult extends AnalysisResult {
   details: {
-    files: { [filePath: string]: LDSCFileResult };
-    summary: LDSCSummary;
+    files: { [filePath: string]: SCPMFileResult };
+    summary: SCPMSummary;
   };
 }
 
-export interface LDSCFileResult {
-  ldsc: number | null;
+export interface SCPMFileResult {
+  scpm: number | null;
   n_methods: number;
   n_possible_pairs: number;
   n_shared_pairs: number;
@@ -225,7 +225,7 @@ export interface LDSCFileResult {
   cohesion_level: string;
 }
 
-export interface LDSCSummary {
+export interface SCPMSummary {
   total_files: number;
   high_cohesion: number;
   good_cohesion: number;
@@ -233,18 +233,18 @@ export interface LDSCSummary {
   low_cohesion: number;
   very_low_cohesion: number;
   single_method_files: number;
-  average_ldsc: number;
+  average_scpm: number;
 }
 
-export interface IFCMResult extends AnalysisResult {
+export interface FCPMResult extends AnalysisResult {
   details: {
-    files: { [filePath: string]: IFCMFileResult };
-    summary: IFCMSummary;
+    files: { [filePath: string]: FCPMFileResult };
+    summary: FCPMSummary;
   };
 }
 
-export interface IFCMFileResult {
-  ifc_m: number | null;
+export interface FCPMFileResult {
+  fcpm: number | null;
   n_methods: number;
   n_possible_pairs: number;
   n_connected_pairs: number;
@@ -252,7 +252,7 @@ export interface IFCMFileResult {
   cohesion_level: string;
 }
 
-export interface IFCMSummary {
+export interface FCPMSummary {
   total_files: number;
   high_cohesion: number;
   good_cohesion: number;
@@ -260,7 +260,7 @@ export interface IFCMSummary {
   low_cohesion: number;
   very_low_cohesion: number;
   single_method_files: number;
-  average_ifc_m: number;
+  average_fcpm: number;
 }
 
 export interface IFCPResult extends AnalysisResult {

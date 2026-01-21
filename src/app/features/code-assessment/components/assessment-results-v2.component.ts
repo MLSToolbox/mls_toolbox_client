@@ -1,8 +1,8 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { 
-  AnalyzeResponse, 
+import {
+  AnalyzeResponse,
   AnalysisResult,
-  FPCResult,
+  CCPMResult,
   FileStructureResult,
   LCCMLResult,
   PyLintResult,
@@ -260,9 +260,9 @@ export class AssessmentResultsV2Component implements OnInit {
       const metricId = result.analyzer_id;
       const metricName = result.documentation.name;
 
-      if (metricId === 'fpc') {
-        const fpcResult = result as FPCResult;
-        (fpcResult.messages || []).forEach((msg: any) => {
+      if (metricId === 'ccpm') {
+        const ccpmResult = result as CCPMResult;
+        (ccpmResult.messages || []).forEach((msg: any) => {
           this.fileRecommendations.push({
             filePath: msg.file,
             metricId,
@@ -307,8 +307,8 @@ export class AssessmentResultsV2Component implements OnInit {
             filePath: msg.path,
             metricId,
             metricName,
-            severity: msg.type === 'error' || msg.type === 'fatal' ? 'error' : 
-                     msg.type === 'warning' ? 'warning' : 'info',
+            severity: msg.type === 'error' || msg.type === 'fatal' ? 'error' :
+              msg.type === 'warning' ? 'warning' : 'info',
             message: `[${msg.symbol}] ${msg.message} (Line ${msg.line})`,
             details: msg
           });
@@ -354,13 +354,13 @@ export class AssessmentResultsV2Component implements OnInit {
   getScoreInterpretation(metric: AnalysisResult): string {
     const score = metric.score;
     const interpretation = metric.documentation.interpretation;
-    
+
     for (const [range, description] of Object.entries(interpretation)) {
       if (this.isScoreInRange(score, range)) {
         return description;
       }
     }
-    
+
     return 'No interpretation available';
   }
 
@@ -378,7 +378,7 @@ export class AssessmentResultsV2Component implements OnInit {
     return false;
   }
 
-  getInterpretationItems(metric: AnalysisResult): Array<{range: string, description: string}> {
+  getInterpretationItems(metric: AnalysisResult): Array<{ range: string, description: string }> {
     return Object.entries(metric.documentation.interpretation).map(([range, description]) => ({
       range,
       description

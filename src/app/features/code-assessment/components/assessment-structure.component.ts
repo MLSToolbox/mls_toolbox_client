@@ -174,7 +174,7 @@ export class AssessmentStructureComponent implements OnInit {
       enabled: true,
       selected: false,
       config: {
-        metrics: ['fpc', 'lccml', 'ldsc', 'ifc_m', 'ifc_p', 'lpcml', 'pmcr', 'pdsc', 'pfp'],
+        metrics: ['ccpm', 'lccml', 'scpm', 'fcpm', 'ifc_p', 'lpcml', 'pmcr', 'pdsc', 'pfp'],
         all_files: true
       }
     },

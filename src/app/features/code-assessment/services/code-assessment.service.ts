@@ -16,8 +16,8 @@ import {
 export class CodeAssessmentService {
   private readonly METRICS_REGISTRY: MetricOption[] = [
     {
-      id: 'fpc',
-      name: 'Functional Pipeline Cohesion',
+      id: 'ccpm',
+      name: 'Conceptual Cohesion of Pipeline Modules',
       description: 'Measures cohesion of ML pipeline code by analyzing how well functions and classes are organized around specific ML pipeline stages.',
       category: 'cohesion',
       enabled: true,

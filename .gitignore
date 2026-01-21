@@ -68,3 +68,7 @@ testem.log
 Thumbs.db
 
 *.ps1
+
+.env.local
+.env.development
+.env.production
