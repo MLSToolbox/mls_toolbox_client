@@ -59,10 +59,6 @@ testem.log
 /reports
 /src/translations/template.*
 
-# Environment variables
-.env
-.env.*
-
 # System Files
 .DS_Store
 Thumbs.db
