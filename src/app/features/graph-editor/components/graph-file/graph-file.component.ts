@@ -60,6 +60,7 @@ export class GraphFileComponent {
     this.ref = this.dialogService.open(TemplateDialogComponent, {
       header: "Select a Template",
       width: "20vw",
+      styleClass: "template-selection-dialog", // Added custom class for styling
       contentStyle: { overflow: "auto" },
       breakpoints: {
         "960px": "75vw",

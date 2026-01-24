@@ -235,8 +235,6 @@ a:hover {
   opacity: 0.1;
   background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="white" opacity="0.1"/></svg>');
 }
-
-/* PrimeNG Override */
 .p-button {
   background-color: var(--color-primary) !important;
   border-color: var(--color-primary) !important;
@@ -245,6 +243,7 @@ a:hover {
   font-family: var(--font-family-primary) !important;
   font-weight: var(--font-weight-medium) !important;
   transition: all var(--transition-base) !important;
+  
 }
 
 .p-button:hover {

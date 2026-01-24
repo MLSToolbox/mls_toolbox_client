@@ -1,12 +1,16 @@
-<div style="display: flex; flex-direction: column; width: fit-content">
+<div class="dialog-layout">
   <button
     *ngFor="let template of availableTemplates"
     pButton
-    class="my-button"
     (click)="close(template.path)"
   >
     {{ template.name }}
   </button>
+  
+  <button 
+    pButton 
+    class="cancel-button" 
+    (click)="cancel()">
+    Cancel
+  </button>
 </div>
-<div style="height: 10px"></div>
-<button pButton class="my-button" (click)="cancel()">Cancel</button>

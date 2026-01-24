@@ -1,0 +1,17 @@
+
+/* ===================================================================
+   TEMPLATE DIALOG OVERRIDES
+   =================================================================== */
+.template-selection-dialog .p-dialog-header {
+  padding: 1.5rem 2rem 0.5rem 2rem !important; /* More space top and sides */
+}
+
+.template-selection-dialog .p-dialog-title {
+  font-size: 1.25rem !important; /* Slightly larger title */
+  font-weight: 600 !important;
+}
+
+/* Adjust content padding to align with header */
+.template-selection-dialog .p-dialog-content {
+  padding: 1.5rem 1rem 1.5rem 1rem !important; 
+}

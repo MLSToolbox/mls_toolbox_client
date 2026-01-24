@@ -10,8 +10,9 @@
   <div class="editor-content">
     <div class="rete" [class.hide-minimap]="!showMap" #rete>
       <!-- Current Module Navigation -->
-      <div class="module-nav" *ngIf="moduleImIn != 'General Editor'">
+      <div class="module-nav">
         <button 
+          *ngIf="moduleImIn != 'General Editor'"
           class="back-button"
           (click)="backToRoot()"
           pTooltip="Back to General Editor"
@@ -20,6 +21,22 @@
           <i class="pi pi-caret-left"></i>
           <span>Back to {{ moduleImIn }}</span>
         </button>
+
+        <p-splitButton
+          *ngIf="moduleImIn != 'General Editor'"
+          label="Add Node"
+          icon="pi pi-plus"
+          [model]="items"
+          class="action-button"
+        />
+
+        <p-button
+          *ngIf="moduleImIn === 'General Editor'"
+          label="Add Stage"
+          icon="pi pi-plus"
+          (click)="addStage()"
+          class="action-button"
+        />
       </div>
 
       <!-- Control Panel -->
@@ -77,23 +94,7 @@
         </div>
       </div>
 
-      <!-- Actions Panel -->
-      <div class="actions-panel">
-        <p-splitButton
-          *ngIf="moduleImIn != 'General Editor'"
-          label="Add Node"
-          icon="pi pi-plus"
-          [model]="items"
-          class="action-button"
-        />
-        <p-button
-          *ngIf="moduleImIn === 'General Editor'"
-          label="Add Stage"
-          icon="pi pi-plus"
-          (click)="addStage()"
-          class="action-button"
-        />
-      </div>
+
     </div>
   </div>
 </div>

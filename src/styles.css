@@ -1,5 +1,6 @@
 /* Imports primero (requerido por CSS) */
 @import './styles/base.css';
+@import './styles/template-dialog-overrides.css';
 
 /* Tailwind CSS directives */
 @tailwind base;
