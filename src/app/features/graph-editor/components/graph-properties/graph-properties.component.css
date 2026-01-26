@@ -30,15 +30,21 @@
   display: flex;
   flex-direction: column;
   box-shadow: inset 0px 0px 10px 10px rgba(0, 0, 0, 0.02);
-  padding: 10px;
+  padding: 15px;
+  /* Increased padding */
   border-left: 1px solid lightgray;
   overflow-y: scroll;
+  overflow-x: hidden;
+  /* Prevent horizontal scrollbar */
 }
+
+
 
 .options {
   width: 50px;
   background-color: buttonface;
 }
+
 .option-button {
   width: 50px;
   height: 50px;
@@ -85,11 +91,133 @@
 }
 
 .delete-edit-button {
-  margin: 10px;
+  margin: 20px 10px;
   align-self: center;
   justify-content: center;
   display: flex;
   flex-direction: row;
   width: 100%;
   justify-content: space-around;
+  gap: 10px;
+}
+
+.delete-edit-button ::ng-deep .p-button {
+  font-size: 1rem !important;
+  padding: 0.5rem 1rem !important;
+  min-width: 140px;
+  justify-content: center;
+}
+
+/* New Styles for Better Inputs */
+
+.field-container {
+  margin: 15px 10px;
+  /* More vertical separation */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-label {
+  margin-left: 5px;
+  border-top: gray 1px solid;
+  user-select: none;
+  padding-top: 15px;
+  /* More padding top */
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.styled-input {
+  width: 100%;
+  padding: 12px;
+  /* Increased height/padding */
+  font-size: 1rem;
+  border-radius: 6px;
+  /* Slightly improved look */
+  box-sizing: border-box;
+  /* Fix for overflow */
+}
+
+/* Specifics for list items */
+.item-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.list-input {
+  flex-grow: 1;
+  padding: 10px;
+}
+
+/* Specifics for map items */
+.map-key-input {
+  width: 30%;
+  padding: 10px;
+}
+
+.map-value-input {
+  width: 60%;
+  padding: 10px;
+}
+
+/* Color Dropdown Customization */
+/* Reduce width of the color dropdown */
+:host ::ng-deep .color-dropdown {
+  width: 150px !important;
+}
+
+/* Center the selected item inside the dropdown */
+:host ::ng-deep .color-dropdown .p-dropdown-label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-right: 2rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  /* Balance padding since dropdown icon is on the right */
+}
+
+/* Center the dropdown content itself */
+.color-selected-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Add spacing between color options */
+.color-option-container {
+  padding: 8px 0;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Link Dropdown Customization */
+:host ::ng-deep .link-dropdown .p-dropdown-label {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+/* Select Button (Toggle) Customization */
+:host ::ng-deep .p-selectbutton .p-button {
+  border-radius: 6px;
+  /* Less rounded corners */
+  padding: 0.75rem 1.25rem;
+  /* Increased padding for slightly larger width/height */
+  font-size: 0.95rem;
+  /* Slightly larger text */
+}
+
+/* Property Dropdown (General) Customization */
+:host ::ng-deep .property-dropdown .p-dropdown-label {
+  padding-top: 0.82rem;
+  /* Moderate increase */
+  padding-bottom: 0.82rem;
+  display: flex;
+  align-items: center;
 }

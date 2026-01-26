@@ -1,0 +1,29 @@
+.dialog-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem; /* Slightly reduced horizontal padding (was 1rem) */
+  box-sizing: border-box;
+}
+
+/* 
+ * Apply styles specifically to buttons within this dialog 
+ * to align them perfectly and fix the radius issue locally
+ */
+.dialog-layout .p-button {
+  width: 100%;              /* Ensures all buttons are the same width */
+  justify-content: center;  /* Centers the text inside the button */
+  border-radius: 6px !important; /* Moderate radius */
+  padding: 0.5rem 1rem !important; /* Reduced height */
+  font-size: 1rem;
+  white-space: nowrap;      /* Prevents text from wrapping awkwardly */
+  text-overflow: ellipsis;  /* Adds ... if text is too long */
+  overflow: hidden;
+}
+
+/* Specific tweak for Cancel to visually separate it slightly if needed, 
+   but keeping the same colors as requested */
+.cancel-button {
+  margin-top: 0.5rem;
+}

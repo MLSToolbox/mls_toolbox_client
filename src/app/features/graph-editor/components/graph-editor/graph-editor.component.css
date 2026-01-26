@@ -46,6 +46,10 @@
   top: var(--spacing-4);
   left: var(--spacing-4);
   z-index: var(--z-fixed);
+  display: flex;
+  flex-direction: column; /* Stack buttons vertically */
+  align-items: flex-start; /* Align to the left */
+  gap: var(--spacing-3); /* Slightly tighter vertical spacing */
 }
 
 .back-button {
