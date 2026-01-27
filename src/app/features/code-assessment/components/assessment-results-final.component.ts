@@ -4,7 +4,10 @@ import {
   AnalysisResult,
   CCPMResult,
   SCPMResult,
-  FCPMResult
+  FCPMResult,
+  FCPPResult,
+  SCPPResult,
+  CCPPResult
 } from '@app/core/models';
 import { TreeStructure, ChildChild } from '@app/core/models/upload-zip.model';
 
@@ -778,6 +781,195 @@ interface FileMetricsData {
                     </div>
                   </div>
 
+                  <!-- FCPP (Package-level Functional Cohesion) -->
+                  <div *ngIf="metricId === 'fcpp'" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                      <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                        <div class="text-xs font-semibold text-green-600 mb-1">FCPP SCORE</div>
+                        <div class="text-2xl font-bold text-green-700">
+                          {{ selectedFileData[metricId].data.fcpp !== undefined ? (selectedFileData[metricId].data.fcpp * 10).toFixed(1) : 'N/A' }}
+                        </div>
+                        <div class="text-xs text-green-600 mt-1">/ 10</div>
+                      </div>
+                      
+                      <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                        <div class="text-xs font-semibold text-blue-600 mb-1">ROOT NODES</div>
+                        <div class="text-2xl font-bold text-blue-700">
+                          {{ selectedFileData[metricId].data.n_nodes || 0 }}
+                        </div>
+                        <div class="text-xs text-blue-600 mt-1">
+                          {{ selectedFileData[metricId].data.connections_count || 0 }} connections
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                      <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                        <div class="text-xs font-semibold text-purple-600 mb-1">GROUPS</div>
+                        <div class="text-2xl font-bold text-purple-700">
+                          {{ selectedFileData[metricId].data.n_groups || 0 }}
+                        </div>
+                      </div>
+                      
+                      <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
+                        <div class="text-xs font-semibold text-orange-600 mb-1">ISOLATED NODES</div>
+                        <div class="text-2xl font-bold text-orange-700">
+                          {{ selectedFileData[metricId].data.isolated_nodes?.length || 0 }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div *ngIf="selectedFileData[metricId].data.connections && selectedFileData[metricId].data.connections.length > 0"
+                         class="bg-gradient-to-r from-green-50 to-teal-50 rounded-lg p-4 border border-green-200 max-h-64 overflow-y-auto">
+                      <div class="text-xs font-semibold text-green-700 mb-3 uppercase tracking-wide">Node Connections</div>
+                      <div class="space-y-2">
+                        <div *ngFor="let conn of selectedFileData[metricId].data.connections" 
+                             class="flex items-start gap-3 p-2 bg-white rounded border border-gray-200">
+                          <span class="text-xs font-mono font-bold text-gray-700">{{ conn.node_a }}</span>
+                          <span class="text-gray-400">↔</span>
+                          <span class="text-xs font-mono font-bold text-gray-700">{{ conn.node_b }}</span>
+                          <span class="text-xs text-gray-500 ml-auto">{{ conn.type }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- SCPP (Package-level Structural Coupling) -->
+                  <div *ngIf="metricId === 'scpp'" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                      <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
+                        <div class="text-xs font-semibold text-orange-600 mb-1">SCPP SCORE</div>
+                        <div class="text-2xl font-bold text-orange-700">
+                          {{ selectedFileData[metricId].data.scpp !== undefined ? (selectedFileData[metricId].data.scpp * 10).toFixed(1) : 'N/A' }}
+                        </div>
+                        <div class="text-xs text-orange-600 mt-1">/ 10 (lower is better)</div>
+                      </div>
+                      
+                      <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                        <div class="text-xs font-semibold text-blue-600 mb-1">ROOT NODES</div>
+                        <div class="text-2xl font-bold text-blue-700">
+                          {{ selectedFileData[metricId].data.n_nodes || 0 }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4">
+                      <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200">
+                        <div class="text-xs font-semibold text-red-600 mb-1">SHARED RESOURCES</div>
+                        <div class="text-2xl font-bold text-red-700">
+                          {{ selectedFileData[metricId].data.n_shared || 0 }}
+                        </div>
+                        <div class="text-xs text-red-600 mt-1">of {{ selectedFileData[metricId].data.n_pairs || 0 }} pairs</div>
+                      </div>
+
+                      <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                        <div class="text-xs font-semibold text-purple-600 mb-1">GROUPS</div>
+                        <div class="text-2xl font-bold text-purple-700">
+                          {{ selectedFileData[metricId].data.n_groups || 0 }}
+                        </div>
+                      </div>
+                      
+                      <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border border-teal-200">
+                        <div class="text-xs font-semibold text-teal-600 mb-1">ISOLATED NODES</div>
+                        <div class="text-2xl font-bold text-teal-700">
+                          {{ selectedFileData[metricId].data.isolated_nodes?.length || 0 }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div *ngIf="selectedFileData[metricId].data.connections && selectedFileData[metricId].data.connections.length > 0"
+                         class="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-4 border border-red-200 max-h-64 overflow-y-auto">
+                      <div class="text-xs font-semibold text-red-700 mb-3 uppercase tracking-wide">Shared Resource Pairs</div>
+                      <div class="space-y-2">
+                        <div *ngFor="let conn of selectedFileData[metricId].data.connections" 
+                             class="p-2 bg-white rounded border border-gray-200">
+                          <div class="flex items-center gap-3 mb-1">
+                            <span class="text-xs font-mono font-bold text-gray-700">{{ conn.node_a }}</span>
+                            <span class="text-gray-400">↔</span>
+                            <span class="text-xs font-mono font-bold text-gray-700">{{ conn.node_b }}</span>
+                          </div>
+                          <div class="flex flex-wrap gap-1 mt-1">
+                            <span *ngFor="let res of conn.shared_resources"
+                                  class="px-2 py-0.5 text-xs font-mono rounded bg-red-50 border border-red-200 text-red-700">
+                              {{ res }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- CCPP (Package-level Conceptual Cohesion) -->
+                  <div *ngIf="metricId === 'ccpp'" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                      <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
+                        <div class="text-xs font-semibold text-indigo-600 mb-1">PURITY LEVEL</div>
+                        <div class="text-2xl font-bold capitalize"
+                             [ngClass]="{
+                               'text-emerald-700': selectedFileData[metricId].data.metrics?.purity_level === 'High',
+                               'text-green-700': selectedFileData[metricId].data.metrics?.purity_level === 'Moderate',
+                               'text-orange-600': selectedFileData[metricId].data.metrics?.purity_level === 'Low',
+                               'text-red-700': selectedFileData[metricId].data.metrics?.purity_level === 'Very Low'
+                             }">
+                          {{ selectedFileData[metricId].data.metrics?.purity_level || 'N/A' }}
+                        </div>
+                      </div>
+                      
+                      <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                        <div class="text-xs font-semibold text-blue-600 mb-1">CCPP SCORE</div>
+                        <div class="text-2xl font-bold text-blue-700">
+                          {{ selectedFileData[metricId].data.metrics?.ccpp_score !== undefined ? (selectedFileData[metricId].data.metrics.ccpp_score * 10).toFixed(1) : 'N/A' }}
+                        </div>
+                        <div class="text-xs text-blue-600 mt-1">/ 10</div>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                      <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                        <div class="text-xs font-semibold text-purple-600 mb-1">MODULES</div>
+                        <div class="text-2xl font-bold text-purple-700">
+                          {{ selectedFileData[metricId].data.metrics?.total_modules || 0 }}
+                        </div>
+                        <div class="text-xs text-purple-600 mt-1">
+                          {{ selectedFileData[metricId].data.metrics?.ml_modules || 0 }} with ML content
+                        </div>
+                      </div>
+                      
+                      <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border border-teal-200">
+                        <div class="text-xs font-semibold text-teal-600 mb-1">REFACTORING</div>
+                        <div class="text-lg font-bold"
+                             [ngClass]="{
+                               'text-green-700': !selectedFileData[metricId].data.quality_indicators?.needs_refactoring,
+                               'text-red-700': selectedFileData[metricId].data.quality_indicators?.needs_refactoring
+                             }">
+                          {{ selectedFileData[metricId].data.quality_indicators?.needs_refactoring ? 'Needed' : 'Not needed' }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div *ngIf="selectedFileData[metricId].data.stages_detected && selectedFileData[metricId].data.stages_detected.length > 0"
+                         class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+                      <div class="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">Detected Stages</div>
+                      <div class="flex flex-wrap gap-2">
+                        <span *ngFor="let stage of selectedFileData[metricId].data.stages_detected"
+                              class="px-3 py-1 text-xs font-medium rounded-full bg-white border border-blue-300 text-blue-700">
+                          {{ stage.replace('_', ' ') }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div *ngIf="selectedFileData[metricId].data.phases_detected && selectedFileData[metricId].data.phases_detected.length > 0"
+                         class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200">
+                      <div class="text-xs font-semibold text-purple-700 mb-2 uppercase tracking-wide">Detected Phases</div>
+                      <div class="flex flex-wrap gap-2">
+                        <span *ngFor="let phase of selectedFileData[metricId].data.phases_detected"
+                              class="px-3 py-1 text-xs font-medium rounded-full bg-white border border-purple-300 text-purple-700">
+                          {{ phase.replace('_', ' ') }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
                   <div *ngIf="metricId === 'ifc_p'" class="space-y-4">
                     <!-- Primary Metrics -->
                     <div class="grid grid-cols-2 gap-4">
@@ -1078,12 +1270,23 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
       const metricName = metric.documentation.name;
       const category = metric.documentation.category;
 
+      console.log(`Processing metric: ${metricId}`, metric);
+
       if (metricId === 'ccpm') {
         this.processCCPMMetric(metric as CCPMResult, metricName, category);
       } else if (metricId === 'scpm') {
         this.processSCPMMetric(metric as SCPMResult, metricName, category);
       } else if (metricId === 'fcpm') {
         this.processFCPMMetric(metric as FCPMResult, metricName, category);
+      } else if (metricId === 'fcpp') {
+        console.log('Processing FCPP - packages:', (metric as FCPPResult).details?.packages);
+        this.processFCPPMetric(metric as FCPPResult, metricName, category);
+      } else if (metricId === 'scpp') {
+        console.log('Processing SCPP - packages:', (metric as SCPPResult).details?.packages);
+        this.processSCPPMetric(metric as SCPPResult, metricName, category);
+      } else if (metricId === 'ccpp') {
+        console.log('Processing CCPP - packages:', (metric as CCPPResult).details?.packages);
+        this.processCCPPMetric(metric as CCPPResult, metricName, category);
       }
     });
 
@@ -1327,6 +1530,179 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
         messages,
         detailedMessages
       };
+    });
+  }
+
+  // ===========================
+  // PACKAGE-LEVEL METRICS
+  // ===========================
+
+  processFCPPMetric(metric: FCPPResult, metricName: string, category: string): void {
+    Object.entries(metric.details?.packages || {}).forEach(([packagePath, packageData]) => {
+      const messages: string[] = [];
+      const detailedMessages: DetailedMessage[] = [];
+      let severity: 'error' | 'warning' | 'info' | 'success' = 'info';
+
+      // Get messages from metric.messages.by_package
+      const packageMessages = (metric.messages as any)?.by_package?.[packagePath] || [];
+
+      packageMessages.forEach((msg: any) => {
+        detailedMessages.push({
+          diagnosis: msg.diagnosis || '',
+          recommendation: msg.recommendation || '',
+          severity: msg.severity || 'info'
+        });
+
+        messages.push(`${msg.diagnosis || ''} ${msg.recommendation || ''}`.trim());
+
+        if (msg.severity === 'critical') {
+          severity = 'error';
+        } else if (msg.severity === 'warning' && severity !== 'error') {
+          severity = 'warning';
+        }
+      });
+
+      // Fallback to score-based assessment if no messages
+      if (messages.length === 0 && packageData.fcpp !== undefined) {
+        if (packageData.fcpp >= 0.8) {
+          severity = 'success';
+          messages.push('Excellent functional cohesion at package level');
+        } else if (packageData.fcpp >= 0.6) {
+          severity = 'info';
+          messages.push('Good functional cohesion - Package components are well connected');
+        } else if (packageData.fcpp >= 0.4) {
+          severity = 'warning';
+          messages.push('Moderate cohesion - Consider improving connections between nodes');
+        } else {
+          severity = 'error';
+          messages.push('Low cohesion - Package needs refactoring');
+        }
+      }
+
+      // Use registerMetric to handle all path variations
+      this.registerMetric(packagePath, 'fcpp', {
+        metricName,
+        category,
+        data: packageData,
+        score: packageData.fcpp !== undefined ? packageData.fcpp * 10 : undefined,
+        severity,
+        messages,
+        detailedMessages
+      });
+    });
+  }
+
+  processSCPPMetric(metric: SCPPResult, metricName: string, category: string): void {
+    Object.entries(metric.details?.packages || {}).forEach(([packagePath, packageData]) => {
+      console.log('Processing SCPP package:', packagePath, packageData);
+      const messages: string[] = [];
+      const detailedMessages: DetailedMessage[] = [];
+      let severity: 'error' | 'warning' | 'info' | 'success' = 'info';
+
+      // Get messages from metric.messages.by_package
+      const packageMessages = (metric.messages as any)?.by_package?.[packagePath] || [];
+
+      packageMessages.forEach((msg: any) => {
+        detailedMessages.push({
+          diagnosis: msg.diagnosis || '',
+          recommendation: msg.recommendation || '',
+          severity: msg.severity || 'info'
+        });
+
+        messages.push(`${msg.diagnosis || ''} ${msg.recommendation || ''}`.trim());
+
+        if (msg.severity === 'critical') {
+          severity = 'error';
+        } else if (msg.severity === 'warning' && severity !== 'error') {
+          severity = 'warning';
+        }
+      });
+
+      // Fallback to score-based assessment if no messages
+      if (messages.length === 0 && packageData.scpp !== undefined) {
+        if (packageData.scpp >= 0.8) {
+          severity = 'success';
+          messages.push('Excellent structural coupling - Minimal shared resources');
+        } else if (packageData.scpp >= 0.6) {
+          severity = 'info';
+          messages.push('Good structural coupling - Acceptable resource sharing');
+        } else if (packageData.scpp >= 0.4) {
+          severity = 'warning';
+          messages.push('Moderate coupling - Consider reducing shared dependencies');
+        } else {
+          severity = 'error';
+          messages.push('High coupling - Package has excessive shared resources');
+        }
+      }
+
+      // Use registerMetric to handle all path variations
+      this.registerMetric(packagePath, 'scpp', {
+        metricName,
+        category,
+        data: packageData,
+        score: packageData.scpp !== undefined ? packageData.scpp * 10 : undefined,
+        severity,
+        messages,
+        detailedMessages
+      });
+    });
+  }
+
+  processCCPPMetric(metric: CCPPResult, metricName: string, category: string): void {
+    console.log('processCCPPMetric called - packages count:', Object.keys(metric.details?.packages || {}).length);
+    Object.entries(metric.details?.packages || {}).forEach(([packagePath, packageData]) => {
+      console.log('Processing CCPP package:', packagePath, packageData);
+      const messages: string[] = [];
+      const detailedMessages: DetailedMessage[] = [];
+      let severity: 'error' | 'warning' | 'info' | 'success' = 'info';
+
+      // Get messages from metric.messages.by_package
+      const packageMessages = (metric.messages as any)?.by_package?.[packagePath] || [];
+
+      packageMessages.forEach((msg: any) => {
+        detailedMessages.push({
+          diagnosis: msg.diagnosis || '',
+          recommendation: msg.recommendation || '',
+          severity: msg.severity || 'info'
+        });
+
+        messages.push(`${msg.diagnosis || ''} ${msg.recommendation || ''}`.trim());
+
+        if (msg.severity === 'critical') {
+          severity = 'error';
+        } else if (msg.severity === 'warning' && severity !== 'error') {
+          severity = 'warning';
+        }
+      });
+
+      // Fallback to purity level if no messages
+      if (messages.length === 0 && packageData.metrics?.purity_level) {
+        const purityLevel = packageData.metrics.purity_level;
+        if (purityLevel === 'High') {
+          severity = 'success';
+          messages.push('High conceptual cohesion - Well-focused ML package');
+        } else if (purityLevel === 'Moderate') {
+          severity = 'info';
+          messages.push('Moderate conceptual cohesion - Acceptable ML stage focus');
+        } else if (purityLevel === 'Low') {
+          severity = 'warning';
+          messages.push('Low conceptual cohesion - Multiple ML stages mixed');
+        } else if (purityLevel === 'Very Low') {
+          severity = 'error';
+          messages.push('Very low conceptual cohesion - Package needs reorganization');
+        }
+      }
+
+      // Use registerMetric to handle all path variations
+      this.registerMetric(packagePath, 'ccpp', {
+        metricName,
+        category,
+        data: packageData,
+        score: packageData.metrics?.ccpp_score !== undefined ? packageData.metrics.ccpp_score * 10 : undefined,
+        severity,
+        messages,
+        detailedMessages
+      });
     });
   }
 

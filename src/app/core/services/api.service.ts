@@ -58,7 +58,6 @@ export class ApiService {
    * Run analysis on uploaded code
    */
   analyze(session_uuid: string, data: any): Observable<ApiResponse<AnalyzeResponse>> {
-    console.log('🔬 Running analysis:', `${this.baseURL}/analyze/${session_uuid}`);
     return this.http.post<ApiResponse<AnalyzeResponse>>(
       `${this.baseURL}/analyze/${session_uuid}`,
       data,

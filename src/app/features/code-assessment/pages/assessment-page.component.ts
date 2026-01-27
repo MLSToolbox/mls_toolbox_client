@@ -114,6 +114,9 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
    * Handle metrics selection and run analysis
    */
   onRunAnalysis(options: { metrics: string[], all_files: boolean }): void {
+    console.log('🚀 assessment-page RECEIVED options:', options);
+    console.log('🚀 options.metrics:', options.metrics);
+    console.log('🚀 options.all_files:', options.all_files);
     console.log('🚀 Starting analysis with options:', options);
     this.assessmentService.runAnalysis(options)
       .pipe(takeUntil(this.destroy$))

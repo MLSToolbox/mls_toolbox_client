@@ -170,11 +170,11 @@ export class AssessmentStructureComponent implements OnInit {
     {
       id: 'cohesion',
       name: 'Cohesion',
-      description: 'Analyze code cohesion using file-level metrics (CCPM, FCPM, SCPM).',
+      description: 'Analyze code cohesion using module and package-level metrics (CCPM, FCPM, SCPM, CCPP, FCPP, SCPP).',
       enabled: true,
       selected: false,
       config: {
-        metrics: ['ccpm', 'fcpm', 'scpm'],
+        metrics: ['ccpm', 'scpm', 'fcpm', 'ccpp', 'scpp', 'fcpp'],
         all_files: true
       }
     },
@@ -241,6 +241,9 @@ export class AssessmentStructureComponent implements OnInit {
         };
       }
 
+      console.log('🎯 assessment-structure EMITTING payload:', payload);
+      console.log('🎯 payload.metrics:', payload.metrics);
+      console.log('🎯 payload.all_files:', payload.all_files);
       this.runAnalysis.emit(payload);
     }
   }

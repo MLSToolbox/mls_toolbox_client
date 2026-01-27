@@ -158,6 +158,12 @@ export class CodeAssessmentService {
   runAnalysis(options: { metrics: string[], all_files?: boolean, pipeline_overrides?: any }): Observable<void> {
     const { sessionId } = this.currentState;
 
+    console.log('💼 code-assessment.service.runAnalysis CALLED');
+    console.log('💼 options received:', options);
+    console.log('💼 options.metrics:', options.metrics);
+    console.log('💼 options.all_files:', options.all_files);
+    console.log('💼 options.pipeline_overrides:', options.pipeline_overrides);
+
     if (!sessionId) {
       const error: AssessmentError = {
         message: 'No session ID available. Please upload a file first.',
@@ -189,6 +195,8 @@ export class CodeAssessmentService {
     }
 
     console.log('🔬 Sending analysis request:', analysisData);
+    console.log('🔬 analysisData.analyzers:', analysisData.analyzers);
+    console.log('🔬 analysisData.all_files:', analysisData.all_files);
 
     return this.apiService.analyze(sessionId, analysisData).pipe(
       tap(response => {

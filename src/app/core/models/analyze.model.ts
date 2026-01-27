@@ -200,6 +200,141 @@ export interface FCPMSummary {
   average_fcpm: number;
 }
 
+// ===========================
+// PACKAGE-LEVEL METRICS
+// ===========================
+
+export interface FCPPResult extends AnalysisResult {
+  details?: {
+    summary?: {
+      packages_analyzed?: number;
+      average_fcpp?: number;
+      avg_groups?: number;
+      avg_connections_ratio?: number;
+    };
+    packages?: {
+      [packagePath: string]: {
+        fcpp?: number;
+        n_nodes?: number;
+        connections_count?: number;
+        n_groups?: number;
+        groups?: Array<string[]>;
+        isolated_nodes?: string[];
+        nodes?: string[];
+        connections?: Array<{
+          node_a: string;
+          node_b: string;
+          type: string;
+          reason: string;
+        }>;
+      };
+    };
+  };
+  messages: {
+    global?: Array<{
+      message: string;
+      level: 'error' | 'warning' | 'success' | 'info';
+    }>;
+    by_package?: {
+      [packagePath: string]: Array<{
+        diagnosis?: string;
+        recommendation?: string;
+        severity?: 'critical' | 'warning' | 'info' | 'success';
+      }>;
+    };
+  };
+}
+
+export interface SCPPResult extends AnalysisResult {
+  details?: {
+    summary?: {
+      total_packages_analyzed?: number;
+      average_scpp_score?: number;
+      avg_shared_pairs?: number;
+      packages_with_issues?: number;
+    };
+    packages?: {
+      [packagePath: string]: {
+        scpp?: number;
+        n_nodes?: number;
+        n_shared?: number;
+        n_pairs?: number;
+        n_groups?: number;
+        groups?: Array<string[]>;
+        isolated_nodes?: string[];
+        nodes?: string[];
+        connections?: Array<{
+          node_a: string;
+          node_b: string;
+          shared_resources: string[];
+        }>;
+      };
+    };
+  };
+  messages: {
+    global?: Array<{
+      message: string;
+      level: 'error' | 'warning' | 'success' | 'info';
+    }>;
+    by_package?: {
+      [packagePath: string]: Array<{
+        diagnosis?: string;
+        recommendation?: string;
+        severity?: 'critical' | 'warning' | 'info' | 'success';
+      }>;
+    };
+  };
+}
+
+export interface CCPPResult extends AnalysisResult {
+  details?: {
+    summary?: {
+      total_packages_analyzed?: number;
+      average_ccpp_score?: number;
+      overall_quality?: string;
+      packages_needing_attention?: number;
+      packages_with_good_purity?: number;
+      purity_summary?: {
+        High?: number;
+        Moderate?: number;
+        Low?: number;
+        'Very Low'?: number;
+      };
+    };
+    packages?: {
+      [packagePath: string]: {
+        metrics?: {
+          total_modules?: number;
+          ml_modules?: number;
+          ccpp_score?: number;
+          purity_level?: string;
+        };
+        phases_detected?: string[];
+        stages_detected?: string[];
+        quality_indicators?: {
+          needs_refactoring?: boolean;
+          has_ml_content?: boolean;
+          is_pure_package?: boolean;
+        };
+      };
+    };
+  };
+  messages: {
+    global?: Array<{
+      message: string;
+      level: 'error' | 'warning' | 'success' | 'info';
+    }>;
+    by_package?: {
+      [packagePath: string]: Array<{
+        diagnosis?: string;
+        recommendation?: string;
+        severity?: 'critical' | 'warning' | 'info' | 'success';
+      }>;
+    };
+  };
+}
+
+
 
 
 

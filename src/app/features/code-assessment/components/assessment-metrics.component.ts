@@ -118,8 +118,8 @@ export class AssessmentMetricsComponent {
 
   onRunAnalysis(): void {
     this.isAnalyzing = true;
-    // For now, we only support CCPM metrics
-    this.runAnalysis.emit(['ccpm']);
+    // Module-level and Package-level metrics
+    this.runAnalysis.emit(['ccpm', 'scpm', 'fcpm', 'fcpp', 'scpp', 'ccpp']);
   }
 
   onBack(): void {
