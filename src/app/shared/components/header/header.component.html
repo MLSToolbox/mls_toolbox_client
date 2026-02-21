@@ -1,19 +1,15 @@
-<nav class="bg-white border-b border-gray-100 sticky top-0 z-50 backdrop-blur-sm bg-white/95">
+<nav class="bg-white border-b border-gray-100 z-50 backdrop-blur-sm bg-white/95">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between items-center h-16">
-      <!-- Logo y Título -->
-      <div class="flex items-center gap-3">
-        <a [routerLink]="['/']" class="flex items-center gap-3 group cursor-pointer">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-all duration-300 group-hover:shadow-md group-hover:scale-105" 
-               style="background: linear-gradient(135deg, rgb(0, 32, 96) 0%, rgb(0, 50, 120) 100%);">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-            </svg>
-          </div>
-          <div>
-            <span class="text-xl font-bold tracking-tight" style="color: rgb(0, 32, 96);">MLS Toolbox</span>
-            <div class="h-0.5 w-0 group-hover:w-full transition-all duration-300 rounded-full" style="background-color: rgb(153, 204, 204);"></div>
-          </div>
+    <div class="flex justify-between items-center h-20">
+      <!-- Logo -->
+      <div class="flex items-center">
+        <a [routerLink]="['/']" class="flex flex-col items-start group cursor-pointer">
+          <img
+            src="assets/horizontal.png"
+            alt="MLS Toolbox"
+            class="h-16 md:h-14 w-auto transition-transform duration-300 group-hover:scale-[1.02]"
+          />
+          <div class="h-0.5 w-0 group-hover:w-full transition-all duration-300 rounded-full" style="background-color: rgb(153, 204, 204);"></div>
         </a>
       </div>
 

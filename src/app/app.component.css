@@ -4,24 +4,17 @@
 
 :host {
   display: block;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
 }
 
 .main-content {
-  height: 100vh;
-  overflow-y: auto;
+  min-height: calc(100vh - 64px);
   background-color: #f9fafb; /* bg-gray-50 de Tailwind */
-}
-
-/* Cuando el header está visible */
-:host:has(app-header) .main-content {
-  height: calc(100vh - 64px); /* Restamos la altura del header (h-16 = 64px) */
 }
 
 /* Responsive adjustments */
 @media (max-width: 1024px) {
-  :host:has(app-header) .main-content {
-    height: calc(100vh - 64px);
+  .main-content {
+    min-height: calc(100vh - 64px);
   }
 }
