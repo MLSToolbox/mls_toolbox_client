@@ -357,16 +357,31 @@ export class AssessmentResultsV2Component implements OnInit {
   }
 
   isScoreInRange(score: number, range: string): boolean {
-    if (range.includes('-')) {
-      const [min, max] = range.split('-').map(s => parseFloat(s.trim()));
+    const normalized = (range || '').trim();
+    const cleaned = normalized.replace(/\([^)]*\)/g, '').trim();
+
+    const betweenMatch = cleaned.match(/^(-?\d+(?:\.\d+)?)\s*-\s*(-?\d+(?:\.\d+)?)$/);
+    if (betweenMatch) {
+      const min = parseFloat(betweenMatch[1]);
+      const max = parseFloat(betweenMatch[2]);
       return score >= min && score <= max;
-    } else if (range.startsWith('>')) {
-      const min = parseFloat(range.substring(1));
-      return score > min;
-    } else if (range.startsWith('<')) {
-      const max = parseFloat(range.substring(1));
-      return score < max;
     }
+
+    const comparatorMatch = cleaned.match(/^(>=|<=|>|<)\s*(-?\d+(?:\.\d+)?)$/);
+    if (comparatorMatch) {
+      const operator = comparatorMatch[1];
+      const value = parseFloat(comparatorMatch[2]);
+      if (operator === '>=') return score >= value;
+      if (operator === '<=') return score <= value;
+      if (operator === '>') return score > value;
+      if (operator === '<') return score < value;
+    }
+
+    const exact = parseFloat(cleaned);
+    if (!Number.isNaN(exact) && cleaned === String(exact)) {
+      return score === exact;
+    }
+
     return false;
   }
 

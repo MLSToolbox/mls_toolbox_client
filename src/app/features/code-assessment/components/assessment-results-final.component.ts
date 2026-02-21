@@ -299,20 +299,16 @@ interface FileMetricsData {
                     </div>
 
                     <!-- Ideal Range -->
-                    <div *ngIf="doc.ideal_range">
+                    <div *ngIf="getIdealRangeEntries(doc).length > 0">
                       <div class="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">Ideal Range</div>
-                      <div class="grid grid-cols-3 gap-3">
-                        <div class="bg-green-50 rounded-lg p-3 border border-green-200">
-                          <div class="text-xs text-green-600 font-medium mb-1">Optimal</div>
-                          <div class="text-sm font-bold text-green-700">{{ doc.ideal_range.optimal }}</div>
-                        </div>
-                        <div class="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
-                          <div class="text-xs text-yellow-600 font-medium mb-1">Acceptable</div>
-                          <div class="text-sm font-bold text-yellow-700">{{ doc.ideal_range.acceptable }}</div>
-                        </div>
-                        <div class="bg-red-50 rounded-lg p-3 border border-red-200">
-                          <div class="text-xs text-red-600 font-medium mb-1">Warning</div>
-                          <div class="text-sm font-bold text-red-700">{{ doc.ideal_range.warning }}</div>
+                      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div *ngFor="let entry of getIdealRangeEntries(doc)"
+                             class="rounded-lg p-3 border"
+                             [ngClass]="entry.toneClass">
+                          <div class="text-xs font-medium mb-1"
+                               [ngClass]="entry.labelToneClass">{{ entry.label }}</div>
+                          <div class="text-sm font-bold"
+                               [ngClass]="entry.valueToneClass">{{ entry.value }}</div>
                         </div>
                       </div>
                     </div>
@@ -322,9 +318,14 @@ interface FileMetricsData {
                       <div class="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">Interpretation Guide</div>
                       <div class="space-y-2">
                         <div *ngFor="let item of getMetricInterpretationItems(metricId)" 
-                             class="bg-white rounded-lg p-3 border border-gray-200 flex gap-3">
-                          <div class="flex-shrink-0 font-mono text-sm font-bold text-blue-600">{{ item.range }}</div>
-                          <div class="text-sm text-gray-700">{{ item.description }}</div>
+                             class="rounded-lg p-3 border flex gap-3"
+                             [ngClass]="getInterpretationToneClass(item.severity)">
+                          <div class="flex-shrink-0 font-mono text-sm font-bold"
+                               [ngClass]="item.rangeToneClass">{{ item.range }}</div>
+                          <div class="text-sm">
+                            <span *ngIf="item.label" class="font-semibold mr-1">{{ item.label }}:</span>
+                            <span>{{ item.description }}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -2016,10 +2017,19 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     return metric?.documentation?.interpretation || [];
   }
 
-  getMetricInterpretationItems(metricId: string): { range: string, description: string }[] {
+  getMetricInterpretationItems(metricId: string): Array<{
+    range: string;
+    description: string;
+    severity: string;
+    label?: string;
+    rangeToneClass: string;
+  }> {
     return this.getMetricInterpretation(metricId).map((item) => ({
       range: item.range,
       description: item.description,
+      severity: item.severity || 'info',
+      label: item.label,
+      rangeToneClass: this.getRangeToneClass(item.severity || 'info'),
     }));
   }
 
@@ -2068,6 +2078,92 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     if (tone === 'warning') return 'bg-yellow-50 border-yellow-200 text-yellow-800';
     if (tone === 'success') return 'bg-green-50 border-green-200 text-green-800';
     return 'bg-blue-50 border-blue-200 text-blue-800';
+  }
+
+  getIdealRangeEntries(doc: MetricDocumentation): Array<{
+    label: string;
+    value: string;
+    toneClass: string;
+    labelToneClass: string;
+    valueToneClass: string;
+  }> {
+    const idealRange = doc?.ideal_range || {};
+    const entries: Array<{
+      label: string;
+      value: string;
+      toneClass: string;
+      labelToneClass: string;
+      valueToneClass: string;
+    }> = [];
+
+    const addEntry = (
+      label: string,
+      value: unknown,
+      toneClass: string,
+      labelToneClass: string,
+      valueToneClass: string,
+    ): void => {
+      if (value === undefined || value === null || value === '') return;
+      entries.push({
+        label,
+        value: String(value),
+        toneClass,
+        labelToneClass,
+        valueToneClass,
+      });
+    };
+
+    addEntry(
+      'Optimal',
+      idealRange.optimal,
+      'bg-green-50 border-green-200',
+      'text-green-600',
+      'text-green-700',
+    );
+    addEntry(
+      'Acceptable',
+      idealRange.acceptable,
+      'bg-yellow-50 border-yellow-200',
+      'text-yellow-600',
+      'text-yellow-700',
+    );
+    addEntry(
+      'Warning',
+      idealRange.warning,
+      'bg-red-50 border-red-200',
+      'text-red-600',
+      'text-red-700',
+    );
+    addEntry(
+      'Min',
+      idealRange.min,
+      'bg-blue-50 border-blue-200',
+      'text-blue-600',
+      'text-blue-700',
+    );
+    addEntry(
+      'Max',
+      idealRange.max,
+      'bg-indigo-50 border-indigo-200',
+      'text-indigo-600',
+      'text-indigo-700',
+    );
+
+    return entries;
+  }
+
+  getInterpretationToneClass(severity: string): string {
+    if (severity === 'error') return 'bg-red-50 border-red-200 text-red-900';
+    if (severity === 'warning') return 'bg-yellow-50 border-yellow-200 text-yellow-900';
+    if (severity === 'success') return 'bg-green-50 border-green-200 text-green-900';
+    return 'bg-blue-50 border-blue-200 text-blue-900';
+  }
+
+  private getRangeToneClass(severity: string): string {
+    if (severity === 'error') return 'text-red-700';
+    if (severity === 'warning') return 'text-yellow-700';
+    if (severity === 'success') return 'text-green-700';
+    return 'text-blue-700';
   }
 
 }
