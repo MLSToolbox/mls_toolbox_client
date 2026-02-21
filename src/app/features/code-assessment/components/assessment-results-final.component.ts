@@ -7,7 +7,10 @@ import {
   FCPMResult,
   FCPPResult,
   SCPPResult,
-  CCPPResult
+  CCPPResult,
+  MetricDocSection,
+  MetricDocumentation,
+  MetricReference
 } from '@app/core/models';
 import { TreeStructure, ChildChild } from '@app/core/models/upload-zip.model';
 
@@ -237,36 +240,85 @@ interface FileMetricsData {
                   <div class="px-5 py-3 bg-blue-600 text-white">
                     <h4 class="font-bold text-sm">Metric Documentation</h4>
                   </div>
-                  <div class="p-5 space-y-4">
-                    <!-- Formula -->
-                    <div *ngIf="getMetricFormula(metricId)">
-                      <div class="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">Formula</div>
-                      <div class="bg-white rounded-lg p-4 border border-blue-200 font-mono text-sm text-gray-800">
-                        {{ getMetricFormula(metricId) }}
+                  <div *ngIf="getMetricDocumentation(metricId) as doc" class="p-5 space-y-5">
+                    <!-- Summary -->
+                    <div *ngIf="doc.summary" class="bg-white rounded-lg p-4 border border-gray-200">
+                      <div class="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">Summary</div>
+                      <p class="text-sm text-gray-800 leading-relaxed">{{ doc.summary }}</p>
+                    </div>
+
+                    <!-- Structured Sections -->
+                    <div *ngFor="let section of doc.sections" class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                      <div class="px-4 py-2 border-b border-gray-200 bg-gray-50">
+                        <h5 class="text-xs font-semibold text-blue-700 uppercase tracking-wide">{{ section.title }}</h5>
+                      </div>
+
+                      <div class="p-4" [ngSwitch]="section.type">
+                        <div *ngSwitchCase="'formula'" class="bg-gray-50 rounded-lg border border-gray-200 p-3">
+                          <pre class="font-mono text-xs text-gray-800 whitespace-pre-wrap leading-relaxed">{{ getFormulaExpression(section) }}</pre>
+                        </div>
+
+                        <div *ngSwitchCase="'list'" class="space-y-2">
+                          <div *ngFor="let item of getSectionItems(section)" class="flex gap-2 text-sm text-gray-800">
+                            <span class="text-blue-600 mt-0.5">•</span>
+                            <span>{{ item }}</span>
+                          </div>
+                        </div>
+
+                        <div *ngSwitchCase="'steps'" class="space-y-2">
+                          <div *ngFor="let step of getSectionItems(section); let idx = index" class="flex gap-3 text-sm text-gray-800">
+                            <span class="w-5 h-5 flex items-center justify-center rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex-shrink-0 mt-0.5">{{ idx + 1 }}</span>
+                            <span>{{ step }}</span>
+                          </div>
+                        </div>
+
+                        <div *ngSwitchCase="'table'" class="overflow-x-auto">
+                          <table *ngIf="getSectionTable(section) as table" class="min-w-full text-xs border border-gray-200 rounded-lg overflow-hidden">
+                            <thead class="bg-blue-50">
+                              <tr>
+                                <th *ngFor="let col of table.columns" class="px-3 py-2 text-left font-semibold text-blue-700 border-b border-gray-200">{{ col }}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr *ngFor="let row of table.rows" class="border-b border-gray-100 last:border-b-0">
+                                <td *ngFor="let cell of row" class="px-3 py-2 text-gray-700 align-top">{{ cell }}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+
+                        <div *ngSwitchCase="'note'" class="rounded-lg border p-3 text-sm"
+                             [ngClass]="getNoteToneClass(section)">
+                          {{ getNoteText(section) }}
+                        </div>
+
+                        <div *ngSwitchDefault class="space-y-2">
+                          <p *ngFor="let paragraph of getSectionParagraphs(section)" class="text-sm text-gray-800 leading-relaxed">{{ paragraph }}</p>
+                        </div>
                       </div>
                     </div>
 
                     <!-- Ideal Range -->
-                    <div *ngIf="getMetricIdealRange(metricId)">
+                    <div *ngIf="doc.ideal_range">
                       <div class="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">Ideal Range</div>
                       <div class="grid grid-cols-3 gap-3">
                         <div class="bg-green-50 rounded-lg p-3 border border-green-200">
                           <div class="text-xs text-green-600 font-medium mb-1">Optimal</div>
-                          <div class="text-sm font-bold text-green-700">{{ getMetricIdealRange(metricId).optimal }}</div>
+                          <div class="text-sm font-bold text-green-700">{{ doc.ideal_range.optimal }}</div>
                         </div>
                         <div class="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
                           <div class="text-xs text-yellow-600 font-medium mb-1">Acceptable</div>
-                          <div class="text-sm font-bold text-yellow-700">{{ getMetricIdealRange(metricId).acceptable }}</div>
+                          <div class="text-sm font-bold text-yellow-700">{{ doc.ideal_range.acceptable }}</div>
                         </div>
                         <div class="bg-red-50 rounded-lg p-3 border border-red-200">
                           <div class="text-xs text-red-600 font-medium mb-1">Warning</div>
-                          <div class="text-sm font-bold text-red-700">{{ getMetricIdealRange(metricId).warning }}</div>
+                          <div class="text-sm font-bold text-red-700">{{ doc.ideal_range.warning }}</div>
                         </div>
                       </div>
                     </div>
 
                     <!-- Interpretation Guide -->
-                    <div *ngIf="getMetricInterpretation(metricId)">
+                    <div *ngIf="doc.interpretation && doc.interpretation.length > 0">
                       <div class="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">Interpretation Guide</div>
                       <div class="space-y-2">
                         <div *ngFor="let item of getMetricInterpretationItems(metricId)" 
@@ -278,17 +330,17 @@ interface FileMetricsData {
                     </div>
 
                     <!-- References -->
-                    <div *ngIf="getMetricReferences(metricId) && getMetricReferences(metricId).length > 0">
+                    <div *ngIf="doc.references && doc.references.length > 0">
                       <div class="text-xs font-semibold text-blue-700 mb-2 uppercase tracking-wide">References</div>
                       <div class="space-y-2">
                         <a *ngFor="let ref of getMetricReferences(metricId)" 
-                           [href]="ref" 
+                           [href]="ref.url" 
                            target="_blank"
                            class="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 hover:underline">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                           </svg>
-                          {{ ref }}
+                          {{ ref.label }}
                         </a>
                       </div>
                     </div>
@@ -1946,12 +1998,12 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
 
   getMetricDescription(metricId: string): string {
     const metric = this.allMetrics.find(m => m.analyzer_id === metricId);
-    return metric?.documentation?.description || '';
+    return metric?.documentation?.summary || '';
   }
 
-  getMetricFormula(metricId: string): string | null {
+  getMetricDocumentation(metricId: string): MetricDocumentation | null {
     const metric = this.allMetrics.find(m => m.analyzer_id === metricId);
-    return metric?.documentation?.formula || null;
+    return metric?.documentation || null;
   }
 
   getMetricIdealRange(metricId: string): any {
@@ -1959,24 +2011,63 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     return metric?.documentation?.ideal_range || null;
   }
 
-  getMetricInterpretation(metricId: string): any {
+  getMetricInterpretation(metricId: string): MetricDocumentation['interpretation'] {
     const metric = this.allMetrics.find(m => m.analyzer_id === metricId);
-    return metric?.documentation?.interpretation || null;
+    return metric?.documentation?.interpretation || [];
   }
 
   getMetricInterpretationItems(metricId: string): { range: string, description: string }[] {
-    const interpretation = this.getMetricInterpretation(metricId);
-    if (!interpretation) return [];
-
-    return Object.entries(interpretation).map(([range, description]) => ({
-      range,
-      description: description as string
+    return this.getMetricInterpretation(metricId).map((item) => ({
+      range: item.range,
+      description: item.description,
     }));
   }
 
-  getMetricReferences(metricId: string): string[] {
+  getMetricReferences(metricId: string): MetricReference[] {
     const metric = this.allMetrics.find(m => m.analyzer_id === metricId);
     return metric?.documentation?.references || [];
+  }
+
+  getFormulaExpression(section: MetricDocSection): string {
+    return section?.content?.expression || '';
+  }
+
+  getSectionParagraphs(section: MetricDocSection): string[] {
+    const paragraphs = section?.content?.paragraphs;
+    if (!Array.isArray(paragraphs)) return [];
+    return paragraphs.filter((paragraph: unknown): paragraph is string => typeof paragraph === 'string');
+  }
+
+  getSectionItems(section: MetricDocSection): string[] {
+    const items = section?.content?.items;
+    if (!Array.isArray(items)) return [];
+    return items.filter((item: unknown): item is string => typeof item === 'string');
+  }
+
+  getSectionTable(section: MetricDocSection): { columns: string[]; rows: string[][] } | null {
+    const table = section?.content;
+    if (!table || !Array.isArray(table.columns) || !Array.isArray(table.rows)) return null;
+
+    const columns = table.columns.filter((column: unknown): column is string => typeof column === 'string');
+    const rows = table.rows
+      .filter((row: unknown): row is unknown[] => Array.isArray(row))
+      .map((row: unknown[]) =>
+        row.map((cell) => (typeof cell === 'string' ? cell : String(cell ?? '')))
+      );
+
+    if (columns.length === 0 || rows.length === 0) return null;
+    return { columns, rows };
+  }
+
+  getNoteText(section: MetricDocSection): string {
+    return section?.content?.text || '';
+  }
+
+  getNoteToneClass(section: MetricDocSection): string {
+    const tone = section?.content?.tone;
+    if (tone === 'warning') return 'bg-yellow-50 border-yellow-200 text-yellow-800';
+    if (tone === 'success') return 'bg-green-50 border-green-200 text-green-800';
+    return 'bg-blue-50 border-blue-200 text-blue-800';
   }
 
 }

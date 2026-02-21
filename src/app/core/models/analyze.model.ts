@@ -21,12 +21,39 @@ export interface AnalysisResult {
 export interface MetricDocumentation {
   metric_id: string;
   name: string;
-  description: string;
-  formula?: string;
+  summary: string;
   ideal_range: IdealRange;
-  interpretation: { [key: string]: string };
-  references: string[];
+  sections: MetricDocSection[];
+  interpretation: MetricInterpretationItem[];
+  references: MetricReference[];
   category: string;
+}
+
+export type MetricDocSectionType =
+  | "text"
+  | "formula"
+  | "list"
+  | "steps"
+  | "table"
+  | "note";
+
+export interface MetricDocSection {
+  id: string;
+  title: string;
+  type: MetricDocSectionType;
+  content: any;
+}
+
+export interface MetricInterpretationItem {
+  range: string;
+  description: string;
+  severity: "success" | "info" | "warning" | "error";
+  label?: string;
+}
+
+export interface MetricReference {
+  label: string;
+  url: string;
 }
 
 export interface IdealRange {
@@ -333,7 +360,6 @@ export interface CCPPResult extends AnalysisResult {
     };
   };
 }
-
 
 
 

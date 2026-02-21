@@ -4,7 +4,8 @@ import {
   AnalysisResult,
   CCPMResult,
   SCPMResult,
-  FCPMResult
+  FCPMResult,
+  MetricDocSection
 } from '@app/core/models';
 
 interface FileRecommendation {
@@ -83,7 +84,7 @@ interface FileRecommendation {
             </div>
 
             <div class="px-6 py-4">
-              <p class="text-sm text-gray-700 mb-4">{{ metric.documentation.description }}</p>
+              <p class="text-sm text-gray-700 mb-4">{{ metric.documentation.summary }}</p>
               
               <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
                 <div 
@@ -110,17 +111,20 @@ interface FileRecommendation {
                 </div>
               </div>
 
-              <div *ngIf="metric.documentation.formula" class="mb-4">
+              <div *ngIf="getFormulaSections(metric).length > 0" class="mb-4">
                 <h4 class="text-sm font-semibold text-gray-900 mb-2">Formula</h4>
-                <code class="text-xs bg-white px-3 py-2 rounded border border-gray-200 block">{{ metric.documentation.formula }}</code>
+                <div *ngFor="let section of getFormulaSections(metric)" class="mb-2">
+                  <div *ngIf="section.title" class="text-xs font-medium text-gray-600 mb-1">{{ section.title }}</div>
+                  <pre class="text-xs bg-white px-3 py-2 rounded border border-gray-200 block whitespace-pre-wrap">{{ getFormulaText(section) }}</pre>
+                </div>
               </div>
 
               <div *ngIf="metric.documentation.references.length > 0" class="mb-4">
                 <h4 class="text-sm font-semibold text-gray-900 mb-2">References</h4>
                 <ul class="space-y-1">
                   <li *ngFor="let ref of metric.documentation.references" class="text-xs">
-                    <a [href]="ref" target="_blank" class="text-blue-600 hover:underline flex items-center gap-1">
-                      {{ ref }}
+                    <a [href]="ref.url" target="_blank" class="text-blue-600 hover:underline flex items-center gap-1">
+                      {{ ref.label }}
                       <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                       </svg>
@@ -341,11 +345,11 @@ export class AssessmentResultsV2Component implements OnInit {
 
   getScoreInterpretation(metric: AnalysisResult): string {
     const score = metric.score;
-    const interpretation = metric.documentation.interpretation;
+    const interpretation = metric.documentation.interpretation || [];
 
-    for (const [range, description] of Object.entries(interpretation)) {
-      if (this.isScoreInRange(score, range)) {
-        return description;
+    for (const item of interpretation) {
+      if (this.isScoreInRange(score, item.range)) {
+        return item.description;
       }
     }
 
@@ -367,10 +371,20 @@ export class AssessmentResultsV2Component implements OnInit {
   }
 
   getInterpretationItems(metric: AnalysisResult): Array<{ range: string, description: string }> {
-    return Object.entries(metric.documentation.interpretation).map(([range, description]) => ({
-      range,
-      description
+    return (metric.documentation.interpretation || []).map((item) => ({
+      range: item.range,
+      description: item.description
     }));
+  }
+
+  getFormulaSections(metric: AnalysisResult): MetricDocSection[] {
+    return (metric.documentation.sections || []).filter(
+      (section) => section.type === 'formula'
+    );
+  }
+
+  getFormulaText(section: MetricDocSection): string {
+    return section?.content?.expression || '';
   }
 
   getTotalIssues(severity: 'error' | 'warning' | 'info'): number {
