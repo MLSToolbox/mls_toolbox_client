@@ -59,3 +59,13 @@ export interface MetricOption {
   interpretation?: { [key: string]: string };
   references?: string[];
 }
+
+export interface PipelineOverrides {
+  file_stages: Record<string, string[]>;
+  excluded_files: string[];
+}
+
+export interface RunAnalysisOptions {
+  metrics: string[];
+  pipeline_overrides?: PipelineOverrides;
+}

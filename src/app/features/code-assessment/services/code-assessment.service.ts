@@ -7,7 +7,7 @@ import {
   UploadedFile,
   AssessmentError,
   AssessmentStepEnum,
-  MetricOption
+  RunAnalysisOptions
 } from '../models/assessment.models';
 
 @Injectable({
@@ -155,13 +155,12 @@ export class CodeAssessmentService {
   /**
    * Run analysis with selected metrics
    */
-  runAnalysis(options: { metrics: string[], all_files?: boolean, pipeline_overrides?: any }): Observable<void> {
+  runAnalysis(options: RunAnalysisOptions): Observable<void> {
     const { sessionId } = this.currentState;
 
     console.log('💼 code-assessment.service.runAnalysis CALLED');
     console.log('💼 options received:', options);
     console.log('💼 options.metrics:', options.metrics);
-    console.log('💼 options.all_files:', options.all_files);
     console.log('💼 options.pipeline_overrides:', options.pipeline_overrides);
 
     if (!sessionId) {
@@ -180,23 +179,19 @@ export class CodeAssessmentService {
       currentStep: AssessmentStepEnum.ANALYSIS
     });
 
-    const analysisData: any = {
-      analyzers: options.metrics,
-      all_files: options.pipeline_overrides ? false : (options.all_files || false),
+    const analysisData: {
+      analyzers: string[];
+      pipeline_overrides?: RunAnalysisOptions['pipeline_overrides'];
+    } = {
+      analyzers: options.metrics
     };
 
     if (options.pipeline_overrides) {
       analysisData.pipeline_overrides = options.pipeline_overrides;
-    } else {
-      analysisData.pipeline_overrides = {
-        file_stages: {},
-        excluded_files: []
-      };
     }
 
     console.log('🔬 Sending analysis request:', analysisData);
     console.log('🔬 analysisData.analyzers:', analysisData.analyzers);
-    console.log('🔬 analysisData.all_files:', analysisData.all_files);
 
     return this.apiService.analyze(sessionId, analysisData).pipe(
       tap(response => {

@@ -6,21 +6,15 @@ export interface UploadZipResponse {
 
 export interface AutoDetectedPipeline {
   detected_stages: DetectedStages;
+  file_stages: Record<string, string[]>;
   files_analyzed: number;
   is_valid_pipeline: boolean;
   missing_stages: any[];
 }
 
-export interface DetectedStages {
-  data_cleaning: DataCleaning[];
-  data_collection: DataCleaning[];
-  data_labeling: DataCleaning[];
-  feature_engineering: DataCleaning[];
-  model_evaluation: DataCleaning[];
-  model_training: DataCleaning[];
-}
+export type DetectedStages = Record<string, StageDetection[]>;
 
-export interface DataCleaning {
+export interface StageDetection {
   evidences: Evidence[];
   file: string;
 }

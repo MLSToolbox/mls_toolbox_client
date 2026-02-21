@@ -86,7 +86,7 @@ export interface CCPMSummary {
   small_files: number;               // Archivos bajo el umbral NLOC
   
   // Configuración
-  scan_mode: string;                 // "all_files" | "ml_pipeline_only"
+  scan_mode: string;                 // "pipeline_scope" | "manual_override_scope" | "empty_scope"
   nloc_threshold: number;            // Umbral NLOC (default: 30)
 }
 
@@ -333,7 +333,6 @@ export interface CCPPResult extends AnalysisResult {
     };
   };
 }
-
 
 
 
