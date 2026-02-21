@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { saveAs } from "file-saver";
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CodeAssessmentService } from '../services/code-assessment.service';
@@ -8,6 +9,7 @@ import {
   AssessmentStepEnum,
   RunAnalysisOptions,
 } from "../models/assessment.models";
+import { buildResultsCsvExportArtifact } from "../utils/results-csv-export.util";
 
 @Component({
   selector: "app-assessment-page",
@@ -163,7 +165,7 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Export results as JSON
+   * Export results as CSV files packed into a ZIP archive.
    */
   onExportResults(): void {
     if (!this.state.analysisResponse) {
@@ -171,19 +173,12 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const dataStr = JSON.stringify(this.state.analysisResponse, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
+    const exportArtifact = buildResultsCsvExportArtifact(
+      this.state.analysisResponse,
+    );
+    saveAs(exportArtifact.blob, exportArtifact.fileName);
 
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `code-assessment-${this.state.sessionId}-${new Date().toISOString().split("T")[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    console.log("📥 Results exported successfully");
+    console.log("📥 Results exported successfully as ZIP/CSV");
   }
 
   /**
