@@ -957,7 +957,7 @@ interface FileMetricsData {
                   <div *ngIf="metricId === 'ccpp'" class="space-y-4">
                     <div class="grid grid-cols-2 gap-4">
                       <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
-                        <div class="text-xs font-semibold text-indigo-600 mb-1">PURITY LEVEL</div>
+                        <div class="text-xs font-semibold text-indigo-600 mb-1">COHESION LEVEL</div>
                         <div class="text-2xl font-bold capitalize"
                              [ngClass]="{
                                'text-emerald-700': selectedFileData[metricId].data.metrics?.purity_level === 'High',
@@ -1227,7 +1227,7 @@ interface FileMetricsData {
                   <div *ngIf="metricId === 'pfp'" class="space-y-4">
                     <div class="grid grid-cols-2 gap-4">
                       <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border border-teal-200">
-                        <div class="text-xs font-semibold text-teal-600 mb-1">PURITY LEVEL</div>
+                        <div class="text-xs font-semibold text-teal-600 mb-1">COHESION LEVEL</div>
                         <div class="text-2xl font-bold capitalize"
                              [ngClass]="{
                                'text-emerald-700': selectedFileData[metricId].data.metrics.purity_level === 'High',
@@ -1732,10 +1732,10 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
       // Fallback to purity level if no messages
       if (messages.length === 0 && packageData.metrics?.purity_level) {
         const purityLevel = packageData.metrics.purity_level;
-        if (purityLevel === 'High') {
+        if (purityLevel === 'High' || purityLevel === 'Very High') {
           severity = 'success';
           messages.push('High conceptual cohesion - Well-focused ML package');
-        } else if (purityLevel === 'Moderate') {
+        } else if (purityLevel === 'Medium') {
           severity = 'info';
           messages.push('Moderate conceptual cohesion - Acceptable ML stage focus');
         } else if (purityLevel === 'Low') {
