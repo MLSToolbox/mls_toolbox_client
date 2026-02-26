@@ -241,7 +241,8 @@ export interface FCPPResult extends AnalysisResult {
     };
     packages?: {
       [packagePath: string]: {
-        fcpp?: number;
+        fcpp?: number ;
+        cohesion_level?: string;
         n_nodes?: number;
         connections_count?: number;
         n_groups?: number;
@@ -282,7 +283,8 @@ export interface SCPPResult extends AnalysisResult {
     };
     packages?: {
       [packagePath: string]: {
-        scpp?: number;
+        scpp?: number ;
+        cohesion_level?: string;
         n_nodes?: number;
         n_shared?: number;
         n_pairs?: number;
@@ -334,7 +336,7 @@ export interface CCPPResult extends AnalysisResult {
           total_modules?: number;
           ml_modules?: number;
           ccpp_score?: number;
-          purity_level?: string;
+          cohesion_level?: string;
         };
         phases_detected?: string[];
         stages_detected?: string[];

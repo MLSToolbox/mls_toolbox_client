@@ -840,10 +840,10 @@ interface FileMetricsData {
                     <div class="grid grid-cols-2 gap-4">
                       <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
                         <div class="text-xs font-semibold text-green-600 mb-1">FCPP SCORE</div>
-                        <div class="text-2xl font-bold text-green-700">
-                          {{ selectedFileData[metricId].data.fcpp !== undefined ? (selectedFileData[metricId].data.fcpp * 10).toFixed(1) : 'N/A' }}
+                        <div class="text-2xl font-bold text-green-700" [ngClass]="{'text-lg': selectedFileData[metricId].data.fcpp === undefined || selectedFileData[metricId].data.fcpp === null}">
+                          {{ selectedFileData[metricId].data.fcpp !== undefined && selectedFileData[metricId].data.fcpp !== null ? (selectedFileData[metricId].data.fcpp * 10).toFixed(1) : 'Not Applicable' }}
                         </div>
-                        <div class="text-xs text-green-600 mt-1">/ 10</div>
+                        <div class="text-xs text-green-600 mt-1" *ngIf="selectedFileData[metricId].data.fcpp !== undefined && selectedFileData[metricId].data.fcpp !== null">/ 10</div>
                       </div>
                       
                       <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
@@ -873,7 +873,7 @@ interface FileMetricsData {
                       </div>
                     </div>
 
-                    <div *ngIf="selectedFileData[metricId].data.connections && selectedFileData[metricId].data.connections.length > 0"
+                    <div *ngIf="selectedFileData[metricId].data.connections?.length > 0"
                          class="bg-gradient-to-r from-green-50 to-teal-50 rounded-lg p-4 border border-green-200 max-h-64 overflow-y-auto">
                       <div class="text-xs font-semibold text-green-700 mb-3 uppercase tracking-wide">Node Connections</div>
                       <div class="space-y-2">
@@ -893,10 +893,10 @@ interface FileMetricsData {
                     <div class="grid grid-cols-2 gap-4">
                       <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
                         <div class="text-xs font-semibold text-orange-600 mb-1">SCPP SCORE</div>
-                        <div class="text-2xl font-bold text-orange-700">
-                          {{ selectedFileData[metricId].data.scpp !== undefined ? (selectedFileData[metricId].data.scpp * 10).toFixed(1) : 'N/A' }}
+                        <div class="text-2xl font-bold text-orange-700" [ngClass]="{'text-lg': selectedFileData[metricId].data.scpp === undefined || selectedFileData[metricId].data.scpp === null}">
+                          {{ selectedFileData[metricId].data.scpp !== undefined && selectedFileData[metricId].data.scpp !== null ? (selectedFileData[metricId].data.scpp * 10).toFixed(1) : 'Not Applicable' }}
                         </div>
-                        <div class="text-xs text-orange-600 mt-1">/ 10 (lower is better)</div>
+                        <div class="text-xs text-orange-600 mt-1" *ngIf="selectedFileData[metricId].data.scpp !== undefined && selectedFileData[metricId].data.scpp !== null">/ 10 (lower is better)</div>
                       </div>
                       
                       <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
@@ -931,7 +931,7 @@ interface FileMetricsData {
                       </div>
                     </div>
 
-                    <div *ngIf="selectedFileData[metricId].data.connections && selectedFileData[metricId].data.connections.length > 0"
+                    <div *ngIf="selectedFileData[metricId].data.connections?.length > 0"
                          class="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-4 border border-red-200 max-h-64 overflow-y-auto">
                       <div class="text-xs font-semibold text-red-700 mb-3 uppercase tracking-wide">Shared Resource Pairs</div>
                       <div class="space-y-2">
@@ -960,12 +960,13 @@ interface FileMetricsData {
                         <div class="text-xs font-semibold text-indigo-600 mb-1">COHESION LEVEL</div>
                         <div class="text-2xl font-bold capitalize"
                              [ngClass]="{
-                               'text-emerald-700': selectedFileData[metricId].data.metrics?.purity_level === 'High',
-                               'text-green-700': selectedFileData[metricId].data.metrics?.purity_level === 'Moderate',
-                               'text-orange-600': selectedFileData[metricId].data.metrics?.purity_level === 'Low',
-                               'text-red-700': selectedFileData[metricId].data.metrics?.purity_level === 'Very Low'
+                               'text-emerald-700': selectedFileData[metricId].data.metrics?.cohesion_level === 'very_high',
+                               'text-green-700': selectedFileData[metricId].data.metrics?.cohesion_level === 'high',
+                               'text-yellow-600': selectedFileData[metricId].data.metrics?.cohesion_level === 'medium',
+                               'text-orange-600': selectedFileData[metricId].data.metrics?.cohesion_level === 'low',
+                               'text-red-700': selectedFileData[metricId].data.metrics?.cohesion_level === 'very_low'
                              }">
-                          {{ selectedFileData[metricId].data.metrics?.purity_level || 'N/A' }}
+                          {{ selectedFileData[metricId].data.metrics?.cohesion_level?.replace('_', ' ') || 'N/A' }}
                         </div>
                       </div>
                       
@@ -1294,7 +1295,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
   pathsWithMetrics: Set<string> = new Set();
   expandedMetricDetails: Set<string> = new Set();
   collapsedMetrics: Set<string> = new Set(); // Track collapsed metrics
-  
+
   // Make Object available in template
   Object = Object;
 
@@ -1617,8 +1618,11 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
       });
 
       // Fallback to score-based assessment if no messages
-      if (messages.length === 0 && packageData.fcpp !== undefined) {
-        if (packageData.fcpp >= 0.8) {
+      if (messages.length === 0) {
+        if (packageData.cohesion_level === 'not_applicable' || packageData.fcpp === null || packageData.fcpp === undefined) {
+          severity = 'info';
+          messages.push('FCPP is not applicable for this package');
+        } else if (packageData.fcpp >= 0.8) {
           severity = 'success';
           messages.push('Excellent functional cohesion at package level');
         } else if (packageData.fcpp >= 0.6) {
@@ -1638,7 +1642,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
         metricName,
         category,
         data: packageData,
-        score: packageData.fcpp !== undefined ? packageData.fcpp * 10 : undefined,
+        score: packageData.fcpp !== undefined && packageData.fcpp !== null ? packageData.fcpp * 10 : undefined,
         severity,
         messages,
         detailedMessages
@@ -1673,8 +1677,11 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
       });
 
       // Fallback to score-based assessment if no messages
-      if (messages.length === 0 && packageData.scpp !== undefined) {
-        if (packageData.scpp >= 0.8) {
+      if (messages.length === 0) {
+        if (packageData.cohesion_level === 'not_applicable' || packageData.scpp === null || packageData.scpp === undefined) {
+          severity = 'info';
+          messages.push('SCPP is not applicable for this package');
+        } else if (packageData.scpp >= 0.8) {
           severity = 'success';
           messages.push('Excellent structural coupling - Minimal shared resources');
         } else if (packageData.scpp >= 0.6) {
@@ -1694,7 +1701,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
         metricName,
         category,
         data: packageData,
-        score: packageData.scpp !== undefined ? packageData.scpp * 10 : undefined,
+        score: packageData.scpp !== undefined && packageData.scpp !== null ? packageData.scpp * 10 : undefined,
         severity,
         messages,
         detailedMessages
@@ -1729,19 +1736,19 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
         }
       });
 
-      // Fallback to purity level if no messages
-      if (messages.length === 0 && packageData.metrics?.purity_level) {
-        const purityLevel = packageData.metrics.purity_level;
-        if (purityLevel === 'High' || purityLevel === 'Very High') {
+      // Fallback to cohesion level if no messages
+      if (messages.length === 0 && packageData.metrics?.cohesion_level) {
+        const cohesionLevel = packageData.metrics.cohesion_level;
+        if (cohesionLevel === 'very_high' || cohesionLevel === 'high') {
           severity = 'success';
           messages.push('High conceptual cohesion - Well-focused ML package');
-        } else if (purityLevel === 'Medium') {
+        } else if (cohesionLevel === 'medium') {
           severity = 'info';
           messages.push('Moderate conceptual cohesion - Acceptable ML stage focus');
-        } else if (purityLevel === 'Low') {
+        } else if (cohesionLevel === 'low') {
           severity = 'warning';
           messages.push('Low conceptual cohesion - Multiple ML stages mixed');
-        } else if (purityLevel === 'Very Low') {
+        } else if (cohesionLevel === 'very_low') {
           severity = 'error';
           messages.push('Very low conceptual cohesion - Package needs reorganization');
         }
@@ -1752,7 +1759,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
         metricName,
         category,
         data: packageData,
-        score: packageData.metrics?.ccpp_score !== undefined ? packageData.metrics.ccpp_score * 10 : undefined,
+        score: packageData.metrics?.ccpp_score !== undefined ? packageData.metrics.ccpp_score * 10 : "Not Applicable",
         severity,
         messages,
         detailedMessages
@@ -1797,13 +1804,6 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
       metrics[metricId] = metricData;
     });
   }
-
-
-
-
-
-
-
 
 
 
@@ -1974,6 +1974,11 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     // Check for cohesion_level property in the data
     if (data.cohesion_level) {
       return data.cohesion_level;
+    }
+
+    // Check for cohesion_level in metrics (for CCPP)
+    if (data.metrics?.cohesion_level) {
+      return data.metrics.cohesion_level;
     }
 
     // Check for purity_level in metrics (for PFP)

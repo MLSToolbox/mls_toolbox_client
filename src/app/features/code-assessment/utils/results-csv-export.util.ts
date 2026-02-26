@@ -63,7 +63,7 @@ interface PackageMetricCsvRow extends CsvRow {
   metric_name: string;
   package_path: string;
   score_0_10: number | undefined;
-  purity_level: string;
+  cohesion_level: string;
   total_modules: number | undefined;
   ml_modules: number | undefined;
   n_nodes: number | undefined;
@@ -133,7 +133,7 @@ const PACKAGE_HEADERS = [
   "metric_name",
   "package_path",
   "score_0_10",
-  "purity_level",
+  "cohesion_level",
   "total_modules",
   "ml_modules",
   "n_nodes",
@@ -306,7 +306,7 @@ function buildPackageRows(
       metric_name: metricName,
       package_path: packagePath,
       score_0_10: score,
-      purity_level: getString(metricsData, "purity_level") ?? "",
+      cohesion_level: getString(metricsData, "cohesion_level") ?? "",
       total_modules: getNumber(metricsData, "total_modules"),
       ml_modules: getNumber(metricsData, "ml_modules"),
       n_nodes: getNumber(packageData, "n_nodes"),
@@ -393,9 +393,9 @@ function deriveSeverity(
   }
 
   const metricsData = asRecord(entityData["metrics"]);
-  const purityLevel = getString(metricsData, "purity_level");
-  if (purityLevel) {
-    return severityFromPurityLevel(purityLevel);
+  const metricsCohesionLevel = getString(metricsData, "cohesion_level");
+  if (metricsCohesionLevel) {
+    return severityFromCohesionLevel(metricsCohesionLevel);
   }
 
   if (score === undefined) return "info";
@@ -438,15 +438,6 @@ function severityFromCohesionLevel(level: string): Severity {
   if (normalized === "high" || normalized === "very_high" || normalized === "excellent" || normalized === "good") {
     return "success";
   }
-  return "info";
-}
-
-function severityFromPurityLevel(level: string): Severity {
-  const normalized = level.toLowerCase();
-  if (normalized === "very low") return "error";
-  if (normalized === "low") return "warning";
-  if (normalized === "moderate") return "info";
-  if (normalized === "high") return "success";
   return "info";
 }
 
