@@ -1,44 +1,68 @@
 #!/bin/bash
 
 # Script unificado para construir y ejecutar el contenedor Docker del frontend
-# Soporta múltiples ambientes: local, development, production
+# Usa docker compose: el build de Angular se ejecuta en un contenedor temporal
+# y nginx sirve los archivos compilados desde un bind mount
 
 set -e
 
-# Valores por defecto
 ENVIRONMENT="local"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Función de ayuda
 show_help() {
     cat << EOF
 Uso: ./docker_run.sh [OPTIONS]
 
-Construye y ejecuta el contenedor Docker del frontend para el ambiente especificado.
+Construye y ejecuta el contenedor Docker del frontend usando docker compose.
+Angular se compila en un contenedor temporal y nginx sirve los archivos desde ./dist/.
 
 Opciones:
     --env=ENVIRONMENT    Ambiente a usar: local, development, production (default: local)
-    --skip-build        Omitir la construcción de la imagen
-    -h, --help          Muestra esta ayuda
+    --build              Compilar Angular y (re)crear contenedor nginx
+    --rebuild            Recompilar Angular tras git pull y reiniciar nginx
+    --restart            Reiniciar nginx sin recompilar
+    --down               Detener y eliminar contenedores
+    --logs               Ver logs del contenedor
+    -h, --help           Muestra esta ayuda
 
 Ejemplos:
-    ./docker_run.sh                      # Construye y ejecuta en ambiente local
-    ./docker_run.sh --env=development    # Construye y ejecuta en desarrollo
-    ./docker_run.sh --env=production     # Construye y ejecuta en producción
-    ./docker_run.sh --skip-build         # Solo ejecuta sin construir
+    ./docker_run.sh --env=production --build    # Primera vez: compila y levanta
+    ./docker_run.sh --env=production --rebuild  # Tras git pull: recompila y reinicia
+    ./docker_run.sh --env=production --restart  # Solo reinicia nginx
+    ./docker_run.sh --down                      # Detiene el contenedor
+
+Flujo típico en EC2:
+    1. Primera vez:  ./docker_run.sh --env=production --build
+    2. Actualizar:   git pull && ./docker_run.sh --env=production --rebuild
+    3. Solo nginx:   ./docker_run.sh --env=production --restart
 EOF
 }
 
-# Parsear argumentos
-SKIP_BUILD=false
+ACTION="build"
 for arg in "$@"; do
     case $arg in
         --env=*)
             ENVIRONMENT="${arg#*=}"
             shift
             ;;
-        --skip-build)
-            SKIP_BUILD=true
+        --build)
+            ACTION="build"
+            shift
+            ;;
+        --rebuild)
+            ACTION="rebuild"
+            shift
+            ;;
+        --restart)
+            ACTION="restart"
+            shift
+            ;;
+        --down)
+            ACTION="down"
+            shift
+            ;;
+        --logs)
+            ACTION="logs"
             shift
             ;;
         -h|--help)
@@ -53,13 +77,11 @@ for arg in "$@"; do
     esac
 done
 
-# Validar ambiente
 if [[ ! "$ENVIRONMENT" =~ ^(local|development|production)$ ]]; then
     echo "Error: Ambiente '$ENVIRONMENT' no válido. Usa: local, development, o production"
     exit 1
 fi
 
-# Cargar variables de entorno desde la carpeta del proyecto
 ENV_FILE="$SCRIPT_DIR/.env.$ENVIRONMENT"
 if [ ! -f "$ENV_FILE" ]; then
     echo "Advertencia: Archivo $ENV_FILE no encontrado."
@@ -72,71 +94,57 @@ if [ ! -f "$ENV_FILE" ]; then
     fi
 fi
 
-# Cargar variables
-source "$ENV_FILE"
-
 echo "=========================================="
 echo "Frontend MLS Toolbox - Ambiente: $ENVIRONMENT"
 echo "=========================================="
 
-# PASO 1: Construir imagen
-if [ "$SKIP_BUILD" = false ]; then
+cd "$SCRIPT_DIR"
+
+build_angular() {
     echo ""
-    echo "📦 PASO 1/2: Construyendo imagen..."
-    echo "Imagen: $IMAGE_TAG"
-    echo "API URL: $API_URL"
+    echo "Compilando Angular (ambiente: $ENVIRONMENT)..."
     echo "=========================================="
-    
-    docker build \
-        --build-arg API_URL="$API_URL" \
-        --build-arg API_TIMEOUT="$API_TIMEOUT" \
-        --build-arg ENVIRONMENT="$ENVIRONMENT" \
-        -t "$IMAGE_TAG" \
-        .
-    
-    echo "✓ Imagen construida exitosamente"
-else
-    echo "⏭️  Omitiendo construcción de imagen"
-fi
+    docker compose --env-file "$ENV_FILE" --profile build run --rm client-build
+    echo "Angular compilado en ./dist/frontend/"
+}
 
-# PASO 2: Ejecutar contenedor
-echo ""
-echo "🚀 PASO 2/2: Ejecutando contenedor..."
-echo "Contenedor: $CONTAINER_NAME"
-echo "Puerto interno: $PORT"
-[ -n "$EXTERNAL_PORT" ] && echo "Puerto externo: $EXTERNAL_PORT"
-echo "Red: $DOCKER_NETWORK"
-echo "=========================================="
-
-# Verificar si la red existe, si no, crearla
-if ! docker network inspect "$DOCKER_NETWORK" &> /dev/null; then
-    echo "Creando red Docker: $DOCKER_NETWORK"
-    docker network create "$DOCKER_NETWORK"
-fi
-
-# Detener y eliminar contenedor existente si existe
-if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
-    echo "Deteniendo contenedor existente..."
-    docker stop "$CONTAINER_NAME" || true
-    docker rm "$CONTAINER_NAME" || true
-fi
-
-# Usar EXTERNAL_PORT si está definido, sino usar PORT
-# Nginx siempre escucha en puerto 80 internamente
-PORT_MAPPING="${EXTERNAL_PORT:-$PORT}:80"
-
-# Ejecutar contenedor
-docker run -d \
-    -p "$PORT_MAPPING" \
-    --network "$DOCKER_NETWORK" \
-    --name "$CONTAINER_NAME" \
-    "$IMAGE_TAG"
-
-echo ""
-echo "=========================================="
-echo "✅ COMPLETADO - Frontend corriendo"
-echo "=========================================="
-echo "Ambiente: $ENVIRONMENT"
-echo "Acceso: http://localhost:${EXTERNAL_PORT:-$PORT}"
-echo "Contenedor: $CONTAINER_NAME"
-echo "=========================================="
+case $ACTION in
+    build)
+        build_angular
+        echo ""
+        echo "Levantando nginx..."
+        docker compose --env-file "$ENV_FILE" up -d client
+        echo ""
+        echo "=========================================="
+        echo "Frontend corriendo"
+        echo "=========================================="
+        echo "Ambiente: $ENVIRONMENT"
+        echo ""
+        echo "Para ver logs:       ./docker_run.sh --env=$ENVIRONMENT --logs"
+        echo "Tras git pull:       ./docker_run.sh --env=$ENVIRONMENT --rebuild"
+        echo "Para detener:        ./docker_run.sh --env=$ENVIRONMENT --down"
+        echo "=========================================="
+        ;;
+    rebuild)
+        build_angular
+        echo ""
+        echo "Reiniciando nginx..."
+        docker compose --env-file "$ENV_FILE" restart client
+        echo "Frontend actualizado."
+        ;;
+    restart)
+        echo ""
+        echo "Reiniciando nginx..."
+        docker compose --env-file "$ENV_FILE" restart client
+        echo "Nginx reiniciado."
+        ;;
+    down)
+        echo ""
+        echo "Deteniendo contenedor..."
+        docker compose --env-file "$ENV_FILE" --profile build down
+        echo "Contenedor detenido."
+        ;;
+    logs)
+        docker compose --env-file "$ENV_FILE" logs -f client
+        ;;
+esac

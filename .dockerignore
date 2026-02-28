@@ -4,5 +4,12 @@
 /node_modules
 /e2e
 /docs
+/dist
 .gitignore
+.env
+.env.*
+!.env.*.example
 *.zip
+*.md
+docker-compose.yml
+docker_run.sh
