@@ -68,3 +68,6 @@ Thumbs.db
 .env.local
 .env.development
 .env.production
+
+# Generado durante el build según el ambiente
+src/environment/environment.ts
