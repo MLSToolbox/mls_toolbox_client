@@ -54,7 +54,6 @@ interface ModuleMetricCsvRow extends CsvRow {
   stages_detected: string;
   phases_detected: string;
   disconnected_methods_count: number | undefined;
-  severity_derived: Severity;
 }
 
 interface PackageMetricCsvRow extends CsvRow {
@@ -75,7 +74,6 @@ interface PackageMetricCsvRow extends CsvRow {
   needs_refactoring: boolean | undefined;
   stages_detected: string;
   phases_detected: string;
-  severity_derived: Severity;
 }
 
 interface IssueCsvRow extends CsvRow {
@@ -124,7 +122,6 @@ const MODULE_HEADERS = [
   "stages_detected",
   "phases_detected",
   "disconnected_methods_count",
-  "severity_derived",
 ];
 
 const PACKAGE_HEADERS = [
@@ -145,7 +142,6 @@ const PACKAGE_HEADERS = [
   "needs_refactoring",
   "stages_detected",
   "phases_detected",
-  "severity_derived",
 ];
 
 const ISSUE_HEADERS = [
@@ -242,10 +238,8 @@ function buildModuleRows(
     const fileData = asRecord(fileDataUnknown);
     if (!fileData) continue;
 
-    const entityMessages = findMessagesForEntity(byFileMessages, filePath);
     const cohesionLevel = getString(fileData, "cohesion_level");
     const score = getModuleScore(metricId, fileData);
-    const severity = deriveSeverity(metricId, fileData, entityMessages, score);
 
     rows.push({
       session_id: sessionId,
@@ -269,7 +263,6 @@ function buildModuleRows(
       disconnected_methods_count:
         getNumber(fileData, "n_disconnected_methods") ??
         getStringArray(fileData, "disconnected_methods").length,
-      severity_derived: severity,
     });
   }
 
@@ -298,7 +291,6 @@ function buildPackageRows(
     const entityMessages = findMessagesForEntity(byPackageMessages, packagePath);
 
     const score = getPackageScore(metricId, packageData, metricsData);
-    const severity = deriveSeverity(metricId, packageData, entityMessages, score);
 
     rows.push({
       session_id: sessionId,
@@ -318,7 +310,6 @@ function buildPackageRows(
       needs_refactoring: getBoolean(qualityIndicators, "needs_refactoring"),
       stages_detected: safeJoinArray(getStringArray(packageData, "stages_detected")),
       phases_detected: safeJoinArray(getStringArray(packageData, "phases_detected")),
-      severity_derived: severity,
     });
   }
 
@@ -376,69 +367,6 @@ function getPackageScore(
     return scaleToTen(getNumber(metricsData, "ccpp_score"));
   }
   return undefined;
-}
-
-function deriveSeverity(
-  metricId: string,
-  entityData: Record<string, unknown>,
-  messages: MessageEntry[],
-  score: number | undefined,
-): Severity {
-  const messageSeverity = highestSeverity(messages);
-  if (messageSeverity) return messageSeverity;
-
-  const cohesionLevel = getString(entityData, "cohesion_level");
-  if (cohesionLevel) {
-    return severityFromCohesionLevel(cohesionLevel);
-  }
-
-  const metricsData = asRecord(entityData["metrics"]);
-  const metricsCohesionLevel = getString(metricsData, "cohesion_level");
-  if (metricsCohesionLevel) {
-    return severityFromCohesionLevel(metricsCohesionLevel);
-  }
-
-  if (score === undefined) return "info";
-  if (score >= 8) return "success";
-  if (score >= 6) return "info";
-  if (score >= 4) return "warning";
-  return "error";
-}
-
-function highestSeverity(messages: MessageEntry[]): Severity | null {
-  if (messages.length === 0) return null;
-
-  let best: Severity = "success";
-  let bestRank = severityRank(best);
-
-  for (const message of messages) {
-    const severity = normalizeSeverity(message.severity);
-    const rank = severityRank(severity);
-    if (rank > bestRank) {
-      best = severity;
-      bestRank = rank;
-    }
-  }
-
-  return best;
-}
-
-function severityRank(severity: Severity): number {
-  if (severity === "error") return 3;
-  if (severity === "warning") return 2;
-  if (severity === "info") return 1;
-  return 0;
-}
-
-function severityFromCohesionLevel(level: string): Severity {
-  const normalized = level.toLowerCase();
-  if (normalized === "very_low" || normalized === "very low") return "error";
-  if (normalized === "low") return "warning";
-  if (normalized === "medium" || normalized === "moderate") return "info";
-  if (normalized === "high" || normalized === "very_high" || normalized === "excellent" || normalized === "good") {
-    return "success";
-  }
-  return "info";
 }
 
 function normalizeSeverity(rawSeverity: string | undefined): Severity {

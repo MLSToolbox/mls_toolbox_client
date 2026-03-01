@@ -103,22 +103,14 @@ interface FileMetricsData {
             <h2 class="text-2xl font-bold mb-2" style="color: rgb(0, 32, 96);">Analysis Results Ready</h2>
             <p class="text-gray-600 mb-6">Select a file or folder from the tree to view detailed metrics</p>
             
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
-              <div class="bg-white rounded-lg border border-gray-200 p-4">
-                <div class="text-2xl font-bold text-gray-900">{{ getTotalMetrics() }}</div>
-                <div class="text-xs text-gray-600 mt-1">Metrics Run</div>
-              </div>
+            <div class="grid grid-cols-2 gap-4 max-w-md mx-auto">
               <div class="bg-white rounded-lg border border-gray-200 p-4">
                 <div class="text-2xl font-bold text-gray-900">{{ getTotalFiles() }}</div>
-                <div class="text-xs text-gray-600 mt-1">Files Analyzed</div>
+                <div class="text-xs text-gray-600 mt-1">Files Analizados</div>
               </div>
               <div class="bg-white rounded-lg border border-gray-200 p-4">
-                <div class="text-2xl font-bold text-red-600">{{ getTotalIssues('error') }}</div>
-                <div class="text-xs text-gray-600 mt-1">Errors</div>
-              </div>
-              <div class="bg-white rounded-lg border border-gray-200 p-4">
-                <div class="text-2xl font-bold text-yellow-600">{{ getTotalIssues('warning') }}</div>
-                <div class="text-xs text-gray-600 mt-1">Warnings</div>
+                <div class="text-2xl font-bold text-gray-900">{{ getTotalPackages() }}</div>
+                <div class="text-xs text-gray-600 mt-1">Packages Analizados</div>
               </div>
             </div>
           </div>
@@ -524,15 +516,6 @@ interface FileMetricsData {
                       </div>
                     </div>
 
-                    <!-- Detection Source Info -->
-                    <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <div class="flex items-center gap-2 text-xs text-gray-600">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span>Detection source: <strong class="text-gray-900">{{ selectedFileData[metricId].data.source }}</strong></span>
-                      </div>
-                    </div>
                   </div>
 
                   <!-- LCCML TEMPLATE REMOVED - Metric no longer used -->
@@ -1349,6 +1332,27 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     this.fileMetricsMap.forEach((_, path) => {
       this.pathsWithMetrics.add(path);
     });
+
+    // DEBUG: show exactly what getTotalFiles/getTotalPackages will compute
+    console.log('=== DEBUG COUNTS ===');
+    console.log('allMetrics IDs:', this.allMetrics.map(m => m.analyzer_id));
+    this.allMetrics.forEach(metric => {
+      const id = metric.analyzer_id;
+      if (id === 'ccpm' || id === 'scpm' || id === 'fcpm') {
+        const files = (metric as any).details?.files;
+        console.log(`[${id}] details.files keys:`, files ? Object.keys(files) : 'NO FILES PROP');
+        console.log(`[${id}] details.files count:`, files ? Object.keys(files).length : 0);
+        console.log(`[${id}] summary.total_files:`, (metric as any).details?.summary?.total_files);
+      }
+      if (id === 'fcpp' || id === 'scpp' || id === 'ccpp') {
+        const pkgs = (metric as any).details?.packages;
+        console.log(`[${id}] details.packages keys:`, pkgs ? Object.keys(pkgs) : 'NO PACKAGES PROP');
+        console.log(`[${id}] details.packages count:`, pkgs ? Object.keys(pkgs).length : 0);
+      }
+    });
+    console.log('fileMetricsMap size:', this.fileMetricsMap.size);
+    console.log('fileMetricsMap keys:', Array.from(this.fileMetricsMap.keys()));
+    console.log('=== END DEBUG ===');
   }
 
   processCCPMMetric(metric: CCPMResult, metricName: string, category: string): void {
@@ -1924,19 +1928,31 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
   }
 
   getTotalFiles(): number {
-    return this.fileMetricsMap.size;
+    for (const metric of this.allMetrics) {
+      if (metric.analyzer_id === 'ccpm' || metric.analyzer_id === 'scpm' || metric.analyzer_id === 'fcpm') {
+        const files = (metric as any).details?.files;
+        console.log(`[getTotalFiles] metric=${metric.analyzer_id}, details keys=`, Object.keys((metric as any).details || {}));
+        console.log(`[getTotalFiles] files=`, files);
+        console.log(`[getTotalFiles] files keys=`, files ? Object.keys(files) : 'no files');
+        console.log(`[getTotalFiles] summary=`, (metric as any).details?.summary);
+        if (files) return Object.keys(files).length;
+      }
+    }
+    return 0;
   }
 
-  getTotalIssues(severity: 'error' | 'warning'): number {
-    let count = 0;
-    this.fileMetricsMap.forEach(fileMetrics => {
-      Object.values(fileMetrics).forEach(metricData => {
-        if (metricData.severity === severity) {
-          count++;
-        }
-      });
-    });
-    return count;
+  getTotalPackages(): number {
+    for (const metric of this.allMetrics) {
+      if (metric.analyzer_id === 'fcpp' || metric.analyzer_id === 'scpp' || metric.analyzer_id === 'ccpp') {
+        const packages = (metric as any).details?.packages;
+        console.log(`[getTotalPackages] metric=${metric.analyzer_id}, details keys=`, Object.keys((metric as any).details || {}));
+        console.log(`[getTotalPackages] packages=`, packages);
+        console.log(`[getTotalPackages] packages keys=`, packages ? Object.keys(packages) : 'no packages');
+        console.log(`[getTotalPackages] summary=`, (metric as any).details?.summary);
+        if (packages) return Object.keys(packages).length;
+      }
+    }
+    return 0;
   }
 
   onNewAnalysis(): void {
