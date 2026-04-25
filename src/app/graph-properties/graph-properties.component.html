@@ -17,7 +17,7 @@
         <h2 style="margin: 10px; margin-top: 15px; margin-bottom: 0px; user-select: none;">Configuration</h2>
 
         <div *ngFor="let key of nodeInputKeys" >
-            <div *ngIf="((allNode?.getNodeName() != moduleNodeName) || ((allNode?.getNodeName() == moduleNodeName) && (allNode?.params['link'].value == '')));">
+            <div *ngIf="((allNode?.getNodeName() != moduleNodeName) || ((allNode?.getNodeName() == moduleNodeName) && (allNode?.params['link'].value == ''))) && (allNode?.params[key].show !== false);">
                 <p style="margin-left: 10px; border-top: gray 1px solid; user-select: none; padding-top: 10px;">
                     {{key}}
                 </p>
@@ -171,6 +171,56 @@
                             </div>
                         </div>
                         <button class="add-list-button" (click)="addItemToMap(key)">
+                            Add item
+                        </button>
+                    </div>
+                    <input *ngIf="allNode?.params[key].isParam == 'parameter'"
+                        pInputText id="{{key}}" type="text" [value]="allNode?.params[key].param_label" (input)="updateParam(key, $event)"/>
+                </div>
+
+                <!-- Este bloque aparece cuando el modelo es externo. Aquí el usuario indica qué limpiezas se aplicaron al modelo, en qué columna y, si aplica, con qué valor de reemplazo. -->
+                <div *ngIf="allNode?.params[key]['type'] == 'cleaning_map'" style="margin: 10px;" >
+                    <p-selectButton
+                        [options]="paramOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        (onChange)="updateOption($event, key, 'isParam')"
+                        [(ngModel)]="allNode?.params[key].isParam">
+                        <ng-template let-item pTemplate>
+                            <div style="font-size: small;">{{item.label}}</div>
+                        </ng-template>
+                    </p-selectButton>
+                    <div *ngIf="allNode?.params[key].isParam != 'parameter'">
+                        <div *ngIf="allNode?.params[key].value.length" style="display: flex;">
+                            <p style="width: 34%; font-style: italic;">Data cleaning</p>
+                            <p style="width: 26%; font-style: italic;">Column</p>
+                            <p style="width: 30%; font-style: italic;">Replacement value</p>
+                        </div>
+                        <div *ngFor="let item of allNode?.params[key].value ; let index = index; trackBy: trackByFn">
+                            <div>
+                                <p-dropdown
+                                    [options]="options[allNode?.params[key].optionId]"
+                                    [ngModel]="item.cleaning_type"
+                                    [filter]="true"
+                                    (onChange)="updateCleaningType(key, $event, index)"
+                                    [ngStyle]="{'width': '34%'}">
+                                    <ng-template pTemplate="selectedItem">
+                                        <div class="flex align-items-center gap-2" *ngIf="item.cleaning_type">
+                                            {{item.cleaning_type}}
+                                        </div>
+                                    </ng-template>
+                                    <ng-template let-option pTemplate="item">
+                                        <div class="flex align-items-center gap-2">
+                                            {{option}}
+                                        </div>
+                                    </ng-template>
+                                </p-dropdown>
+                                <input pInputText type="text" [value]="item.column" (input)="updateCleaningMap(key, 'column', $event, index)" style="width: 26%;"/>
+                                <input pInputText type="text" [value]="item.replacement_value" (input)="updateCleaningMap(key, 'replacement_value', $event, index)" style="width: 30%;"/>
+                                <p-button p-icon icon="pi pi-times" (click)="removeItemFromList(key, index)" [ngStyle]="{'width': '10%'}"></p-button>
+                            </div>
+                        </div>
+                        <button class="add-list-button" (click)="addItemToCleaningMap(key)">
                             Add item
                         </button>
                     </div>

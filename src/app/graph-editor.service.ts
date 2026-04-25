@@ -412,6 +412,8 @@ export class GraphEditorService {
     if (node.nodeName === "Input" || "Output") {
       // TODO USING INHERITANCE
     }
+
+    await this.removeDanglingConnections();
     
     await this.area?.update("node", node.id);
     await this.area?.nodeViews.get(node.id)?.resize(node.width, node.height);
@@ -431,6 +433,22 @@ export class GraphEditorService {
     }
 
     this.anyChangeSource.next("Node updated");
+  }
+
+  private async removeDanglingConnections() {
+    const connections = await this.editor.getConnections();
+
+    for (const connection of connections) {
+      const sourceNode = this.editor.getNode(connection.source);
+      const targetNode = this.editor.getNode(connection.target);
+
+      const hasSourceOutput = Boolean(sourceNode && connection.sourceOutput in sourceNode.outputs);
+      const hasTargetInput = Boolean(targetNode && connection.targetInput in targetNode.inputs);
+
+      if (!hasSourceOutput || !hasTargetInput) {
+        await this.editor.removeConnection(connection.id);
+      }
+    }
   }
 
   async getNodeModule(nodeId : string) {

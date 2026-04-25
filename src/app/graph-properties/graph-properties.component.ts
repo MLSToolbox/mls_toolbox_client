@@ -143,6 +143,28 @@ export class GraphPropertiesComponent implements OnInit {
     await this.data.updateNode(this.allNode!);
   }
 
+  async addItemToCleaningMap(key: string) {
+    // Adds one preprocessing row for external model deployment metadata.
+    this.allNode!.params[key].value.push({cleaning_type: "", column: "", replacement_value: ""});
+    await this.allNode!.update();
+    await this.data.updateNode(this.allNode!);
+  }
+
+  async updateCleaningMap(key: string, mapKey: string, event: Event, index: number) {
+    // Updates free-text fields (column/replacement_value) of one preprocessing row.
+    const inputElement = event.target as HTMLInputElement;
+    this.allNode!.params[key].value[index][mapKey] = inputElement.value;
+    await this.allNode!.update();
+    await this.data.updateNode(this.allNode!);
+  }
+
+  async updateCleaningType(key: string, value: any, index: number) {
+    // Updates the selected data-cleaning type for one preprocessing row.
+    this.allNode!.params[key].value[index].cleaning_type = value.value;
+    await this.allNode!.update();
+    await this.data.updateNode(this.allNode!);
+  }
+
   async addItemToList(key: string) {
     this.allNode!.params[key].value.push("");
     await this.allNode!.update();
