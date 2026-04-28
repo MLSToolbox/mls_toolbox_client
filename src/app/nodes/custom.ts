@@ -13,13 +13,11 @@ export class CustomNode
     nodeName: string;
     info : any = {};
     params : any = {};
-    private availableInputs: Array<{ port_label: string; port_type: string }> = [];
     constructor(nodeName: string, config: any) {
         super(nodeName);
         
         this.nodeName = nodeName;
         this.info = config.info;
-        this.availableInputs = config.inputs || [];
         this.color = getColorFromCategory(config.category!);
         if (config.color!) this.color = config.color;
         
@@ -67,8 +65,7 @@ export class CustomNode
             this.addOutput(output.port_label, new Classic.Output(getSocket(output.port_type), output.port_label));
         }
 
-        this.syncDeployWithDockerConfiguration();
-        this.height = 45 + 27.5 * (Object.keys(this.inputs).length + Object.keys(this.outputs).length) + 25 * show_count;
+        this.updateNodeHeight();
     }
 
     data() {
@@ -91,54 +88,15 @@ export class CustomNode
 			}
 		}
 
-		this.syncDeployWithDockerConfiguration();
+		this.updateNodeHeight();
 	}
 
     async update() {
-        this.syncDeployWithDockerConfiguration();
+        this.updateNodeHeight();
     }
 
     getNodeName() {
         return this.nodeName;
-    }
-
-    private syncDeployWithDockerConfiguration() {
-        if (this.nodeName !== "Deploy with Docker") return;
-
-        // Keeps Deploy with Docker sockets and visible params aligned with model_source.
-        this.syncDeployWithDockerInputs();
-
-        const source = this.params["model_source"]?.value || "pipeline";
-        if (this.params["preprocessing_steps"]) {
-            this.params["preprocessing_steps"].show = source === "external";
-            if (source !== "external") {
-                this.params["preprocessing_steps"].value = [];
-            }
-        }
-
-        this.updateNodeHeight();
-    }
-
-    private syncDeployWithDockerInputs() {
-        if (this.nodeName !== "Deploy with Docker") return;
-
-        // Pipeline mode expects model_path; external mode expects model.
-        const source = this.params["model_source"]?.value || "pipeline";
-        const targetInputLabel = source === "external" ? "model" : "model_path";
-        const targetInput = this.availableInputs.find((input) => input.port_label === targetInputLabel);
-
-        if (!targetInput) return;
-
-        const currentInputKeys = Object.keys(this.inputs);
-        if (currentInputKeys.length === 1 && currentInputKeys[0] === targetInput.port_label) {
-            return;
-        }
-
-        currentInputKeys.forEach((key) => this.removeInput(key as never));
-        this.addInput(
-            targetInput.port_label,
-            new Classic.Input(getSocket(targetInput.port_type), targetInput.port_label)
-        );
     }
 
     private updateNodeHeight() {
