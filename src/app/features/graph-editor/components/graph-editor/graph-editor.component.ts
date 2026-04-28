@@ -3,6 +3,7 @@ import {
   ElementRef,
   HostListener,
   Injector,
+  OnDestroy,
   OnInit,
   ViewChild,
 } from "@angular/core";
@@ -26,15 +27,17 @@ const beforeUnloadHandler = (event: {
   templateUrl: "./graph-editor.component.html",
   styleUrl: "./graph-editor.component.css",
 })
-export class GraphEditorComponent implements OnInit {
+export class GraphEditorComponent implements OnInit, OnDestroy {
   @ViewChild("rete") container!: ElementRef<HTMLElement>;
   showMap: boolean = true;
+  configErrorMessage: string | null = null;
   moduleImIn: string = "General Editor";
   showConfirmArrange: boolean = false;
   subscription: Subscription;
   allNode: Node | undefined;
   copyNode: Node | undefined;
   subscriptionNode: Subscription;
+  configErrorSubscription: Subscription;
   items: MenuItem[];
   last_selected_node: string = "";
   constructor(
@@ -63,35 +66,56 @@ export class GraphEditorComponent implements OnInit {
       }
     );
 
+    this.configErrorSubscription = this.editorService.configError.subscribe((message) => {
+      this.configErrorMessage = message;
+    });
+
     this.items = [];
   }
 
   async ngOnInit() {
-    await this.editorService.waitForFetch();
-    const availableNodes = this.editorService.getAvailableNodes();
-    for (const value of availableNodes.keys()) {
-      let items = [];
-      for (const item of availableNodes.get(value)!) {
-        items.push({
-          label: item,
-          command: () => {
-            this.editorService.addNode(item);
-          },
+    try {
+      await this.editorService.waitForFetch();
+      const availableNodes = this.editorService.getAvailableNodes();
+      for (const value of availableNodes.keys()) {
+        let items = [];
+        for (const item of availableNodes.get(value)!) {
+          items.push({
+            label: item,
+            command: () => {
+              this.editorService.addNode(item);
+            },
+          });
+        }
+        this.items.push({
+          label: value,
+          items,
         });
       }
-      this.items.push({
-        label: value,
-        items,
-      });
+    } catch (error) {
+      this.configErrorMessage =
+        error instanceof Error ? error.message : String(error);
     }
   }
 
   async ngAfterViewInit() {
-    await this.editorService.createEditor(
-      this.container.nativeElement,
-      this.injector
-    );
-    await this.editorService.homeZoom();
+    try {
+      await this.editorService.createEditor(
+        this.container.nativeElement,
+        this.injector
+      );
+      await this.editorService.homeZoom();
+    } catch (error) {
+      this.configErrorMessage =
+        error instanceof Error ? error.message : String(error);
+    }
+  }
+
+  ngOnDestroy() {
+    window.removeEventListener("beforeunload", beforeUnloadHandler);
+    this.subscription.unsubscribe();
+    this.subscriptionNode.unsubscribe();
+    this.configErrorSubscription.unsubscribe();
   }
 
   save(severity: string) {

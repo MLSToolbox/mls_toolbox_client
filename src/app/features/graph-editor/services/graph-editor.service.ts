@@ -32,7 +32,7 @@ import { CustomSocketComponent } from "../components/custom-socket";
 import { CustomNodeComponent } from "@features/graph-editor/components/custom-node/custom-node.component";
 import { CustomConnectionComponent } from "@features/graph-editor/components/custom-connection/custom-connection.component";
 import { ModelNodeComponent } from "@app/features/graph-editor/components/custom-node/model-node.component";
-import { getBaseURL, getNewNode } from "@shared/utils";
+import { getNewNode } from "@shared/utils";
 import { environment } from "environment/environment";
 import { GraphLayersComponent } from "@features/graph-editor/components/graph-layers/graph-layers.component";
 import { GraphEditorComponent } from "@features/graph-editor";
@@ -76,6 +76,9 @@ export class GraphEditorService {
   nodes: any;
   sockets: any;
   private configSemaphor: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  private configLoadError: Error | null = null;
+  private configErrorSource: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
+  configError: Observable<string | null> = this.configErrorSource.asObservable();
 
   // ========================================
   // Graph Editor-related properties
@@ -112,7 +115,15 @@ export class GraphEditorService {
     this.minimap = new MinimapPlugin<Schemes>();
     
     this.initConfiguration();
-    this.loadAvailableTemplates();
+    this.loadAvailableTemplates().catch((error) => {
+      console.error("Error loading editor templates:", error);
+    });
+  }
+
+  private apiUrl(path: string): string {
+    const baseUrl = environment.apiUrl.replace(/\/$/, "");
+    const normalizedPath = path.replace(/^\//, "");
+    return `${baseUrl}/${normalizedPath}`;
   }
 
   // ========================================
@@ -123,15 +134,9 @@ export class GraphEditorService {
    * Initialize configuration by loading from API
    */
   private async initConfiguration() {
-    const url = `${environment.apiUrl}`;
-
     try {
-      const response = await fetch(getBaseURL("/api/get_config"), {
+      const response = await fetch(this.apiUrl("get_config"), {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
         signal: AbortSignal.timeout(environment.apiTimeout),
       });
 
@@ -147,9 +152,12 @@ export class GraphEditorService {
 
       this.configSemaphor.next(true);
       this.configSemaphor.complete();
+      this.configErrorSource.next(null);
     } catch (error) {
       console.error("Error loading configuration:", error);
-      throw error;
+      this.configLoadError = error instanceof Error ? error : new Error(String(error));
+      this.configErrorSource.next(this.configLoadError.message);
+      this.configSemaphor.complete();
     }
   }
 
@@ -200,11 +208,19 @@ export class GraphEditorService {
    */
   waitForFetch(): Promise<void> {
     if (this.configSemaphor.getValue() === true) return Promise.resolve();
-    return new Promise((resolve) => {
-      this.configSemaphor.subscribe((value) => {
-        if (value === true) {
-          resolve();
-        }
+    if (this.configLoadError) return Promise.reject(this.configLoadError);
+    return new Promise((resolve, reject) => {
+      this.configSemaphor.subscribe({
+        next: (value) => {
+          if (value === true) {
+            resolve();
+          }
+        },
+        complete: () => {
+          if (this.configLoadError) {
+            reject(this.configLoadError);
+          }
+        },
       });
     });
   }
@@ -955,11 +971,10 @@ export class GraphEditorService {
       nodes: this.getNodes(),
     });
 
-    const response = await fetch(getBaseURL("/api/create_app"), {
+    const response = await fetch(this.apiUrl("create_app"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
       },
       body: body,
     });
@@ -975,12 +990,8 @@ export class GraphEditorService {
    * Load the base editor configuration
    */
   async getBaseEditor() {
-    const response = await fetch(getBaseURL("/api/get_base_editor"), {
+    const response = await fetch(this.apiUrl("get_base_editor"), {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
     });
 
     if (!response.ok) {
@@ -988,19 +999,15 @@ export class GraphEditorService {
     }
     const json = await response.json();
 
-    this.loadEditor(json);
+    await this.loadEditor(json);
   }
 
   /**
    * Load available templates from the server
    */
   async loadAvailableTemplates() {
-    const response = await fetch(getBaseURL("/api/get_available_editor"), {
+    const response = await fetch(this.apiUrl("get_available_editor"), {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
     });
 
     if (!response.ok) {
@@ -1021,12 +1028,8 @@ export class GraphEditorService {
    * Load a specific template
    */
   async loadTemplate(path: string) {
-    const response = await fetch(getBaseURL("/api/get_editor"), {
+    const response = await fetch(this.apiUrl("get_editor"), {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
       body: path,
     });
 
@@ -1037,7 +1040,7 @@ export class GraphEditorService {
 
     const json = await response.json();
 
-    this.loadEditor(json);
+    await this.loadEditor(json);
   }
 
   // ========================================

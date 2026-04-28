@@ -8,6 +8,11 @@
 
   <!-- Graph Editor Content -->
   <div class="editor-content">
+    <div *ngIf="configErrorMessage" class="editor-error" role="alert">
+      <strong>Could not load the pipeline editor.</strong>
+      <span>{{ configErrorMessage }}</span>
+    </div>
+
     <div class="rete" [class.hide-minimap]="!showMap" #rete>
       <!-- Current Module Navigation -->
       <div class="module-nav">
