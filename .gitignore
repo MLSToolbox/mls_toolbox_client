@@ -36,12 +36,21 @@ node_modules
 xcuserdata/
 *.sublime-workspace
 
+# IDE - Visual Studio 2022
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+
 # IDE - VSCode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+*.code-workspace
+.history/
 
 # Maven
 /target
