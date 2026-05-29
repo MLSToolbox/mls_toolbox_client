@@ -52,6 +52,10 @@ export class GraphFileComponent {
     this.editorService.generateAndDownloadCode();
   }
 
+  openServicesDashboard() {
+    console.log("Placeholder del panell que obre per assignar els stages als serveis.");
+  }
+
   downloadEditor() {
     this.editorService.generateJsonOfEditor();
   }
