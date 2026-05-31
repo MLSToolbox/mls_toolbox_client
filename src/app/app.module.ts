@@ -11,7 +11,7 @@ import { ScrollPanelModule } from "primeng/scrollpanel";
 import { SplitButtonModule } from "primeng/splitbutton";
 import { TableModule } from "primeng/table";
 import { KnobModule } from "primeng/knob";
-import { DynamicDialogModule } from "primeng/dynamicdialog";
+import { DynamicDialogModule, DialogService } from "primeng/dynamicdialog";
 import { ToastModule } from "primeng/toast";
 import { MessageService } from "primeng/api";
 
@@ -22,7 +22,9 @@ import { LoggingInterceptor } from "./core/interceptors/logging.interceptor";
 import { GlobalErrorHandler } from "./core/interceptors/global-error-handler";
 
 @NgModule({
-  declarations: [AppComponent],
+  declarations: [
+    AppComponent,
+  ],
   imports: [
     BrowserModule,
     HttpClientModule,
@@ -43,6 +45,7 @@ import { GlobalErrorHandler } from "./core/interceptors/global-error-handler";
     provideAnimationsAsync(), 
     provideHttpClient(), 
     MessageService,
+    DialogService,
     // HTTP Interceptor for logging all requests/responses
     {
       provide: HTTP_INTERCEPTORS,

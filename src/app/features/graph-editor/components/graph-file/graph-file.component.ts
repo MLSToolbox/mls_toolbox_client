@@ -1,17 +1,21 @@
-import { Component, ElementRef, ViewChild } from "@angular/core";
+import { Component, ViewChild, ElementRef, AfterViewInit, OnDestroy } from "@angular/core";
 import { DialogService, DynamicDialogRef } from "primeng/dynamicdialog";
 import { GraphEditorService } from "@app/core";
 import { TemplateDialogComponent } from "./template-dialog/template-dialog.component";
+import { ServiceAssignmentDashboardComponent } from "../service-assignment-dashboard/service-assignment-dashboard.component";
 
 @Component({
   selector: "app-graph-file",
   templateUrl: "./graph-file.component.html",
-  styleUrl: "./graph-file.component.css",
+  styleUrls: ["./graph-file.component.css"],
   providers: [DialogService],
 })
-export class GraphFileComponent {
+export class GraphFileComponent implements OnDestroy {
   @ViewChild("fileInput") fileInput!: ElementRef;
   ref: DynamicDialogRef | undefined;
+
+  showServiceDashboard: boolean = false;
+  stagesForDialog: any = {};
 
   constructor(
     public editorService: GraphEditorService,
@@ -52,8 +56,21 @@ export class GraphFileComponent {
     this.editorService.generateAndDownloadCode();
   }
 
-  openServicesDashboard() {
-    console.log("Placeholder del panell que obre per assignar els stages als serveis.");
+  async openServicesDashboard() {
+    try {
+      const snapshot = await this.editorService.getCurrentModuleSnapshot();
+      this.stagesForDialog = { root: snapshot };
+      console.log('graph-file: opening ServiceAssignmentDashboard with snapshot:', this.stagesForDialog);
+      this.showServiceDashboard = true;
+    } catch (e) {
+      console.error('Error generating editor snapshot for ServiceAssignmentDashboard:', e);
+      this.stagesForDialog = this.editorService.modules ?? {};
+      this.showServiceDashboard = true;
+    }
+  }
+
+  onDashboardClose() {
+    this.showServiceDashboard = false;
   }
 
   downloadEditor() {
@@ -64,7 +81,7 @@ export class GraphFileComponent {
     this.ref = this.dialogService.open(TemplateDialogComponent, {
       header: "Select a Template",
       width: "20vw",
-      styleClass: "template-selection-dialog", // Added custom class for styling
+      styleClass: "template-selection-dialog",
       contentStyle: { overflow: "auto" },
       breakpoints: {
         "960px": "75vw",

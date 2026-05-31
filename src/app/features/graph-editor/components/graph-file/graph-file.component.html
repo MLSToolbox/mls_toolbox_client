@@ -77,4 +77,19 @@
       Generate Code as Services
     </button>
   </div>
+
+  <p-dialog
+    header="Service Assignment"
+    [(visible)]="showServiceDashboard"
+    [modal]="true"
+    [appendTo]="'body'"
+    [style]="{ width: '70vw', left: '50%', transform: 'translateX(calc(-50% + 20px - 5vw))', maxWidth: 'min(70vw, calc(100vw - 360px))' }"
+    [contentStyle]="{ 'min-height': '60vh', 'padding': '1.8rem' }"
+    styleClass="service-assignment-dialog"
+  >
+    <app-service-assignment-dashboard
+      [stages]="stagesForDialog"
+      (close)="onDashboardClose()"
+    ></app-service-assignment-dashboard>
+  </p-dialog>
 </div>

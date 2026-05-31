@@ -1,0 +1,65 @@
+<div class="service-assignment-dashboard">
+
+</div>
+
+<div class="dashboard-root">
+  <div class="templates" aria-hidden="true">
+    <div class="template">Template A</div>
+    <div class="template">Template B</div>
+    <div class="template">Template C</div>
+  </div>
+
+  <div class="canvas" role="region" aria-label="Service assignment preview">
+    <div class="stages-row">
+      <ng-container *ngFor="let s of stageArray; let i = index; trackBy: trackByStage">
+        <div class="stage-wrapper">
+          <div class="node-mock" title="{{s.label}}">
+            <div class="node-title" [ngStyle]="s.color ? { 'background': s.color } : {}">
+              <span class="node-title-text">{{ s.label }}</span>
+            </div>
+            <div class="node-body">
+              <div class="socket socket-left" aria-hidden="true"></div>
+              <div class="socket socket-right" aria-hidden="true"></div>
+              <div class="node-placeholder">
+                <div class="slot"></div>
+                <div class="slot"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <svg *ngIf="i < stageArray.length - 1" class="connector" viewBox="0 0 60 20" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 10 L60 10" stroke="var(--color-border-medium, #cfcfcf)" stroke-width="2" stroke-linecap="round" fill="none"></path>
+        </svg>
+      </ng-container>
+
+      <div *ngIf="stageArray.length === 0" class="empty-placeholder">
+        No stages to display
+      </div>
+    </div>
+  </div>
+
+  <div class="spacer" aria-hidden="true"></div>
+
+  <div class="dashboard-footer" role="toolbar" aria-label="Dashboard actions (visual only)">
+    <div class="palette" aria-hidden="true">
+      <div class="palette-label">Available services</div>
+      <div class="palette-row">
+        <span class="service-circle" style="background:#e6194b"></span>
+        <span class="service-circle" style="background:#3cb44b"></span>
+        <span class="service-circle" style="background:#ffe119"></span>
+        <span class="service-circle" style="background:#4363d8"></span>
+        <span class="service-circle" style="background:#f58231"></span>
+        <span class="service-circle" style="background:#911eb4"></span>
+        <span class="service-circle" style="background:#42d4f4"></span>
+        <span class="service-circle" style="background:#f032e6"></span>
+        <span class="service-circle" style="background:#bfef45"></span>
+        <span class="service-circle" style="background:#469990"></span>
+      </div>
+    </div>
+
+    <div class="action-area" aria-hidden="true">
+      <button class="confirm-btn" disabled>Confirm &amp; Generate</button>
+    </div>
+  </div>
+</div>

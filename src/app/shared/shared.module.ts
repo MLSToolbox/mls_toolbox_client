@@ -7,13 +7,15 @@ import { HeaderComponent } from './components/header/header.component';
 import { HeroComponent } from './components/hero/hero.component';
 import { ToolCardComponent } from './components/tool-card/tool-card.component';
 import { ToolHeaderComponent } from './components/tool-header/tool-header.component';
+import { ServiceAssignmentDashboardComponent } from '../features/graph-editor/components/service-assignment-dashboard/service-assignment-dashboard.component';
 
 @NgModule({
   declarations: [
     HeaderComponent,
     HeroComponent,
     ToolCardComponent,
-    ToolHeaderComponent
+    ToolHeaderComponent,
+    ServiceAssignmentDashboardComponent 
   ],
   imports: [
     CommonModule,
@@ -23,7 +25,8 @@ import { ToolHeaderComponent } from './components/tool-header/tool-header.compon
     HeaderComponent,
     HeroComponent,
     ToolCardComponent,
-    ToolHeaderComponent
+    ToolHeaderComponent,
+    ServiceAssignmentDashboardComponent
   ]
 })
 export class SharedModule { }

@@ -1078,4 +1078,45 @@ export class GraphEditorService {
       this.mouseOverComponent.keyEvent(event);
     }
   }
+
+
+  async getCurrentModuleSnapshot(): Promise<{ nodes: any[]; connections: any[]; inputs: any[]; outputs: any[] }> {
+    const nodes: any[] = [];
+    const connections: any[] = [];
+    const inputs: any[] = [];
+    const outputs: any[] = [];
+
+    for (const node of this.editor.getNodes()) {
+      nodes.push({
+        id: node.id,
+        data: node.data(),
+        name: node.label,
+        nodeName: node.getNodeName(),
+      });
+    }
+
+    for (const c of this.editor.getConnections()) {
+      connections.push({
+        source: c.source,
+        sourceOutput: c.sourceOutput,
+        target: c.target,
+        targetInput: c.targetInput,
+      });
+    }
+
+    for (const input of this.findInputs()) {
+      inputs.push({
+        id: input.id,
+        data: input.data(),
+      });
+    }
+    for (const output of this.findOutputs()) {
+      outputs.push({
+        id: output.id,
+        data: output.data(),
+      });
+    }
+
+    return { nodes, connections, inputs, outputs };
+  }
 }
