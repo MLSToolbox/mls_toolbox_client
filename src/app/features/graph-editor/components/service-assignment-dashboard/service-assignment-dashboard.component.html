@@ -1,4 +1,4 @@
-<div class="service-assignment-dashboard">
+﻿<div class="service-assignment-dashboard">
 
 </div>
 
@@ -10,32 +10,101 @@
   </div>
 
   <div class="canvas" role="region" aria-label="Service assignment preview">
-    <div class="stages-row">
-      <ng-container *ngFor="let s of stageArray; let i = index; trackBy: trackByStage">
+    <ng-container *ngIf="depthColumns.length > 0; else noColumns">
+      <div class="depths-container">
+        <ng-container *ngFor="let col of depthColumns">
+          <div class="depth-column" [attr.data-depth]="col.depth">
+            <div class="depth-body">
+              <ng-container *ngFor="let s of col.nodes; trackBy: trackByStage">
+                <div class="stage-wrapper">
+                  <div
+                    class="node-mock"
+                    title="{{ s.label }}"
+                    [class.assigned]="getAssignedService(s.id)"
+                    [style.border-color]="getServiceColor(getAssignedService(s.id)) || 'var(--color-border-light, #e6e6e6)'"
+                  >
+                    <div class="node-title" [ngStyle]="s.color ? { 'background': s.color } : {}">
+                      <ng-container *ngIf="getAssignedService(s.id) as srv; else titleDefault">
+                        <span class="service-pill" [style.background]="getServiceColor(srv)">{{ srv }}</span>
+                        <span
+                          class="service-edit"
+                          contenteditable="true"
+                          (blur)="onServiceLabelBlur(s.id, $event)"
+                          [attr.title]="'Edit service id (format svN)'"
+                          >{{ srv }}</span
+                        >
+                        <button class="service-edit-btn" aria-hidden="true" type="button">✏️</button>
+                      </ng-container>
+                      <ng-template #titleDefault>
+                        <span class="node-title-text">{{ s.label }}</span>
+                      </ng-template>
+                    </div>
+
+                    <div class="node-body">
+                      <div class="socket socket-left" aria-hidden="true"></div>
+                      <div class="socket socket-right" aria-hidden="true"></div>
+                      <div class="node-placeholder">
+                        <div class="slot"></div>
+                        <div class="slot"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="assign-actions">
+                    <button
+                      class="minus-btn"
+                      *ngIf="canShowMinus(s.id)"
+                      title="Remove service assignment"
+                      type="button"
+                      [attr.data-stage]="s.id"
+                      (click)="hackClickMinus($event, s.id)"
+                    >−</button>
+
+                    <ng-container *ngFor="let opt of getPlusOptions(s.id)">
+                      <button
+                        class="plus-btn"
+                        [style.background]="opt.color"
+                        [attr.title]="opt.isNew ? 'Assign service' : 'Assign ' + opt.id"
+                        type="button"
+                        [attr.data-stage]="s.id"
+                        [attr.data-opt-id]="opt.id"
+                        [attr.data-opt-new]="opt.isNew ? '1' : '0'"
+                        (click)="hackClickPlus($event, s.id, opt.id, !!opt.isNew)"
+                      >
+                        +
+                      </button>
+                    </ng-container>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </ng-container>
+
+    <ng-template #noColumns>
+      <div class="empty-placeholder">No stages to display</div>
+    </ng-template>
+  </div>
+
+  <div *ngIf="unassignedStageArray.length > 0" class="unassigned-section" aria-label="Unassigned stages">
+    <div class="unassigned-title">Unassigned stages</div>
+    <div class="unassigned-row">
+      <ng-container *ngFor="let s of unassignedStageArray; trackBy: trackByStage">
         <div class="stage-wrapper">
-          <div class="node-mock" title="{{s.label}}">
+          <div class="node-mock" title="{{ s.label }}">
             <div class="node-title" [ngStyle]="s.color ? { 'background': s.color } : {}">
               <span class="node-title-text">{{ s.label }}</span>
             </div>
             <div class="node-body">
-              <div class="socket socket-left" aria-hidden="true"></div>
-              <div class="socket socket-right" aria-hidden="true"></div>
               <div class="node-placeholder">
-                <div class="slot"></div>
                 <div class="slot"></div>
               </div>
             </div>
           </div>
         </div>
-
-        <svg *ngIf="i < stageArray.length - 1" class="connector" viewBox="0 0 60 20" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M0 10 L60 10" stroke="var(--color-border-medium, #cfcfcf)" stroke-width="2" stroke-linecap="round" fill="none"></path>
-        </svg>
       </ng-container>
-
-      <div *ngIf="stageArray.length === 0" class="empty-placeholder">
-        No stages to display
-      </div>
     </div>
   </div>
 
@@ -59,7 +128,7 @@
     </div>
 
     <div class="action-area" aria-hidden="true">
-      <button class="confirm-btn" disabled>Confirm &amp; Generate</button>
+      <button class="confirm-btn" disabled type="button">Confirm &amp; Generate</button>
     </div>
   </div>
 </div>
