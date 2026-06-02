@@ -1121,4 +1121,57 @@ export class GraphEditorService {
 
     return { nodes, connections, inputs, outputs };
   }
+
+  /**
+   * Sync modules[currentModule] from the active editor.
+   */
+  async saveCurrentModuleSnapshotToModules(): Promise<{ nodes: any[]; connections: any[]; inputs: any[]; outputs: any[] }> {
+    let nodes: any[] = [];
+    let connections: any[] = [];
+    let inputs: any[] = [];
+    let outputs: any[] = [];
+
+    for (let node of this.editor.getNodes()) {
+      nodes.push({
+        id: node.id,
+        data: node.data(),
+        name: node.label,
+        nodeName: node.getNodeName(),
+      });
+    }
+
+    for (let c of this.editor.getConnections()) {
+      connections.push({
+        source: c.source,
+        sourceOutput: c.sourceOutput,
+        target: c.target,
+        targetInput: c.targetInput,
+      });
+    }
+
+    for (let input of this.findInputs()) {
+      inputs.push({
+        id: input.id,
+        data: input.data(),
+      });
+    }
+    for (let output of this.findOutputs()) {
+      outputs.push({
+        id: output.id,
+        data: output.data(),
+      });
+    }
+
+    this.modules = this.modules ?? {};
+    this.modules[this.currentModule] = {
+      nodes,
+      connections,
+      inputs,
+      outputs,
+    };
+
+    this.cleanModules();
+
+    return { nodes, connections, inputs, outputs };
+  }
 }

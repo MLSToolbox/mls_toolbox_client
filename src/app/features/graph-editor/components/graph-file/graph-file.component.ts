@@ -57,19 +57,13 @@ export class GraphFileComponent implements OnDestroy {
 
   async openServicesDashboard() {
     try {
-      const root = this.editorService.modules?.root;
-      this.stagesForDialog = { root: root ?? (await this.editorService.getCurrentModuleSnapshot()) };
-    } catch {
+      await this.editorService.saveCurrentModuleSnapshotToModules();
+
+      this.stagesForDialog = { root: this.editorService.modules?.root ?? (await this.editorService.getCurrentModuleSnapshot()) };
+    } catch (e) {
       this.stagesForDialog = this.editorService.modules ?? {};
     }
     this.showServiceDashboard = true;
-
-    setTimeout(() => {
-      const title = document.querySelector('.service-assignment-dialog .p-dialog-title') as HTMLElement | null;
-      if (title) {
-        title.style.paddingLeft = '6px';
-      }
-    }, 50);
   }
 
   onDashboardClose() {
