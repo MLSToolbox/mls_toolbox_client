@@ -67,6 +67,12 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
   private predecessorMap: Map<string, string[]> = new Map();
   private successorMap: Map<string, string[]> = new Map();
 
+  // --- Editing state ---
+  public editingStageId: string | null = null;
+  public editingValue: string = "";
+  // store override color per stage when editing service id to keep visual color if new id unknown
+  private stageColorOverride: Map<string, string | undefined> = new Map();
+
   constructor(
     private cdr: ChangeDetectorRef,
     private elRef: ElementRef,
@@ -76,11 +82,63 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
       const target = ev.target as HTMLElement | null;
       if (!target) return;
 
+      // Ignore clicks fora del component/dialog
       if (
         !this.elRef.nativeElement.contains(target) &&
         !document.querySelector(".service-assignment-dialog")?.contains(target)
-      ) return;
+      )
+        return;
 
+      // EDIT button -> start editing
+      // manejo botón editar (fallbacks para encontrar stageId)
+      const editBtn = target.closest(".service-edit-btn") as HTMLElement | null;
+      if (editBtn) {
+        ev.stopPropagation();
+        let stageId = editBtn.getAttribute("data-stage") ?? undefined;
+
+        // fallback: buscar elemento con data-stage dentro del mismo stage-wrapper
+        if (!stageId) {
+          const wrapper = editBtn.closest(".stage-wrapper");
+          if (wrapper) {
+            const stageEl = wrapper.querySelector('[data-stage]');
+            if (stageEl) stageId = (stageEl as HTMLElement).getAttribute("data-stage") ?? undefined;
+          }
+        }
+
+        // fallback final: buscar en assign-actions cercano
+        if (!stageId) {
+          const nearby = editBtn.closest(".assign-actions") as HTMLElement | null;
+          if (nearby) {
+            const anyStage = nearby.querySelector('[data-stage]');
+            if (anyStage) stageId = (anyStage as HTMLElement).getAttribute("data-stage") ?? undefined;
+          }
+        }
+
+        if (!stageId) return;
+        this.ngZone.run(() => this.startEdit(stageId));
+        return;
+      }
+
+      // CONFIRM button -> confirm edit
+      const confirmBtn = target.closest(".service-confirm-btn") as HTMLElement | null;
+      if (confirmBtn) {
+        ev.stopPropagation();
+        const stageId = confirmBtn.getAttribute("data-stage");
+        if (!stageId) return;
+        this.ngZone.run(() => this.confirmEdit(stageId));
+        return;
+      }
+
+      // CANCEL button -> cancel edit
+      const cancelBtn = target.closest(".service-cancel-btn") as HTMLElement | null;
+      if (cancelBtn) {
+        ev.stopPropagation();
+        // same stage id attribute is optional here
+        this.ngZone.run(() => this.cancelEdit());
+        return;
+      }
+
+      // Existing plus/minus handling (mantingues-ho)
       const plus = target.closest(".plus-btn") as HTMLElement | null;
       if (plus) {
         ev.stopPropagation();
@@ -283,6 +341,14 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
     return this.stageAssignment.get(stageId) ?? null;
   }
 
+  // return color to use for pill: palette color or override per stage
+  getPillColor(stageId: string, serviceId: string | null | undefined): string | undefined {
+    if (!serviceId) return undefined;
+    const s = this.services.find((x) => x.id === serviceId);
+    if (s) return s.color;
+    return this.stageColorOverride.get(stageId);
+  }
+
   getServiceColor(serviceId: string | null | undefined): string | undefined {
     if (!serviceId) return undefined;
     const s = this.services.find((x) => x.id === serviceId);
@@ -295,7 +361,93 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
     return free ? free.id : null;
   }
 
+  // --- Editing handlers ---
+  startEdit(stageId: string): void {
+    const cur = this.getAssignedService(stageId) ?? "";
+    this.editingStageId = stageId;
+    this.editingValue = String(cur).slice(0, 10);
+    this.stageColorOverride.set(stageId, this.getServiceColor(cur) ?? undefined);
+
+    // focus on the input after view updated
+    setTimeout(() => {
+      try {
+        const selector = `.service-edit-input[data-stage="${stageId}"]`;
+        const el = this.elRef.nativeElement.querySelector(selector) as HTMLElement | null;
+        if (el && typeof el.focus === "function") el.focus();
+      } catch (e) {
+        // silent
+      }
+    }, 0);
+  }
+
+  cancelEdit(): void {
+    this.editingStageId = null;
+    this.editingValue = "";
+  }
+
+  confirmEdit(stageId: string): void {
+    const raw = String(this.editingValue ?? "").trim().slice(0, 10);
+    const newId = raw.length > 0 ? raw : null;
+
+    const prevId = this.getAssignedService(stageId);
+
+    // If nothing changed, just close edit mode
+    if (prevId === newId) {
+      this.editingStageId = null;
+      this.editingValue = "";
+      return;
+    }
+
+    // If newId is null -> remove assignment for this stage
+    if (!newId) {
+      this.assignService(stageId, null);
+      this.editingStageId = null;
+      this.editingValue = "";
+      return;
+    }
+
+    // If trying to rename to an existing service id that is different, reject to avoid merge
+    const collision = this.services.find((s) => s.id === newId);
+    if (collision && collision.id !== prevId) {
+      // simple feedback; you can replace with UI toast
+      alert(`Service id "${newId}" already exists. Choose a different id.`);
+      return;
+    }
+
+    // If prevId exists in palette -> rename that palette item
+    const svc = this.services.find((s) => s.id === prevId);
+    if (svc) {
+      svc.id = newId;
+    } else {
+      // prevId not from palette (custom) -> add new palette entry preserving color if possible
+      const color = this.stageColorOverride.get(stageId) ?? "#777777";
+      this.services.push({ id: newId, color });
+    }
+
+    // Replace all occurrences in stageAssignment from prevId -> newId
+    for (const [k, v] of Array.from(this.stageAssignment.entries())) {
+      if (v === prevId) {
+        this.stageAssignment.set(k, newId);
+      }
+    }
+
+    // Recreate map so Angular detects change and refresh UI
+    this.stageAssignment = new Map(this.stageAssignment);
+    this.buildGraphMaps();
+
+    // ensure view updates; small timeout avoids race conditions with overlays
+    setTimeout(() => this.cdr.detectChanges(), 0);
+
+    // emit new assignments
+    this.emitAssignments();
+
+    // clear editing state
+    this.editingStageId = null;
+    this.editingValue = "";
+  }
+
   onServiceLabelBlur(stageId: string, ev: Event): void {
+    // keep existing behavior for contenteditable fallback (not used now)
     const el = ev.target as HTMLElement;
     const raw = el.innerText?.trim() ?? "";
     if (/^sv\d+$/.test(raw)) {
@@ -331,6 +483,7 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
         rawNodes = Object.values(stages);
       }
     } catch {
+      // ignore
     }
 
     const nodesById: Map<string, any> = new Map();
@@ -465,5 +618,16 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
       console.warn("HACK MINUS FUNCIONA! Stage:", stageId);
       if (!this.canShowMinus(stageId)) return;
       this.assignService(stageId, null);
+  }
+
+  /**
+   * Tooltip text for plus options.
+   * - If option is isNew, show suggested id (first free) if available.
+   * - Otherwise show exact service id.
+   */
+  getPlusTooltip(opt: { id?: string; color?: string; isNew?: boolean } | any): string {
+    // Preferim l'id explícita de l'opció; si no existeix obtenim el primer id lliure
+    const id = opt?.id ?? this.getFirstFreeServiceId();
+    return id ? `Assign ${id}` : 'Assign service';
   }
 }

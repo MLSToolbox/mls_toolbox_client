@@ -1,8 +1,4 @@
-﻿<div class="service-assignment-dashboard">
-
-</div>
-
-<div class="dashboard-root">
+﻿<div class="dashboard-root">
   <div class="templates" aria-hidden="true">
     <div class="template">Template A</div>
     <div class="template">Template B</div>
@@ -24,20 +20,62 @@
                     [style.border-color]="getServiceColor(getAssignedService(s.id)) || 'var(--color-border-light, #e6e6e6)'"
                   >
                     <div class="node-title" [ngStyle]="s.color ? { 'background': s.color } : {}">
-                      <ng-container *ngIf="getAssignedService(s.id) as srv; else titleDefault">
-                        <span class="service-pill" [style.background]="getServiceColor(srv)">{{ srv }}</span>
-                        <span
-                          class="service-edit"
-                          contenteditable="true"
-                          (blur)="onServiceLabelBlur(s.id, $event)"
-                          [attr.title]="'Edit service id (format svN)'"
-                          >{{ srv }}</span
-                        >
-                        <button class="service-edit-btn" aria-hidden="true" type="button">✏️</button>
+                      <ng-container *ngIf="getAssignedService(s.id) as srv">
+                        <div class="service-line">
+                          <span class="service-label">Service:</span>
+
+                          <!-- Editing mode for this stage -->
+                          <ng-container *ngIf="editingStageId === s.id; else viewMode">
+                            <input
+                              class="service-edit-input"
+                              type="text"
+                              maxlength="10"
+                              [(ngModel)]="editingValue"
+                              (keydown.enter)="confirmEdit(s.id)"
+                              (keydown.escape)="cancelEdit()"
+                              [attr.data-stage]="s.id"
+                            />
+                            <!-- Editing mode: confirm / cancel -->
+                            <button
+                              class="service-confirm-btn"
+                              type="button"
+                              (click)="confirmEdit(s.id)"
+                              [attr.data-stage]="s.id"
+                              title="Confirm"
+                            >✔</button>
+                            <button
+                              class="service-cancel-btn"
+                              type="button"
+                              (click)="cancelEdit()"
+                              [attr.data-stage]="s.id"
+                              title="Cancel"
+                            >✖</button>
+                          </ng-container>
+
+                          <!-- View mode -->
+                          <ng-template #viewMode>
+                            <span class="service-pill" [style.background]="getPillColor(s.id, srv)">{{ srv }}</span>
+                            <button
+                              class="service-edit-btn"
+                              type="button"
+                              title="Edit service name"
+                              (click)="startEdit(s.id)"
+                              [attr.data-stage]="s.id"
+                            >✏️</button>
+                          </ng-template>
+                        </div>
+
+                        <div class="stage-line">
+                          <span class="node-title-text">{{ s.label }}</span>
+                        </div>
                       </ng-container>
-                      <ng-template #titleDefault>
-                        <span class="node-title-text">{{ s.label }}</span>
-                      </ng-template>
+
+                      <!-- not assigned: only show stage name -->
+                      <ng-container *ngIf="!getAssignedService(s.id)">
+                        <div class="stage-line">
+                          <span class="node-title-text">{{ s.label }}</span>
+                        </div>
+                      </ng-container>
                     </div>
 
                     <div class="node-body">
@@ -50,26 +88,25 @@
                     </div>
                   </div>
 
+                  <!-- plus/minus area -->
                   <div class="assign-actions">
                     <button
                       class="minus-btn"
                       *ngIf="canShowMinus(s.id)"
-                      title="Remove service assignment"
+                      title="Remove service assigned"
                       type="button"
                       [attr.data-stage]="s.id"
-                      (click)="hackClickMinus($event, s.id)"
                     >−</button>
 
                     <ng-container *ngFor="let opt of getPlusOptions(s.id)">
                       <button
                         class="plus-btn"
                         [style.background]="opt.color"
-                        [attr.title]="opt.isNew ? 'Assign service' : 'Assign ' + opt.id"
+                        [attr.title]="getPlusTooltip(opt)"
                         type="button"
                         [attr.data-stage]="s.id"
                         [attr.data-opt-id]="opt.id"
                         [attr.data-opt-new]="opt.isNew ? '1' : '0'"
-                        (click)="hackClickPlus($event, s.id, opt.id, !!opt.isNew)"
                       >
                         +
                       </button>
@@ -88,8 +125,14 @@
     </ng-template>
   </div>
 
+  <ng-template #noColumns></ng-template>
+
   <div *ngIf="unassignedStageArray.length > 0" class="unassigned-section" aria-label="Unassigned stages">
     <div class="unassigned-title">Unassigned stages</div>
+    <div class="unassigned-desc">
+      Unassigned stages must be connected to other stages to be packaged into services and included in the "Generate as Services" output.
+    </div>
+
     <div class="unassigned-row">
       <ng-container *ngFor="let s of unassignedStageArray; trackBy: trackByStage">
         <div class="stage-wrapper">
@@ -110,20 +153,22 @@
 
   <div class="spacer" aria-hidden="true"></div>
 
+  <!-- Footer / palette: sección de paleta actualizada -->
   <div class="dashboard-footer" role="toolbar" aria-label="Dashboard actions (visual only)">
     <div class="palette" aria-hidden="true">
-      <div class="palette-label">Available services</div>
+      <div class="palette-header">
+        <div class="palette-label">Available services</div>
+        <div class="palette-desc">Services can be assigned or unassigned using the + and - controls under each stage box.</div>
+      </div>
       <div class="palette-row">
-        <span class="service-circle" style="background:#e6194b"></span>
-        <span class="service-circle" style="background:#3cb44b"></span>
-        <span class="service-circle" style="background:#ffe119"></span>
-        <span class="service-circle" style="background:#4363d8"></span>
-        <span class="service-circle" style="background:#f58231"></span>
-        <span class="service-circle" style="background:#911eb4"></span>
-        <span class="service-circle" style="background:#42d4f4"></span>
-        <span class="service-circle" style="background:#f032e6"></span>
-        <span class="service-circle" style="background:#bfef45"></span>
-        <span class="service-circle" style="background:#469990"></span>
+        <ng-container *ngFor="let svc of services">
+          <span
+            class="service-circle"
+            [style.background]="svc.color"
+            [attr.title]="svc.id"
+            [attr.aria-label]="svc.id"
+          ></span>
+        </ng-container>
       </div>
     </div>
 

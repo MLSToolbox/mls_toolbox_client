@@ -92,28 +92,54 @@
 }
 
 .node-title {
-  height: 40px;
-  color: white;
+  height: auto;
+  min-height: 56px;
+  padding: 0.4rem 0.6rem;
   display: flex;
-  align-items: center;
-  padding: 0 0.5rem;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.12rem;
+  color: white;
   font-weight: 700;
   font-size: 0.95rem;
   background: linear-gradient(90deg, rgba(0,122,204,0.95), rgba(0,90,160,0.95));
-  gap: 0.5rem;
+  box-sizing: border-box;
 }
-.node-title-text {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+
+.stage-line .node-title-text {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.95);
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.1;
+}
+
+.node-mock {
+  min-height: 110px;
+  padding-bottom: 0.5rem;
+}
+
+.service-line {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2px;
+}
+
+.service-label {
+  font-size: 0.85rem;
+  opacity: 0.95;
+  color: white;
 }
 
 .service-pill {
-  padding: 0.25rem 0.5rem;
+  padding: 0.18rem 0.5rem;
   border-radius: 12px;
   color: white;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   display: inline-block;
 }
 .service-edit {
@@ -213,6 +239,11 @@
   color: var(--color-text-secondary, #6b7280);
   margin-bottom: 0.5rem;
 }
+.unassigned-desc {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary, #6b7280);
+  margin-bottom: 4px;
+}
 .unassigned-row {
   display: flex;
   gap: 0.75rem;
@@ -223,16 +254,59 @@
 
 .spacer { flex: 1 1 auto; }
 .palette { display:flex; flex-direction:column; gap:0.25rem; align-items:flex-start; }
-.palette-label { font-size: 0.85rem; color: var(--color-text-secondary, #6b7280); margin-bottom: 0.25rem; }
-.palette-row { display:flex; gap:0.5rem; align-items:center; }
-.service-circle { width:28px; height:28px; border-radius:50%; border:2px solid rgba(0,0,0,0.06); box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+.palette-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  justify-content: space-between;
+}
+.palette-label {
+  font-weight: 700;
+}
+.palette-desc {
+  color: var(--color-text-secondary, #6b7280);
+  font-size: 0.9rem;
+  margin-left: 1rem;
+  white-space: nowrap;
+}
+.palette-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.service-circle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-block;
+  cursor: default;
+  border: 1px solid rgba(0,0,0,0.06);
+}
 
 .dashboard-footer { display:flex; justify-content:space-between; align-items:center; gap:1rem; padding-top:0.5rem; border-top:1px solid rgba(0,0,0,0.04); }
 .action-area { display:flex; align-items:center; justify-content:flex-end; flex:0 0 auto; }
 .confirm-btn { background: var(--color-primary, #004a99); color:white; padding:0.6rem 1rem; border-radius:6px; border:none; opacity:0.6; }
 
-@media (max-width:900px) {
-  .node-mock { width:160px; }
-  .node-title { font-size:0.85rem; }
-  .depth-column { min-width: 170px; }
+/* input and confirm/cancel buttons in service edit */
+.service-edit-input {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.12);
+  min-width: 80px;
+  max-width: 180px;
+  font-weight: 700;
+  color: #000;
+  background: rgba(255,255,255,0.95);
 }
+
+.service-confirm-btn, .service-cancel-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: 6px;
+}
+
+.service-line { display:flex; align-items:center; gap:0.5rem; }

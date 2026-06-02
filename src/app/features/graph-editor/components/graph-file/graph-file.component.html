@@ -43,7 +43,7 @@
     <div class="action-group-label">Export</div>
     <button pButton class="action-button accent" (click)="generateCode()">
       <i class="pi pi-code"></i>
-      Generate Code
+      Generate Code as <script></script>
     </button>
     <button pButton class="action-button accent" (click)="openServicesDashboard()">
       Generate Code as Services
@@ -58,6 +58,8 @@
     [style]="{ width: '70vw', left: '50%', transform: 'translateX(calc(-50% + 20px - 5vw))', maxWidth: 'min(70vw, calc(100vw - 360px))' }"
     [contentStyle]="{ 'min-height': '60vh', 'padding': '1.8rem' }"
     styleClass="service-assignment-dialog"
+    [draggable]="false"
+    [resizable]="false"
   >
     <app-service-assignment-dashboard
       [stages]="stagesForDialog"

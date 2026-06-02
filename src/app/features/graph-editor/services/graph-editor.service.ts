@@ -1079,7 +1079,9 @@ export class GraphEditorService {
     }
   }
 
-
+  /**
+   * Get a serializable snapshot of the current module (nodes, connections, inputs, outputs).
+   */
   async getCurrentModuleSnapshot(): Promise<{ nodes: any[]; connections: any[]; inputs: any[]; outputs: any[] }> {
     const nodes: any[] = [];
     const connections: any[] = [];

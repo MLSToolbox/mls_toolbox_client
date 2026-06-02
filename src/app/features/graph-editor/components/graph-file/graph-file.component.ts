@@ -29,11 +29,10 @@ export class GraphFileComponent implements OnDestroy {
   onFileSelected(event: Event) {
     const target = event.target as HTMLInputElement;
     if (target.files && target.files.length > 0) {
-      const file: File = target.files[0]; // Get the first file
+      const file: File = target.files[0];
       const reader = new FileReader();
       reader.onload = () => {
         let fileContent = reader.result as string;
-        // Execute your code here
         this.processFileContent(fileContent);
       };
       reader.readAsText(file);
@@ -60,13 +59,18 @@ export class GraphFileComponent implements OnDestroy {
     try {
       const snapshot = await this.editorService.getCurrentModuleSnapshot();
       this.stagesForDialog = { root: snapshot };
-      console.log('graph-file: opening ServiceAssignmentDashboard with snapshot:', this.stagesForDialog);
-      this.showServiceDashboard = true;
     } catch (e) {
-      console.error('Error generating editor snapshot for ServiceAssignmentDashboard:', e);
       this.stagesForDialog = this.editorService.modules ?? {};
-      this.showServiceDashboard = true;
     }
+
+    this.showServiceDashboard = true;
+
+    setTimeout(() => {
+      const title = document.querySelector('.service-assignment-dialog .p-dialog-title') as HTMLElement | null;
+      if (title) {
+        title.style.paddingLeft = '6px';
+      }
+    }, 50);
   }
 
   onDashboardClose() {

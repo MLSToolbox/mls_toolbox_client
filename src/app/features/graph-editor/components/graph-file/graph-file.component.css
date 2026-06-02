@@ -138,3 +138,7 @@
     padding: var(--spacing-4) var(--spacing-5);
   }
 }
+
+:host ::ng-deep .service-assignment-dialog .p-dialog-header {
+  cursor: default !important;
+}

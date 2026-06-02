@@ -14,6 +14,7 @@ import { KnobModule } from "primeng/knob";
 import { DynamicDialogModule, DialogService } from "primeng/dynamicdialog";
 import { ToastModule } from "primeng/toast";
 import { MessageService } from "primeng/api";
+import { FormsModule } from "@angular/forms";
 
 import { AppRoutingModule } from "./app-routing.module";
 import { AppComponent } from "./app.component";
@@ -40,6 +41,7 @@ import { GlobalErrorHandler } from "./core/interceptors/global-error-handler";
     KnobModule,
     DynamicDialogModule,
     ToastModule,
+    FormsModule,
   ],
   providers: [
     provideAnimationsAsync(), 
