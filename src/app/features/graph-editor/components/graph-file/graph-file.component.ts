@@ -57,12 +57,11 @@ export class GraphFileComponent implements OnDestroy {
 
   async openServicesDashboard() {
     try {
-      const snapshot = await this.editorService.getCurrentModuleSnapshot();
-      this.stagesForDialog = { root: snapshot };
-    } catch (e) {
+      const root = this.editorService.modules?.root;
+      this.stagesForDialog = { root: root ?? (await this.editorService.getCurrentModuleSnapshot()) };
+    } catch {
       this.stagesForDialog = this.editorService.modules ?? {};
     }
-
     this.showServiceDashboard = true;
 
     setTimeout(() => {
