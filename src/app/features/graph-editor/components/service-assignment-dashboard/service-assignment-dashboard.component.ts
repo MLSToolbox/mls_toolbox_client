@@ -14,6 +14,7 @@ import {
 } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { GraphEditorService } from "../../services/graph-editor.service"; // ruta RELATIVA correcta
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: "app-service-assignment-dashboard",
@@ -77,7 +78,8 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
     private elRef: ElementRef,
     private ngZone: NgZone,
     private http: HttpClient,
-    private editorService: GraphEditorService
+    private editorService: GraphEditorService,
+    private messageService: MessageService
   ) {
     this.windowMousedownListener = (ev: MouseEvent) => {
       const target = ev.target as HTMLElement | null;
@@ -615,11 +617,46 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
         .filter(([k, v]) => k !== "root" && v != null)
     ) as Record<string, string>;
 
+    const modules = this.editorService.modules ?? {};
+    const root = modules?.root ?? {};
+    const rootConnections: Array<any> = root.connections ?? [];
+    const rootNodeIds = new Set((root.nodes ?? []).map((n: any) => n.id));
+
+    const connectedStageIds = new Set<string>();
+    for (const c of rootConnections) {
+      if (c.source && rootNodeIds.has(c.source)) connectedStageIds.add(c.source);
+      if (c.target && rootNodeIds.has(c.target)) connectedStageIds.add(c.target);
+    }
+
+    const missingIds: string[] = [];
+    for (const id of connectedStageIds) {
+      const assigned = this.stageAssignment.get(id);
+      if (!assigned) missingIds.push(id);
+    }
+
+    if (missingIds.length > 0) {
+      const names = missingIds.map((id) => this.editorService.getStageName(id) || id);
+      const preview = names.slice(0, 3).join(', ') + (names.length > 3 ? '...' : '');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Assign services',
+        detail: `Assign a service to all connected stages first: ${preview}`,
+        life: 5000
+      });
+      return;
+    }
+
     try {
       await this.editorService.generateAndDownloadCode(assignmentsObj);
       this.close.emit();
     } catch (err) {
-      console.error("Generation failed via editorService:", err);
+      console.error('Generation failed via editorService:', err);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Generation failed',
+        detail: 'An error occurred while generating the services. Check console for details.',
+        life: 6000
+      });
     }
   }
 }
