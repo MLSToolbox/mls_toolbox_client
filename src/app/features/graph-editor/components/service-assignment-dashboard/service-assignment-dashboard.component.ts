@@ -10,8 +10,10 @@ import {
   SimpleChanges,
   ChangeDetectorRef,
   ElementRef,
-  NgZone,
+  NgZone
 } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import { GraphEditorService } from "../../services/graph-editor.service"; // ruta RELATIVA correcta
 
 @Component({
   selector: "app-service-assignment-dashboard",
@@ -73,7 +75,9 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
   constructor(
     private cdr: ChangeDetectorRef,
     private elRef: ElementRef,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private http: HttpClient,
+    private editorService: GraphEditorService
   ) {
     this.windowMousedownListener = (ev: MouseEvent) => {
       const target = ev.target as HTMLElement | null;
@@ -111,12 +115,17 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
         return;
       }
 
-      const confirmBtn = target.closest(".service-confirm-btn") as HTMLElement | null;
+      const confirmBtn = target.closest(".confirm-btn") as HTMLElement | null;
       if (confirmBtn) {
         ev.stopPropagation();
-        const stageId = confirmBtn.getAttribute("data-stage");
-        if (!stageId) return;
-        this.ngZone.run(() => this.confirmEdit(stageId));
+        this.ngZone.run(() => {
+          // si confirmAndGenerate es async, no hace falta await aquí
+          try {
+            (this as any).confirmAndGenerate?.();
+          } catch (e) {
+            // silent fallback
+          }
+        });
         return;
       }
 
@@ -287,7 +296,7 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
     const current = this.getAssignedService(stageId);
     if (current) servicesSet.delete(current);
 
-    const options: Array<{ id: string; color: string; isNew?: boolean }> = [];
+    const options: Array<{ id: string, color: string, isNew?: boolean }> = [];
     for (const sId of Array.from(servicesSet)) {
       const s = this.services.find((x) => x.id === sId);
       if (s) options.push({ id: s.id, color: s.color });
@@ -596,5 +605,21 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
   getPlusTooltip(opt: { id?: string; color?: string; isNew?: boolean } | any): string {
     const id = opt?.id ?? this.getFirstFreeServiceId();
     return id ? `Assign ${id}` : 'Assign service';
+  }
+
+  async confirmAndGenerate(): Promise<void> {
+    await this.editorService.saveCurrentModuleSnapshotToModules();
+
+    const assignmentsObj: Record<string, string> = Object.fromEntries(
+      Array.from(this.stageAssignment.entries())
+        .filter(([k, v]) => k !== "root" && v != null)
+    ) as Record<string, string>;
+
+    try {
+      await this.editorService.generateAndDownloadCode(assignmentsObj);
+      this.close.emit();
+    } catch (err) {
+      console.error("Generation failed via editorService:", err);
+    }
   }
 }

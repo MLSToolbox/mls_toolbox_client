@@ -922,8 +922,10 @@ export class GraphEditorService {
 
   /**
    * Generate code from the editor and download it
+   * If `assignments` is provided, inject service_id per stage from that map.
+   * Otherwise (original behaviour) mark stages as "monolith".
    */
-  async generateAndDownloadCode() {
+  async generateAndDownloadCode(assignments?: Record<string, string | null>) {
     let nodes = [];
     let connections = [];
     let inputs = [];
@@ -966,6 +968,23 @@ export class GraphEditorService {
     };
 
     this.cleanModules();
+
+    const moduleKeys = Object.keys(this.modules);
+    if (assignments && Object.keys(assignments).length > 0) {
+    for (const k of moduleKeys) {
+        if (k === "root") continue;
+        if (!this.modules[k]) continue;
+        const assigned = assignments[k] ?? null;
+        if (assigned) this.modules[k]["service_id"] = assigned;
+    }
+    } else {
+    for (const k of moduleKeys) {
+        if (k === "root") continue;
+        if (!this.modules[k]) continue;
+        this.modules[k]["service_id"] = "monolith";
+    }
+    }
+
     const body: string = JSON.stringify({
       code: { modules: this.modules },
       nodes: this.getNodes(),
