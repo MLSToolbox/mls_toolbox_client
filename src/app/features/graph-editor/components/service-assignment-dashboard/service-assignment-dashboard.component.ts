@@ -72,6 +72,7 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
   public editingStageId: string | null = null;
   public editingValue: string = "";
   private stageColorOverride: Map<string, string | undefined> = new Map();
+  public expandedTemplate: string | null = null;
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -121,12 +122,7 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
       if (confirmBtn) {
         ev.stopPropagation();
         this.ngZone.run(() => {
-          // si confirmAndGenerate es async, no hace falta await aquí
-          try {
             (this as any).confirmAndGenerate?.();
-          } catch (e) {
-            // silent fallback
-          }
         });
         return;
       }
@@ -252,7 +248,7 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
     for (const c of rawConnections) {
       const src = c?.source ?? c?.from ?? c?.src;
       const dst = c?.target ?? c?.to ?? c?.dst;
-      if (!src || !dst) continue;
+      if (!src || !dst) return;
       if (!this.successorMap.has(src)) this.successorMap.set(src, []);
       if (!this.predecessorMap.has(dst)) this.predecessorMap.set(dst, []);
       this.successorMap.get(src)!.push(dst);
@@ -275,8 +271,12 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
     const s = new Set<string | null>();
     for (const id of ids) s.add(this.stageAssignment.get(id) ?? null);
     return s;
-  }
+    }
 
+  /**
+   * Compute available "plus" options for a stage:
+   * considers neighbor services, avoids duplicates and includes a free service if any.
+   */
   getPlusOptions(stageId: string): Array<{ id: string; color: string; isNew?: boolean }> {
     const leftSet = this.neighborServiceSet(stageId, "left");
     const rightSet = this.neighborServiceSet(stageId, "right");
@@ -313,11 +313,85 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
     return options;
   }
 
+  /**
+   * Return true if `stageId` is a "middle" node of a same-service connected component >= 3.
+   * Uses BFS to gather the same-service component, then checks reachable nodes backward/forward.
+   */
+  private isMiddleOfLargeGroup(stageId: string): boolean {
+    const svc = this.getAssignedService(stageId);
+    if (!svc) return false;
+
+    const sameSvc = new Set<string>();
+    const queue: string[] = [stageId];
+    sameSvc.add(stageId);
+
+    while (queue.length > 0) {
+      const cur = queue.shift()!;
+      const neighs = (this.getPredecessorIds(cur) ?? []).concat(this.getSuccessorIds(cur) ?? []);
+      for (const nb of neighs) {
+        if (sameSvc.has(nb)) continue;
+        if (this.getAssignedService(nb) === svc) {
+          sameSvc.add(nb);
+          queue.push(nb);
+        }
+      }
+    }
+
+    if (sameSvc.size < 3) return false;
+
+    const reachableBackward = (() => {
+      const visited = new Set<string>();
+      const q: string[] = [stageId];
+      visited.add(stageId);
+      while (q.length > 0) {
+        const cur = q.shift()!;
+        for (const p of this.getPredecessorIds(cur) ?? []) {
+          if (!sameSvc.has(p)) continue;
+          if (visited.has(p)) continue;
+          if (p !== stageId) return true;
+          visited.add(p);
+          q.push(p);
+        }
+      }
+      return false;
+    })();
+
+    const reachableForward = (() => {
+      const visited = new Set<string>();
+      const q: string[] = [stageId];
+      visited.add(stageId);
+      while (q.length > 0) {
+        const cur = q.shift()!;
+        for (const s of this.getSuccessorIds(cur) ?? []) {
+          if (!sameSvc.has(s)) continue;
+          if (visited.has(s)) continue;
+          if (s !== stageId) return true;
+          visited.add(s);
+          q.push(s);
+        }
+      }
+      return false;
+    })();
+
+    return Boolean(reachableBackward && reachableForward);
+  }
+
+  /**
+   * Decide whether to show the "+" control for a stage.
+   * hides + for "middle" nodes of large same-service components, otherwise relies on getPlusOptions().
+   */
   canShowPlus(stageId: string): boolean {
+    if (this.isMiddleOfLargeGroup(stageId)) return false;
     return this.getPlusOptions(stageId).length > 0;
   }
 
+  /**
+   * Decide whether to show the "-" control for a stage.
+   * hides - for "middle" nodes of large same-service components.
+   * additionally enforces adjacency rules (if same service exists both left and right, hide -).
+   */
   canShowMinus(stageId: string): boolean {
+    if (this.isMiddleOfLargeGroup(stageId)) return false;
     const cur = this.getAssignedService(stageId);
     if (!cur) return false;
     const leftServices = this.neighborServiceSet(stageId, "left");
@@ -353,12 +427,18 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
     return s ? s.color : undefined;
   }
 
+  /** 
+   * Return the first unused service id (e.g. 'svX') or null if all defined services are in use. 
+   */
   private getFirstFreeServiceId(): string | null {
     const used = new Set(Array.from(this.stageAssignment.values()).filter((v): v is string => !!v));
     const free = this.services.find((s) => !used.has(s.id));
     return free ? free.id : null;
   }
 
+  /** 
+   * Enter edit mode for a stage: set editing state, prefill value and focus the input element. 
+   */
   startEdit(stageId: string): void {
     const cur = this.getAssignedService(stageId) ?? "";
     this.editingStageId = stageId;
@@ -366,13 +446,9 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
     this.stageColorOverride.set(stageId, this.getServiceColor(cur) ?? undefined);
 
     setTimeout(() => {
-      try {
         const selector = `.service-edit-input[data-stage="${stageId}"]`;
         const el = this.elRef.nativeElement.querySelector(selector) as HTMLElement | null;
         if (el && typeof el.focus === "function") el.focus();
-      } catch (e) {
-        // silent
-      }
     }, 0);
   }
 
@@ -381,6 +457,9 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
     this.editingValue = "";
   }
 
+  /** 
+   * Validate and apply the inline edit: rename the service id or unassign the stage, then update assignments. 
+   */
   confirmEdit(stageId: string): void {
     const raw = String(this.editingValue ?? "").trim().slice(0, 10);
     const newId = raw.length > 0 ? raw : null;
@@ -431,6 +510,9 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
     this.editingValue = "";
   }
 
+  /** 
+   * Validate service label on blur: accept `svN` pattern and apply assignment, otherwise restore previous label. 
+   */
   onServiceLabelBlur(stageId: string, ev: Event): void {
     const el = ev.target as HTMLElement;
     const raw = el.innerText?.trim() ?? "";
@@ -444,30 +526,32 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
     }
   }
 
+  /** 
+   * Emit the current `stageAssignment` as a plain object through the `assignmentsChange` EventEmitter. 
+   */
   private emitAssignments(): void {
     const obj: Record<string, string | null> = {};
     for (const [k, v] of this.stageAssignment.entries()) obj[k] = v ?? null;
     this.assignmentsChange.emit(obj);
   }
 
+  /** 
+   * Convert the `stages` input into a flat, ordered array with depth/row metadata used for layout and rendering. 
+   */
   private toStageArray(stages: any): Array<any> {
     if (!stages) return [];
     let rawNodes: any[] = [];
     let rawConnections: any[] = [];
-    try {
-      if (stages["root"]) {
-        const root = stages["root"];
-        if (Array.isArray(root.nodes)) rawNodes = root.nodes;
-        else if (typeof root.nodes === "object" && root.nodes !== null)
-          rawNodes = Array.isArray(Object.values(root.nodes)) ? Object.values(root.nodes) : [];
-        rawConnections = Array.isArray(root.connections) ? root.connections : [];
-      } else if (Array.isArray(stages)) {
-        rawNodes = stages;
-      } else if (typeof stages === "object") {
-        rawNodes = Object.values(stages);
-      }
-    } catch {
-      // ignore
+    if (stages["root"]) {
+    const root = stages["root"];
+    if (Array.isArray(root.nodes)) rawNodes = root.nodes;
+    else if (typeof root.nodes === "object" && root.nodes !== null)
+        rawNodes = Array.isArray(Object.values(root.nodes)) ? Object.values(root.nodes) : [];
+    rawConnections = Array.isArray(root.connections) ? root.connections : [];
+    } else if (Array.isArray(stages)) {
+    rawNodes = stages;
+    } else if (typeof stages === "object") {
+    rawNodes = Object.values(stages);
     }
 
     const nodesById: Map<string, any> = new Map();
@@ -579,36 +663,173 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
     this.close.emit();
   }
 
-  public hackClickPlus(event: any, stageId: string, optId: string, isNew: boolean): void {
-      event.preventDefault();
-      event.stopPropagation();
-      
-      console.warn("HACK CLICK FUNCIONA! Stage:", stageId, "Servei:", optId);
-
-      let toAssign = optId;
-      if (isNew) {
-        const free = this.getFirstFreeServiceId();
-        toAssign = free ? free : (optId ?? this.services[0].id);
-      } else if (!toAssign) {
-        toAssign = this.services[0].id;
-      }
-      this.assignService(stageId, toAssign);
-  }
-
-  public hackClickMinus(event: any, stageId: string): void {
-      event.preventDefault();
-      event.stopPropagation();
-      
-      console.warn("HACK MINUS FUNCIONA! Stage:", stageId);
-      if (!this.canShowMinus(stageId)) return;
-      this.assignService(stageId, null);
-  }
-
+  /** 
+   * Build a tooltip string for a plus-option: 
+   * shows the service id or a fallback hint if none available. 
+   */
   getPlusTooltip(opt: { id?: string; color?: string; isNew?: boolean } | any): string {
     const id = opt?.id ?? this.getFirstFreeServiceId();
     return id ? `Assign ${id}` : 'Assign service';
   }
 
+
+  public toggleTemplate(id: string): void {
+    this.expandedTemplate = this.expandedTemplate === id ? null : id;
+  }
+
+  /**
+   * Apply Monolith template:
+   * assign "sv1" to all stages (except "root")
+   */
+  public applyMonolithTemplate(): void {
+    for (const [stageId] of Array.from(this.stageAssignment.entries())) {
+      if (stageId === 'root') continue;
+      this.stageAssignment.set(stageId, 'sv1');
+    }
+    this.emitAssignments();
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Template applied',
+      detail: 'Monolith template applied (all stages -> sv1)',
+      life: 3000
+    });
+    this.expandedTemplate = null;
+  }
+
+  /**
+   * Apply One-Per-Stage template:
+   * assign sv1, sv2, ... sv10 (sv10 reused after 10)
+   * Respect pipeline order defined by root.nodes
+   */
+  public applyOnePerStageTemplate(): void {
+    const modules = this.editorService.modules ?? {};
+    const rootNodes = (modules?.root?.nodes ?? []) as Array<{ id: string }>;
+    let idx = 0;
+    for (const n of rootNodes) {
+      const id = n.id;
+      if (id === 'root') continue;
+      idx += 1;
+      const svc = idx <= 10 ? `sv${idx}` : 'sv10';
+      if (this.stageAssignment.has(id)) {
+        this.stageAssignment.set(id, svc);
+      } else {
+        this.stageAssignment.set(id, svc);
+      }
+    }
+
+    for (const [stageId] of Array.from(this.stageAssignment.entries())) {
+      if (stageId === 'root') continue;
+      if (!rootNodes.find(r => r.id === stageId)) {
+        this.stageAssignment.set(stageId, 'sv10');
+      }
+    }
+         this.emitAssignments();
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Template applied',
+      detail: 'One-per-stage template applied',
+      life: 3000
+    });
+    this.expandedTemplate = null;
+  }
+
+  /**
+   * Set all non-root stage assignments to null.
+   * Mutates internal map and returns number of cleared assignments.
+   */
+  public unassignAllStages(): number {
+    if (!(this.stageAssignment instanceof Map)) return 0;
+    const changed: string[] = [];
+    for (const [stageId, svc] of Array.from(this.stageAssignment.entries())) {
+      if (stageId === 'root') continue;
+      if (svc != null) {
+        this.stageAssignment.set(stageId, null);
+        changed.push(stageId);
+      }
+    }
+    return changed.length;
+  }
+
+  /**
+   * Apply Data-Model template:
+   * clears previous assignments then groups modules by category and assigns services respecting adjacency.
+   */
+  public applyDataModelTemplate(): void {
+    const modules = this.editorService.modules ?? {};
+    const rootNodes = (modules?.root?.nodes ?? []) as Array<{ id: string }>;
+         const cleared = this.unassignAllStages();
+         const categoryCache: Map<string, 'deployment' | 'model' | 'data'> = new Map();
+    const classifyModule = (moduleId: string): 'deployment' | 'model' | 'data' => {
+      if (categoryCache.has(moduleId)) return categoryCache.get(moduleId)!;
+      const mod = modules[moduleId] ?? { nodes: [] };
+      const modNodes = mod.nodes ?? [];
+      let hasModel = false;
+      let hasDeployment = false;
+      for (const node of modNodes) {
+        const cfg = this.editorService.getNode(node.nodeName) ?? {};
+        const cat = (cfg.category ?? '').toString().toLowerCase();
+        if (cat.includes('deploy')) hasDeployment = true;
+        if (cat.includes('model') || cat.includes('training') || cat.includes('evaluation')) hasModel = true;
+      }
+      const result = hasDeployment ? 'deployment' : hasModel ? 'model' : 'data';
+      categoryCache.set(moduleId, result);
+      return result;
+    };
+    for (const n of rootNodes) {
+      const id = n.id;
+      if (id === 'root') continue;
+      const category = classifyModule(id);
+
+      let assignedSvc: string | null = null;
+
+      const tryFindNeighborSvc = (ids: string[]) => {
+        for (const nb of ids) {
+          if (classifyModule(nb) === category) {
+          const nbSvc = this.stageAssignment.get(nb) ?? null;
+             if (nbSvc) {
+                assignedSvc = nbSvc;
+                break;
+             }
+          }
+        }
+      };
+
+      tryFindNeighborSvc(this.getPredecessorIds(id));
+      if (!assignedSvc) tryFindNeighborSvc(this.getSuccessorIds(id));
+
+      if (assignedSvc) {
+        this.stageAssignment.set(id, assignedSvc);
+      } else {
+        const free = this.getFirstFreeServiceId();
+        if (free) this.stageAssignment.set(id, free);
+        else this.stageAssignment.set(id, 'sv10');
+      }
+    }
+
+    for (const [stageId] of Array.from(this.stageAssignment.entries())) {
+      if (stageId === 'root') continue;
+      if (!rootNodes.find(r => r.id === stageId)) {
+        if (!this.stageAssignment.get(stageId)) this.stageAssignment.set(stageId, 'sv10');
+      }
+    }
+
+    this.stageAssignment = new Map(this.stageAssignment);
+    this.cdr.detectChanges();
+    this.emitAssignments();
+
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Template applied',
+      detail: 'Data-Model template applied',
+      life: 3000
+    });
+    this.expandedTemplate = null;
+  }
+
+  /**
+   * Confirm & generate:
+   * validates assignments then calls service to generate and download code.
+   */
   async confirmAndGenerate(): Promise<void> {
     await this.editorService.saveCurrentModuleSnapshotToModules();
 

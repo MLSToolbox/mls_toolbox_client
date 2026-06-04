@@ -1,179 +1,202 @@
 ﻿<div class="dashboard-root">
-  <div class="templates" aria-hidden="true">
-    <div class="template">Template A</div>
-    <div class="template">Template B</div>
-    <div class="template">Template C</div>
-  </div>
-
-  <div class="canvas" role="region" aria-label="Service assignment preview">
-    <ng-container *ngIf="depthColumns.length > 0; else noColumns">
-      <div class="depths-container">
-        <ng-container *ngFor="let col of depthColumns">
-          <div class="depth-column" [attr.data-depth]="col.depth">
-            <div class="depth-body">
-              <ng-container *ngFor="let s of col.nodes; trackBy: trackByStage">
-                <div class="stage-wrapper">
-                  <div
-                    class="node-mock"
-                    title="{{ s.label }}"
-                    [class.assigned]="getAssignedService(s.id)"
-                    [style.border-color]="getServiceColor(getAssignedService(s.id)) || 'var(--color-border-light, #e6e6e6)'"
-                  >
-                    <div class="node-title" [ngStyle]="s.color ? { 'background': s.color } : {}">
-                      <ng-container *ngIf="getAssignedService(s.id) as srv">
-                        <div class="service-line">
-                          <span class="service-label">Service:</span>
-
-                          <!-- Editing mode for this stage -->
-                          <ng-container *ngIf="editingStageId === s.id; else viewMode">
-                            <input
-                              class="service-edit-input"
-                              type="text"
-                              maxlength="10"
-                              [(ngModel)]="editingValue"
-                              (keydown.enter)="confirmEdit(s.id)"
-                              (keydown.escape)="cancelEdit()"
-                              [attr.data-stage]="s.id"
-                            />
-                            <!-- Editing mode: confirm / cancel -->
-                            <button
-                              class="service-confirm-btn"
-                              type="button"
-                              (click)="confirmEdit(s.id)"
-                              [attr.data-stage]="s.id"
-                              title="Confirm"
-                            >✔</button>
-                            <button
-                              class="service-cancel-btn"
-                              type="button"
-                              (click)="cancelEdit()"
-                              [attr.data-stage]="s.id"
-                              title="Cancel"
-                            >✖</button>
-                          </ng-container>
-
-                          <!-- View mode -->
-                          <ng-template #viewMode>
-                            <span class="service-pill" [style.background]="getPillColor(s.id, srv)">{{ srv }}</span>
-                            <button
-                              class="service-edit-btn"
-                              type="button"
-                              title="Edit service name"
-                              (click)="startEdit(s.id)"
-                              [attr.data-stage]="s.id"
-                            >✏️</button>
-                          </ng-template>
-                        </div>
-
-                        <div class="stage-line">
-                          <span class="node-title-text">{{ s.label }}</span>
-                        </div>
-                      </ng-container>
-
-                      <!-- not assigned: only show stage name -->
-                      <ng-container *ngIf="!getAssignedService(s.id)">
-                        <div class="stage-line">
-                          <span class="node-title-text">{{ s.label }}</span>
-                        </div>
-                      </ng-container>
-                    </div>
-
-                    <div class="node-body">
-                      <div class="socket socket-left" aria-hidden="true"></div>
-                      <div class="socket socket-right" aria-hidden="true"></div>
-                      <div class="node-placeholder">
-                        <div class="slot"></div>
-                        <div class="slot"></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- plus/minus area -->
-                  <div class="assign-actions">
-                    <button
-                      class="minus-btn"
-                      *ngIf="canShowMinus(s.id)"
-                      title="Remove service assigned"
-                      type="button"
-                      [attr.data-stage]="s.id"
-                    >−</button>
-
-                    <ng-container *ngFor="let opt of getPlusOptions(s.id)">
-                      <button
-                        class="plus-btn"
-                        [style.background]="opt.color"
-                        [attr.title]="getPlusTooltip(opt)"
-                        type="button"
-                        [attr.data-stage]="s.id"
-                        [attr.data-opt-id]="opt.id"
-                        [attr.data-opt-new]="opt.isNew ? '1' : '0'"
-                      >
-                        +
-                      </button>
-                    </ng-container>
-                  </div>
-                </div>
-              </ng-container>
+    <div class="templates-accordion">
+        <div class="template-panel" [class.expanded]="expandedTemplate === 'monolith'">
+            <button type="button" class="template-header" (click)="toggleTemplate('monolith')" [attr.aria-expanded]="expandedTemplate === 'monolith'">
+                <span class="template-title">Monolith</span>
+                <span class="template-indicator">{{ expandedTemplate === 'monolith' ? '▾' : '▸' }}</span>
+            </button>
+            <div *ngIf="expandedTemplate === 'monolith'" class="template-body">
+                <p class="template-desc">Assigns all stages to a single service (sv1).</p>
+                <button type="button" class="p-button p-component p-button-secondary" (click)="applyMonolithTemplate()">Apply Template</button>
             </div>
-          </div>
-        </ng-container>
-      </div>
-    </ng-container>
-
-    <ng-template #noColumns>
-      <div class="empty-placeholder">No stages to display</div>
-    </ng-template>
-  </div>
-
-  <ng-template #noColumns></ng-template>
-
-  <div *ngIf="unassignedStageArray.length > 0" class="unassigned-section" aria-label="Unassigned stages">
-    <div class="unassigned-title">Unassigned stages</div>
-    <div class="unassigned-desc">
-      Unassigned stages must be connected to other stages to be packaged into services and included in the "Generate as Services" output.
-    </div>
-
-    <div class="unassigned-row">
-      <ng-container *ngFor="let s of unassignedStageArray; trackBy: trackByStage">
-        <div class="stage-wrapper">
-          <div class="node-mock" title="{{ s.label }}">
-            <div class="node-title" [ngStyle]="s.color ? { 'background': s.color } : {}">
-              <span class="node-title-text">{{ s.label }}</span>
-            </div>
-            <div class="node-body">
-              <div class="node-placeholder">
-                <div class="slot"></div>
-              </div>
-            </div>
-          </div>
         </div>
-      </ng-container>
+
+        <div class="template-panel" [class.expanded]="expandedTemplate === 'one-per-stage'">
+            <button type="button" class="template-header" (click)="toggleTemplate('one-per-stage')" [attr.aria-expanded]="expandedTemplate === 'one-per-stage'">
+                <span class="template-title">One per stage</span>
+                <span class="template-indicator">{{ expandedTemplate === 'one-per-stage' ? '▾' : '▸' }}</span>
+            </button>
+            <div *ngIf="expandedTemplate === 'one-per-stage'" class="template-body">
+                <p class="template-desc">Assigns services sequentially (sv1, sv2, ...) up to sv10 (then sv10 reused).</p>
+                <button type="button" class="p-button p-component p-button-secondary" (click)="applyOnePerStageTemplate()">Apply Template</button>
+            </div>
+        </div>
+
+        <div class="template-panel" [class.expanded]="expandedTemplate === 'data-model'">
+            <button type="button" class="template-header" (click)="toggleTemplate('data-model')" [attr.aria-expanded]="expandedTemplate === 'data-model'">
+                <span class="template-title">Data-Model (smart)</span>
+                <span class="template-indicator">{{ expandedTemplate === 'data-model' ? '▾' : '▸' }}</span>
+            </button>
+            <div *ngIf="expandedTemplate === 'data-model'" class="template-body">
+                <p class="template-desc">Group adjacent stages by role: Data → Model → Deployment, assigning services so groups are adjacent.</p>
+                <button type="button" class="p-button p-component p-button-secondary" (click)="applyDataModelTemplate()">Apply Template</button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div class="spacer" aria-hidden="true"></div>
+    <div class="canvas" role="region" aria-label="Service assignment preview">
+        <ng-container *ngIf="depthColumns.length > 0; else noColumns">
+            <div class="depths-container">
+                <ng-container *ngFor="let col of depthColumns">
+                    <div class="depth-column" [attr.data-depth]="col.depth">
+                        <div class="depth-body">
+                            <ng-container *ngFor="let s of col.nodes; trackBy: trackByStage">
+                                <div class="stage-wrapper">
+                                    <div class="node-mock"
+                                         title="{{ s.label }}"
+                                         [class.assigned]="getAssignedService(s.id)"
+                                         [style.border-color]="getServiceColor(getAssignedService(s.id)) || 'var(--color-border-light, #e6e6e6)'">
+                                        <div class="node-title" [ngStyle]="s.color ? { 'background': s.color } : {}">
+                                            <ng-container *ngIf="getAssignedService(s.id) as srv">
+                                                <div class="service-line">
+                                                    <span class="service-label">Service:</span>
 
-  <!-- Footer / palette: sección de paleta actualizada -->
-  <div class="dashboard-footer" role="toolbar" aria-label="Dashboard actions (visual only)">
-    <div class="palette" aria-hidden="true">
-      <div class="palette-header">
-        <div class="palette-label">Available services</div>
-        <div class="palette-desc">Services can be assigned or unassigned using the + and - controls under each stage box.</div>
-      </div>
-      <div class="palette-row">
-        <ng-container *ngFor="let svc of services">
-          <span
-            class="service-circle"
-            [style.background]="svc.color"
-            [attr.title]="svc.id"
-            [attr.aria-label]="svc.id"
-          ></span>
+                                                    <!-- Editing mode for this stage -->
+                                                    <ng-container *ngIf="editingStageId === s.id; else viewMode">
+                                                        <input class="service-edit-input"
+                                                               type="text"
+                                                               maxlength="10"
+                                                               [(ngModel)]="editingValue"
+                                                               (keydown.enter)="confirmEdit(s.id)"
+                                                               (keydown.escape)="cancelEdit()"
+                                                               [attr.data-stage]="s.id" />
+                                                        <!-- Editing mode: confirm / cancel -->
+                                                        <button class="service-confirm-btn"
+                                                                type="button"
+                                                                (click)="confirmEdit(s.id)"
+                                                                [attr.data-stage]="s.id"
+                                                                title="Confirm">
+                                                            ✔
+                                                        </button>
+                                                        <button class="service-cancel-btn"
+                                                                type="button"
+                                                                (click)="cancelEdit()"
+                                                                [attr.data-stage]="s.id"
+                                                                title="Cancel">
+                                                            ✖
+                                                        </button>
+                                                    </ng-container>
+
+                                                    <!-- View mode -->
+                                                    <ng-template #viewMode>
+                                                        <span class="service-pill" [style.background]="getPillColor(s.id, srv)">{{ srv }}</span>
+                                                        <button class="service-edit-btn"
+                                                                type="button"
+                                                                title="Edit service name"
+                                                                (click)="startEdit(s.id)"
+                                                                [attr.data-stage]="s.id">
+                                                            ✏️
+                                                        </button>
+                                                    </ng-template>
+                                                </div>
+
+                                                <div class="stage-line">
+                                                    <span class="node-title-text">{{ s.label }}</span>
+                                                </div>
+                                            </ng-container>
+
+                                            <!-- not assigned: only show stage name -->
+                                            <ng-container *ngIf="!getAssignedService(s.id)">
+                                                <div class="stage-line">
+                                                    <span class="node-title-text">{{ s.label }}</span>
+                                                </div>
+                                            </ng-container>
+                                        </div>
+
+                                        <div class="node-body">
+                                            <div class="socket socket-left" aria-hidden="true"></div>
+                                            <div class="socket socket-right" aria-hidden="true"></div>
+                                            <div class="node-placeholder">
+                                                <div class="slot"></div>
+                                                <div class="slot"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- plus/minus area -->
+                                    <div class="assign-actions">
+                                        <button class="minus-btn"
+                                                *ngIf="canShowMinus(s.id)"
+                                                title="Remove service assigned"
+                                                type="button"
+                                                [attr.data-stage]="s.id">
+                                            −
+                                        </button>
+
+                                        <ng-container *ngIf="canShowPlus(s.id)">
+                                            <ng-container *ngFor="let opt of getPlusOptions(s.id)">
+                                                <button class="plus-btn"
+                                                        [style.background]="opt.color"
+                                                        [attr.title]="getPlusTooltip(opt)"
+                                                        type="button"
+                                                        [attr.data-stage]="s.id"
+                                                        [attr.data-opt-id]="opt.id"
+                                                        [attr.data-opt-new]="opt.isNew ? '1' : '0'">
+                                                    +
+                                                </button>
+                                            </ng-container>
+                                        </ng-container>
+                                    </div>
+                                </div>
+                            </ng-container>
+                        </div>
+                    </div>
+                </ng-container>
+            </div>
         </ng-container>
-      </div>
+
+        <ng-template #noColumns>
+            <div class="empty-placeholder">No stages to display</div>
+        </ng-template>
     </div>
 
-    <div class="action-area" aria-hidden="true">
-      <button class="confirm-btn" type="button" (click)="confirmAndGenerate()">Confirm &amp; Generate</button>
+    <ng-template #noColumns></ng-template>
+
+    <div *ngIf="unassignedStageArray.length > 0" class="unassigned-section" aria-label="Unassigned stages">
+        <div class="unassigned-title">Unassigned stages</div>
+        <div class="unassigned-desc">
+            Unassigned stages must be connected to other stages to be packaged into services and included in the "Generate as Services" output.
+        </div>
+
+        <div class="unassigned-row">
+            <ng-container *ngFor="let s of unassignedStageArray; trackBy: trackByStage">
+                <div class="stage-wrapper">
+                    <div class="node-mock" title="{{ s.label }}">
+                        <div class="node-title" [ngStyle]="s.color ? { 'background': s.color } : {}">
+                            <span class="node-title-text">{{ s.label }}</span>
+                        </div>
+                        <div class="node-body">
+                            <div class="node-placeholder">
+                                <div class="slot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
     </div>
-  </div>
+
+    <div class="spacer" aria-hidden="true"></div>
+
+    <!-- Footer: Services palette -->
+    <div class="dashboard-footer" role="toolbar" aria-label="Dashboard actions (visual only)">
+        <div class="palette" aria-hidden="true">
+            <div class="palette-header">
+                <div class="palette-label">Available services</div>
+                <div class="palette-desc">Services can be assigned or unassigned using the + and - controls under each stage box.</div>
+            </div>
+            <div class="palette-row">
+                <ng-container *ngFor="let svc of services">
+                    <span class="service-circle"
+                          [style.background]="svc.color"
+                          [attr.title]="svc.id"
+                          [attr.aria-label]="svc.id"></span>
+                </ng-container>
+            </div>
+        </div>
+
+        <div class="action-area" aria-hidden="true">
+            <button class="confirm-btn" type="button" (click)="confirmAndGenerate()">Confirm &amp; Generate</button>
+        </div>
+    </div>
 </div>

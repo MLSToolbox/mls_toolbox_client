@@ -12,6 +12,7 @@ import { ServiceAssignmentDashboardComponent } from "../service-assignment-dashb
 })
 export class GraphFileComponent implements OnDestroy {
   @ViewChild("fileInput") fileInput!: ElementRef;
+  @ViewChild(ServiceAssignmentDashboardComponent) serviceDashboard?: ServiceAssignmentDashboardComponent;
   ref: DynamicDialogRef | undefined;
 
   showServiceDashboard: boolean = false;
@@ -63,7 +64,22 @@ export class GraphFileComponent implements OnDestroy {
     } catch (e) {
       this.stagesForDialog = this.editorService.modules ?? {};
     }
+
     this.showServiceDashboard = true;
+
+    setTimeout(() => {
+      try {
+        if (!this.serviceDashboard) return;
+        const removed = this.serviceDashboard.unassignAllStages();
+        this.serviceDashboard.stageAssignment = new Map(this.serviceDashboard.stageAssignment);
+        this.serviceDashboard.assignmentsChange.emit(Object.fromEntries(this.serviceDashboard.stageAssignment.entries()));
+        if (removed > 0) {
+          console.info(`Cleared ${removed} service assignment(s) when opening Service Assignment dialog.`);
+        }
+      } catch (err) {
+        console.error("Error clearing assignments on openServicesDashboard:", err);
+      }
+    }, 0);
   }
 
   onDashboardClose() {

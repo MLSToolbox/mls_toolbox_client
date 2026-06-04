@@ -288,7 +288,6 @@
 .action-area { display:flex; align-items:center; justify-content:flex-end; flex:0 0 auto; }
 .confirm-btn { background: var(--color-primary, #004a99); color:white; padding:0.6rem 1rem; border-radius:6px; border:none; opacity:0.6; }
 
-/* input and confirm/cancel buttons in service edit */
 .service-edit-input {
   padding: 6px 8px;
   border-radius: 6px;
@@ -309,4 +308,55 @@
   margin-left: 6px;
 }
 
-.service-line { display:flex; align-items:center; gap:0.5rem; }
+.service-line { 
+    display:flex; 
+    align-items:center; 
+    gap:0.5rem; 
+
+}
+
+.templates-accordion { 
+    display: flex; 
+    gap: 12px; 
+    align-items: flex-start; 
+    margin-bottom: 12px; 
+
+}
+.template-panel { 
+    border: 1px solid #e0e0e0; 
+    border-radius: 6px; 
+    width: 32%; 
+    overflow: hidden; 
+    background: #fff; 
+
+}
+.template-header { 
+    width: 100%; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 10px; 
+    background: transparent; 
+    border: 0; 
+    text-align: left; 
+    cursor: pointer; 
+    font-weight: 600; 
+}
+.template-body { 
+    padding: 10px; 
+    border-top: 1px solid #f0f0f0; 
+}
+.template-desc { 
+    margin: 0 0 8px 0; 
+    font-size: 0.95rem; 
+    color: #555; 
+}
+
+.template-indicator { 
+    font-size: 1.1rem; 
+
+}
+.template-panel.expanded { 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06); 
+
+}
