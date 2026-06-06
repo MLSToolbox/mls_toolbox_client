@@ -2,6 +2,7 @@ import { Component, ElementRef, ViewChild } from "@angular/core";
 import { DialogService, DynamicDialogRef } from "primeng/dynamicdialog";
 import { GraphEditorService } from "@app/core";
 import { TemplateDialogComponent } from "./template-dialog/template-dialog.component";
+import { ServingDialogComponent } from "./serving-dialog/serving-dialog.component";
 
 @Component({
   selector: "app-graph-file",
@@ -72,6 +73,19 @@ export class GraphFileComponent {
       if (path) {
         await this.editorService.loadTemplate(path);
       }
+    });
+  }
+
+  showServingPipeline() {
+    this.ref = this.dialogService.open(ServingDialogComponent, {
+      header: "New Serving Pipeline",
+      width: "40vw",
+      styleClass: "template-selection-dialog",
+      contentStyle: { overflow: "auto" },
+      breakpoints: {
+        "960px": "80vw",
+        "640px": "95vw",
+      },
     });
   }
 

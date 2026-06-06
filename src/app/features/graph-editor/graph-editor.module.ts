@@ -7,6 +7,7 @@ import { GraphMenuComponent } from "./components/graph-menu/graph-menu.component
 import { GraphPropertiesComponent } from "./components/graph-properties/graph-properties.component";
 import { GraphLayersComponent } from "./components/graph-layers/graph-layers.component";
 import { TemplateDialogComponent } from "./components/graph-file/template-dialog/template-dialog.component";
+import { ServingDialogComponent } from "./components/graph-file/serving-dialog/serving-dialog.component";
 import { GraphFileComponent } from "./components/graph-file/graph-file.component";
 import { CustomNodeComponent } from "./components/custom-node/custom-node.component";
 import { ModelNodeComponent } from "./components/custom-node/model-node.component";
@@ -35,6 +36,7 @@ import { SharedModule } from "@shared/shared.module";
     GraphPropertiesComponent, 
     GraphFileComponent,       
     TemplateDialogComponent,  
+    ServingDialogComponent,
     CustomNodeComponent,      
     ModelNodeComponent,       
     CustomSocketComponent,    
