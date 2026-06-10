@@ -118,15 +118,6 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
         return;
       }
 
-      const confirmBtn = target.closest(".confirm-btn") as HTMLElement | null;
-      if (confirmBtn) {
-        ev.stopPropagation();
-        this.ngZone.run(() => {
-            (this as any).confirmAndGenerate?.();
-        });
-        return;
-      }
-
       const cancelBtn = target.closest(".service-cancel-btn") as HTMLElement | null;
       if (cancelBtn) {
         ev.stopPropagation();
