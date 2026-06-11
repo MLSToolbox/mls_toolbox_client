@@ -114,7 +114,7 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
         }
 
         if (!stageId) return;
-        this.ngZone.run(() => this.startEdit(stageId));
+        this.ngZone.run(() => this.startEdit(stageId!));
         return;
       }
 
@@ -272,8 +272,8 @@ export class ServiceAssignmentDashboardComponent implements OnInit, OnChanges, A
     const leftSet = this.neighborServiceSet(stageId, "left");
     const rightSet = this.neighborServiceSet(stageId, "right");
 
-    const onlyLeftSingle = leftSet.size === 1 && !leftSet.has(undefined) && !leftSet.has(null);
-    const onlyRightSingle = rightSet.size === 1 && !rightSet.has(undefined) && !rightSet.has(null);
+    const onlyLeftSingle = leftSet.size === 1 && !leftSet.has(null);
+    const onlyRightSingle = rightSet.size === 1 && !rightSet.has(null);
     if (onlyLeftSingle && onlyRightSingle) {
       const leftVal = Array.from(leftSet)[0];
       const rightVal = Array.from(rightSet)[0];
