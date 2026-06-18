@@ -44,6 +44,38 @@ type FocusablePanel =
   | GraphEditorComponent
   | GraphPropertiesComponent;
 
+type ServingOrigin = "mls" | "external";
+type ServingType = "api" | "batch";
+
+interface ManualServingStep {
+  nodeName: string;
+  column: string;
+  valueToReplace: string;
+  replacementValue: string;
+}
+
+interface ManualFeatureEngineeringStep {
+  nodeName: string;
+  params: Record<string, any>;
+}
+
+interface ServingPipelineOptions {
+  origin: ServingOrigin;
+  servingType: ServingType;
+  endpointHost: string;
+  endpointPort: number;
+  outputPath?: string;
+  includePreprocessing: boolean;
+  includeFeatureEngineering: boolean;
+  trainingPipelineJson: any | null;
+  dataCollectionNodeName: string;
+  dataCollectionParams: Record<string, any>;
+  manualSteps: ManualServingStep[];
+  featureEngineeringSteps: ManualFeatureEngineeringStep[];
+  featureScalerPath: string | null;
+  truthScalerPath: string | null;
+}
+
 export function accumulateOnCtrl(): { active(): boolean; destroy(): void } {
   function active() {
     return false;
@@ -1041,6 +1073,818 @@ export class GraphEditorService {
     const json = await response.json();
 
     await this.loadEditor(json);
+  }
+
+  /**
+   * Create and load a serving pipeline in the editor
+   */
+  async createServingPipeline(options: ServingPipelineOptions) {
+    await this.waitForFetch();
+    const pipeline = this.buildServingPipeline(options);
+    await this.loadEditor(pipeline);
+  }
+
+  private buildServingPipeline(options: ServingPipelineOptions) {
+    const rootId = "root";
+    const endpointUrl = this.buildEndpointUrl(
+      options.endpointHost,
+      options.endpointPort
+    );
+    const modules: any = {
+      [rootId]: {
+        nodes: [],
+        connections: [],
+        inputs: [],
+        outputs: [],
+      },
+    };
+
+    const dataCleaningResult = options.includePreprocessing
+      ? this.buildDataCleaningModule(options)
+      : null;
+
+    const featureEngineeringResult = options.includeFeatureEngineering
+      ? this.buildFeatureEngineeringModule(options)
+      : null;
+
+    const dataCollectionResult = this.buildDataCollectionModule(
+      options.dataCollectionNodeName,
+      options.dataCollectionParams,
+      dataCleaningResult?.inputKey || featureEngineeringResult?.inputKey || "raw_data"
+    );
+    const servingResult = this.buildServingModule(
+      options.servingType,
+      endpointUrl,
+      featureEngineeringResult?.outputKey ||
+        dataCleaningResult?.outputKey ||
+        dataCollectionResult.outputKey,
+      options.outputPath || "",
+      options.featureScalerPath,
+      options.truthScalerPath
+    );
+
+    modules[dataCollectionResult.id] = dataCollectionResult.module;
+    if (dataCleaningResult) {
+      modules[dataCleaningResult.id] = dataCleaningResult.module;
+    }
+    if (featureEngineeringResult) {
+      modules[featureEngineeringResult.id] = featureEngineeringResult.module;
+    }
+    modules[servingResult.id] = servingResult.module;
+
+    const dataCollectionStep = this.buildStepNode(
+      dataCollectionResult.id,
+      "Data Collection",
+      "rgba(54, 162, 235, 0.75)"
+    );
+    const servingStep = this.buildStepNode(
+      servingResult.id,
+      "Serving",
+      "rgba(153, 102, 255, 0.75)"
+    );
+
+    modules[rootId].nodes.push(dataCollectionStep, servingStep);
+
+    if (dataCleaningResult) {
+      const dataCleaningStep = this.buildStepNode(
+        dataCleaningResult.id,
+        "Data Cleaning",
+        "rgba(75, 192, 192, 0.75)"
+      );
+      modules[rootId].nodes.splice(1, 0, dataCleaningStep);
+    }
+
+    if (featureEngineeringResult) {
+      const featureStep = this.buildStepNode(
+        featureEngineeringResult.id,
+        "Feature Engineering",
+        "rgba(255, 99, 132, 0.75)"
+      );
+      const insertIndex = dataCleaningResult ? 2 : 1;
+      modules[rootId].nodes.splice(insertIndex, 0, featureStep);
+    }
+
+    if (dataCleaningResult && featureEngineeringResult) {
+      modules[rootId].connections.push(
+        {
+          source: dataCollectionResult.id,
+          sourceOutput: dataCollectionResult.outputKey,
+          target: dataCleaningResult.id,
+          targetInput: dataCleaningResult.inputKey,
+        },
+        {
+          source: dataCleaningResult.id,
+          sourceOutput: dataCleaningResult.outputKey,
+          target: featureEngineeringResult.id,
+          targetInput: featureEngineeringResult.inputKey,
+        },
+        {
+          source: featureEngineeringResult.id,
+          sourceOutput: featureEngineeringResult.outputKey,
+          target: servingResult.id,
+          targetInput: servingResult.inputKey,
+        }
+      );
+    } else if (dataCleaningResult) {
+      modules[rootId].connections.push(
+        {
+          source: dataCollectionResult.id,
+          sourceOutput: dataCollectionResult.outputKey,
+          target: dataCleaningResult.id,
+          targetInput: dataCleaningResult.inputKey,
+        },
+        {
+          source: dataCleaningResult.id,
+          sourceOutput: dataCleaningResult.outputKey,
+          target: servingResult.id,
+          targetInput: servingResult.inputKey,
+        }
+      );
+    } else if (featureEngineeringResult) {
+      modules[rootId].connections.push(
+        {
+          source: dataCollectionResult.id,
+          sourceOutput: dataCollectionResult.outputKey,
+          target: featureEngineeringResult.id,
+          targetInput: featureEngineeringResult.inputKey,
+        },
+        {
+          source: featureEngineeringResult.id,
+          sourceOutput: featureEngineeringResult.outputKey,
+          target: servingResult.id,
+          targetInput: servingResult.inputKey,
+        }
+      );
+    } else {
+      modules[rootId].connections.push({
+        source: dataCollectionResult.id,
+        sourceOutput: dataCollectionResult.outputKey,
+        target: servingResult.id,
+        targetInput: servingResult.inputKey,
+      });
+    }
+
+    return { modules };
+  }
+
+  private buildDataCleaningModule(options: ServingPipelineOptions) {
+    if (options.origin === "mls" && options.trainingPipelineJson) {
+      const fromTraining = this.extractDataCleaningModule(
+        options.trainingPipelineJson
+      );
+      if (fromTraining) {
+        return fromTraining;
+      }
+      return null;
+    }
+
+    if (options.origin === "external") {
+      return this.buildDataCleaningModuleFromSteps(options.manualSteps);
+    }
+
+    return this.buildEmptyDataCleaningModule();
+  }
+
+  private buildFeatureEngineeringModule(options: ServingPipelineOptions) {
+    if (options.origin === "mls" && options.trainingPipelineJson) {
+      const fromTraining = this.extractFeatureEngineeringModule(
+        options.trainingPipelineJson
+      );
+      if (fromTraining) {
+        return fromTraining;
+      }
+      return null;
+    }
+
+    if (options.origin === "external") {
+      return this.buildFeatureEngineeringModuleFromSteps(
+        options.featureEngineeringSteps
+      );
+    }
+
+    return null;
+  }
+
+  private buildEmptyDataCleaningModule() {
+    return this.buildDataCleaningModuleFromSteps([]);
+  }
+
+  private buildFeatureEngineeringModuleFromSteps(
+    steps: ManualFeatureEngineeringStep[]
+  ) {
+    const moduleId = this.newId();
+    const inputKey = "data";
+    const outputKey = "features";
+
+    const inputNode = this.buildInputNode(inputKey, "DataFrame");
+    const outputNode = this.buildOutputNode(outputKey, "DataFrame");
+
+    const nodes = [inputNode.node];
+    const connections: any[] = [];
+
+    let previousNodeId = inputNode.node.id;
+    let previousOutput = "value";
+
+    for (const step of steps) {
+      const stepNode = this.buildFeatureEngineeringNode(step);
+      if (!stepNode) {
+        continue;
+      }
+
+      nodes.push(stepNode.node);
+      connections.push({
+        source: previousNodeId,
+        sourceOutput: previousOutput,
+        target: stepNode.node.id,
+        targetInput: stepNode.inputPort,
+      });
+
+      previousNodeId = stepNode.node.id;
+      previousOutput = stepNode.outputPort;
+    }
+
+    nodes.push(outputNode.node);
+    connections.push({
+      source: previousNodeId,
+      sourceOutput: previousOutput,
+      target: outputNode.node.id,
+      targetInput: "value",
+    });
+
+    const module = {
+      nodes,
+      connections,
+      inputs: [inputNode.io],
+      outputs: [outputNode.io],
+    };
+
+    return { id: moduleId, module, inputKey, outputKey };
+  }
+
+  private buildDataCollectionModule(
+    nodeName: string,
+    params: Record<string, any>,
+    outputKey: string
+  ) {
+    const moduleId = this.newId();
+    const config = this.getNode(nodeName);
+    const outputPort = config.outputs?.[0]?.port_label || "out";
+    const outputType = config.outputs?.[0]?.port_type || "DataFrame";
+
+    const dataNode = this.buildConfiguredNode(nodeName, config, params);
+    const outputNode = this.buildOutputNode(outputKey, outputType);
+
+    const module = {
+      nodes: [dataNode.node, outputNode.node],
+      connections: [
+        {
+          source: dataNode.node.id,
+          sourceOutput: outputPort,
+          target: outputNode.node.id,
+          targetInput: "value",
+        },
+      ],
+      inputs: [],
+      outputs: [outputNode.io],
+    };
+
+    return { id: moduleId, module, outputKey };
+  }
+
+  private buildDataCleaningModuleFromSteps(steps: ManualServingStep[]) {
+    const moduleId = this.newId();
+    const inputKey = "raw_data";
+    const outputKey = "clean_data";
+
+    const inputNode = this.buildInputNode(inputKey, "DataFrame");
+    const outputNode = this.buildOutputNode(outputKey, "DataFrame");
+
+    const nodes = [inputNode.node];
+    const connections: any[] = [];
+
+    let previousNodeId = inputNode.node.id;
+    let previousOutput = "value";
+
+    for (const step of steps) {
+      const stepNode = this.buildCustomNode(step);
+      if (!stepNode) {
+        continue;
+      }
+
+      nodes.push(stepNode.node);
+      connections.push({
+        source: previousNodeId,
+        sourceOutput: previousOutput,
+        target: stepNode.node.id,
+        targetInput: stepNode.inputPort,
+      });
+
+      previousNodeId = stepNode.node.id;
+      previousOutput = stepNode.outputPort;
+    }
+
+    nodes.push(outputNode.node);
+    connections.push({
+      source: previousNodeId,
+      sourceOutput: previousOutput,
+      target: outputNode.node.id,
+      targetInput: "value",
+    });
+
+    const module = {
+      nodes,
+      connections,
+      inputs: [inputNode.io],
+      outputs: [outputNode.io],
+    };
+
+    return { id: moduleId, module, inputKey, outputKey };
+  }
+
+  private buildServingModule(
+    servingType: ServingType,
+    endpointUrl: string,
+    inputKey: string,
+    outputPath: string,
+    featureScalerPath: string | null,
+    truthScalerPath: string | null
+  ) {
+    const moduleId = this.newId();
+    const nodeName = servingType === "api" ? "API Serving" : "Batch Serving";
+
+    const inputNode = this.buildInputNode(inputKey, "DataFrame");
+
+    const servingNode = this.buildServingNode(nodeName, endpointUrl, outputPath, featureScalerPath, truthScalerPath);
+
+    const nodes = [inputNode.node, servingNode.node];
+    const connections = [
+      {
+        source: inputNode.node.id,
+        sourceOutput: "value",
+        target: servingNode.node.id,
+        targetInput: servingNode.inputPort,
+      },
+    ];
+
+    const module = {
+      nodes,
+      connections,
+      inputs: [inputNode.io],
+      outputs: [],
+    };
+
+    return { id: moduleId, module, inputKey, outputKey: "" };
+  }
+
+  private extractDataCleaningModule(trainingPipelineJson: any) {
+    const modules = trainingPipelineJson?.modules;
+    const root = modules?.root;
+    if (!modules || !root || !Array.isArray(root.nodes)) {
+      return null;
+    }
+
+    const stepNode = root.nodes.find((node: any) => {
+      const stageName = node?.data?.params?.["Stage name"]?.value;
+      return typeof stageName === "string" && stageName.toLowerCase() === "data cleaning";
+    });
+
+    if (!stepNode || !modules[stepNode.id]) {
+      return null;
+    }
+
+    const moduleCopy = JSON.parse(JSON.stringify(modules[stepNode.id]));
+    const inputKey = this.resolveModuleKey(moduleCopy, "input") || "raw_data";
+    const outputKey = this.resolveModuleKey(moduleCopy, "output") || "clean_data";
+
+    const normalized = this.ensureModuleIO(moduleCopy);
+
+    return {
+      id: stepNode.id,
+      module: normalized,
+      inputKey,
+      outputKey,
+    };
+  }
+
+  private extractFeatureEngineeringModule(trainingPipelineJson: any) {
+    const modules = trainingPipelineJson?.modules;
+    const root = modules?.root;
+    if (!modules || !root || !Array.isArray(root.nodes)) {
+      return null;
+    }
+
+    const stepNode = root.nodes.find((node: any) => {
+      const stageName = node?.data?.params?.["Stage name"]?.value;
+      return (
+        typeof stageName === "string" &&
+        stageName.toLowerCase().includes("feature engineering")
+      );
+    });
+
+    if (!stepNode || !modules[stepNode.id]) {
+      return null;
+    }
+
+    const moduleCopy = JSON.parse(JSON.stringify(modules[stepNode.id]));
+    const normalized = this.ensureModuleIO(moduleCopy);
+    const featuresOutput = this.findOutputByKey(normalized, "features");
+
+    if (!featuresOutput) {
+      return {
+        id: stepNode.id,
+        module: normalized,
+        inputKey: this.resolveModuleKey(normalized, "input") || "data",
+        outputKey: this.resolveModuleKey(normalized, "output") || "features",
+      };
+    }
+
+    const filtered = this.filterModuleToOutput(normalized, featuresOutput.id);
+    const outputKey =
+      featuresOutput.data?.params?.key?.value ||
+      this.resolveModuleKey(filtered, "output") ||
+      "features";
+
+    return {
+      id: stepNode.id,
+      module: filtered,
+      inputKey: this.resolveModuleKey(filtered, "input") || "data",
+      outputKey,
+    };
+  }
+
+  private ensureModuleIO(moduleData: any) {
+    const inputs = moduleData.inputs && moduleData.inputs.length
+      ? moduleData.inputs
+      : moduleData.nodes.filter((node: any) => node.nodeName === "Input").map((node: any) => ({
+          id: node.id,
+          data: node.data,
+        }));
+
+    const outputs = moduleData.outputs && moduleData.outputs.length
+      ? moduleData.outputs
+      : moduleData.nodes.filter((node: any) => node.nodeName === "Output").map((node: any) => ({
+          id: node.id,
+          data: node.data,
+        }));
+
+    return {
+      ...moduleData,
+      inputs,
+      outputs,
+    };
+  }
+
+  private resolveModuleKey(moduleData: any, kind: "input" | "output") {
+    const list = kind === "input" ? moduleData.inputs : moduleData.outputs;
+    if (Array.isArray(list) && list.length > 0) {
+      return list[0]?.data?.params?.key?.value || "";
+    }
+
+    const nodeName = kind === "input" ? "Input" : "Output";
+    const node = moduleData.nodes?.find((item: any) => item.nodeName === nodeName);
+    return node?.data?.params?.key?.value || "";
+  }
+
+  private resolveModuleKeyPreferred(moduleData: any, preferredKeys: string[]) {
+    const outputs = moduleData.outputs;
+    if (!Array.isArray(outputs)) return "";
+    const normalized = preferredKeys.map((key) => key.toLowerCase());
+    const match = outputs.find((output: any) => {
+      const key = output?.data?.params?.key?.value;
+      return (
+        typeof key === "string" &&
+        normalized.some((needle) => key.toLowerCase().includes(needle))
+      );
+    });
+    return match?.data?.params?.key?.value || "";
+  }
+
+  private findOutputByKey(moduleData: any, keyMatch: string) {
+    const outputs = Array.isArray(moduleData.outputs) ? moduleData.outputs : [];
+    if (outputs.length === 0) {
+      return null;
+    }
+
+    const match = outputs.find((output: any) => {
+      const key = output?.data?.params?.key?.value;
+      return typeof key === "string" && key.toLowerCase().includes(keyMatch);
+    });
+
+    return match || null;
+  }
+
+  private filterModuleToOutput(moduleData: any, outputNodeId: string) {
+    const nodes = Array.isArray(moduleData.nodes) ? moduleData.nodes : [];
+    const connections = Array.isArray(moduleData.connections)
+      ? moduleData.connections
+      : [];
+    const keep = new Set<string>();
+    const incoming = new Map<string, string[]>();
+
+    for (const connection of connections) {
+      const target = connection.target;
+      const source = connection.source;
+      if (!incoming.has(target)) {
+        incoming.set(target, []);
+      }
+      incoming.get(target)?.push(source);
+    }
+
+    const stack = [outputNodeId];
+    while (stack.length > 0) {
+      const current = stack.pop();
+      if (!current || keep.has(current)) {
+        continue;
+      }
+      keep.add(current);
+      const sources = incoming.get(current) || [];
+      for (const source of sources) {
+        if (!keep.has(source)) {
+          stack.push(source);
+        }
+      }
+    }
+
+    const filteredNodes = nodes.filter((node: any) => keep.has(node.id));
+    const filteredConnections = connections.filter(
+      (connection: any) => keep.has(connection.source) && keep.has(connection.target)
+    );
+    const filteredInputs = (moduleData.inputs || []).filter((input: any) =>
+      keep.has(input.id)
+    );
+    const filteredOutputs = (moduleData.outputs || []).filter(
+      (output: any) => output.id === outputNodeId
+    );
+
+    return {
+      ...moduleData,
+      nodes: filteredNodes,
+      connections: filteredConnections,
+      inputs: filteredInputs,
+      outputs: filteredOutputs,
+    };
+  }
+
+  private buildCustomNode(step: ManualServingStep) {
+    const config = this.getNode(step.nodeName);
+    if (!config || !config.params) {
+      return null;
+    }
+
+    const node = this.buildConfiguredNode(step.nodeName, config, {
+      column: step.column,
+      new_value: step.replacementValue,
+      value_map: step.valueToReplace
+        ? { [step.valueToReplace]: step.replacementValue }
+        : {},
+    });
+
+    return {
+      node: node.node,
+      inputPort: config.inputs?.[0]?.port_label || "data_in",
+      outputPort: config.outputs?.[0]?.port_label || "out",
+    };
+  }
+
+  private buildFeatureEngineeringNode(step: ManualFeatureEngineeringStep) {
+    const config = this.getNode(step.nodeName);
+    if (!config || !config.params) {
+      return null;
+    }
+
+    const node = this.buildConfiguredNode(step.nodeName, config, step.params || {});
+
+    return {
+      node: node.node,
+      inputPort: config.inputs?.[0]?.port_label || "data",
+      outputPort: config.outputs?.[0]?.port_label || "out",
+    };
+  }
+
+  private buildConfiguredNode(
+    nodeName: string,
+    config: any,
+    params: Record<string, any>
+  ) {
+    const nodeParams: any = {};
+    for (const param of config.params || []) {
+      const value =
+        param.param_label in params
+          ? params[param.param_label]
+          : this.defaultParamValue(param.param_type);
+      nodeParams[param.param_label] = {
+        type: param.param_type,
+        show: param.show,
+        value,
+        optionId: param.optionId,
+        isParam: "custom",
+        param_label: "",
+      };
+    }
+
+    const node = {
+      id: this.newId(),
+      data: {
+        info: config.info,
+        params: nodeParams,
+      },
+      name: nodeName,
+      nodeName,
+    };
+
+    return { node };
+  }
+
+  private buildServingNode(
+    nodeName: string,
+    endpointUrl: string,
+    outputPath: string,
+    featureScalerPath: string | null,
+    truthScalerPath: string | null
+  ) {
+    const config = this.getNode(nodeName);
+    const params: any = {};
+    for (const param of config.params || []) {
+      let value = this.defaultParamValue(param.param_type);
+      if (param.param_label === "endpoint_url") {
+        value = endpointUrl;
+      }
+      if (param.param_label === "output_path") {
+        value = outputPath;
+      }
+      if (param.param_label === "features_scaler_path") {
+        if (featureScalerPath) {
+          value = featureScalerPath;
+        }
+      }
+      if (param.param_label === "truth_scaler_path") {
+        if (truthScalerPath) {
+          value = truthScalerPath;
+        }
+      }
+      params[param.param_label] = {
+        type: param.param_type,
+        show: param.show,
+        value,
+        optionId: param.optionId,
+        isParam: "custom",
+        param_label: "",
+      };
+    }
+
+    const node = {
+      id: this.newId(),
+      data: {
+        info: config.info,
+        params,
+      },
+      name: nodeName,
+      nodeName,
+    };
+
+    return {
+      node,
+      inputPort: config.inputs?.[0]?.port_label || "features",
+      outputPort: config.outputs?.[0]?.port_label || "prediction",
+    };
+  }
+
+  private resolveParamValue(label: string, paramType: string, step: ManualServingStep) {
+    if (label === "column") {
+      return step.column || "";
+    }
+    if (label === "new_value") {
+      return step.replacementValue || "";
+    }
+    if (label === "value_map") {
+      const key = step.valueToReplace || "";
+      return { [key]: step.replacementValue || "" };
+    }
+    return this.defaultParamValue(paramType);
+  }
+
+  private defaultParamValue(paramType: string) {
+    if (paramType === "string") return "";
+    if (paramType === "number") return 0;
+    if (paramType === "boolean") return false;
+    if (paramType === "map") return {};
+    if (paramType === "list") return [];
+    return "";
+  }
+
+  private buildStepNode(id: string, stageName: string, color: string) {
+    return {
+      id,
+      data: {
+        info: {
+          title: "Contains Step",
+        },
+        params: {
+          "Stage name": {
+            type: "description",
+            value: stageName,
+          },
+          color: {
+            type: "color",
+            value: color,
+          },
+        },
+      },
+      name: "Step",
+      nodeName: "Step",
+    };
+  }
+
+  private buildInputNode(key: string, type: string) {
+    const nodeId = this.newId();
+    const data = {
+      info: {
+        title: "Input of module",
+      },
+      params: {
+        description: {
+          type: "description",
+          value: "",
+          show: true,
+        },
+        key: {
+          type: "description",
+          value: key,
+        },
+        type: {
+          type: "option",
+          value: type,
+          optionId: "socket_type",
+        },
+      },
+    };
+
+    return {
+      node: {
+        id: nodeId,
+        data,
+        name: "Input",
+        nodeName: "Input",
+      },
+      io: {
+        id: nodeId,
+        data,
+      },
+    };
+  }
+
+  private buildOutputNode(key: string, type: string) {
+    const nodeId = this.newId();
+    const data = {
+      info: {
+        title: "Output of module",
+      },
+      params: {
+        description: {
+          type: "description",
+          value: "",
+          show: true,
+        },
+        key: {
+          type: "description",
+          value: key,
+        },
+        type: {
+          type: "option",
+          value: type,
+          optionId: "socket_type",
+        },
+      },
+    };
+
+    return {
+      node: {
+        id: nodeId,
+        data,
+        name: "Output",
+        nodeName: "Output",
+      },
+      io: {
+        id: nodeId,
+        data,
+      },
+    };
+  }
+
+  private newId(): string {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+      return crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+    }
+    return Math.random().toString(16).slice(2, 18);
+  }
+
+  private buildEndpointUrl(host: string, port: number): string {
+    let normalizedHost = host.trim();
+    if (!/^https?:\/\//i.test(normalizedHost)) {
+      normalizedHost = `http://${normalizedHost}`;
+    }
+    normalizedHost = normalizedHost.replace(/\/$/, "");
+    return `${normalizedHost}:${port}/predict`;
   }
 
   // ========================================

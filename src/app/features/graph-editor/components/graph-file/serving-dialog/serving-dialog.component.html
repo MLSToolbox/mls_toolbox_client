@@ -1,0 +1,400 @@
+<div class="dialog-layout">
+  <div class="step-header">Step {{ currentStep }} of {{ totalSteps }}</div>
+
+  <div class="section" *ngIf="currentStep === 1">
+    <div class="section-title">Select Model Origin</div>
+    <div class="button-row">
+      <button
+        pButton
+        class="action-button"
+        [ngClass]="{ 'is-selected': origin === 'mls' }"
+        (click)="setOrigin('mls')"
+      >
+        MLSToolbox
+      </button>
+      <button
+        pButton
+        class="action-button"
+        [ngClass]="{ 'is-selected': origin === 'external' }"
+        (click)="setOrigin('external')"
+      >
+        External
+      </button>
+    </div>
+  </div>
+
+  <div class="section" *ngIf="currentStep === 2">
+    <div class="section-title">Model Configuration</div>
+    <label class="checkbox-row">
+      <input
+        type="checkbox"
+        [(ngModel)]="includePreprocessing"
+        (change)="toggleIncludePreprocessing()"
+      />
+      <span>Include preprocessing steps</span>
+    </label>
+
+    <label class="checkbox-row">
+      <input
+        type="checkbox"
+        [(ngModel)]="includeFeatureEngineering"
+        (change)="toggleIncludeFeatureEngineering()"
+      />
+      <span>Include feature engineering steps</span>
+    </label>
+  </div>
+
+  <div
+    class="section"
+    *ngIf="currentStep === 2 && origin === 'mls' && (includePreprocessing || includeFeatureEngineering)"
+  >
+    <div class="section-title">Training Pipeline JSON</div>
+    <div class="file-row">
+      <input
+        type="file"
+        #trainingFileInput
+        accept=".json,application/json"
+        (change)="onTrainingFileChange($event)"
+      />
+      <button pButton class="secondary-button" (click)="chooseTrainingFile()">
+        Choose file
+      </button>
+      <span class="file-name">
+        {{ trainingFileName || 'No file selected' }}
+      </span>
+    </div>
+    <div class="file-status" *ngIf="trainingPipelineJson">
+      Training pipeline loaded.
+    </div>
+    <div class="file-error" *ngIf="fileError">{{ fileError }}</div>
+  </div>
+
+  <div
+    class="section"
+    *ngIf="currentStep === 2 && origin === 'external' && includePreprocessing"
+  >
+    <div class="section-title">Preprocessing Steps</div>
+    <div class="step-list">
+      <div class="step-row" *ngFor="let step of manualSteps">
+        <div class="field">
+          <label>Step</label>
+          <select
+            [ngModel]="step.nodeName"
+            (ngModelChange)="updateStepNodeName(step, $event)"
+          >
+            <option *ngFor="let option of dataCleaningOptions" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field" *ngIf="needsColumn(step.nodeName)">
+          <label>Column</label>
+          <input type="text" [(ngModel)]="step.column" />
+        </div>
+
+        <div class="field" *ngIf="needsValueMap(step.nodeName)">
+          <label>Value to replace</label>
+          <input type="text" [(ngModel)]="step.valueToReplace" />
+        </div>
+
+        <div class="field" *ngIf="needsNewValue(step.nodeName) || needsValueMap(step.nodeName)">
+          <label>Replacement value</label>
+          <input type="text" [(ngModel)]="step.replacementValue" />
+        </div>
+
+        <button pButton class="icon-button" (click)="removeStep(step.id)">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <button pButton class="secondary-button" (click)="addStep()">
+      <i class="pi pi-plus"></i>
+      Add preprocessing step
+    </button>
+  </div>
+
+  <div
+    class="section"
+    *ngIf="currentStep === 2 && includeFeatureEngineering && origin === 'mls' && featureEngineeringFromTraining"
+  >
+    <div class="section-title">Feature Engineering (from training)</div>
+    <div class="file-status">Feature engineering steps loaded from training pipeline.</div>
+  </div>
+
+  <div
+    class="section feature-section"
+    *ngIf="currentStep === 2 && includeFeatureEngineering && origin === 'external'"
+  >
+    <div class="section-title">Feature Engineering Steps</div>
+    <div class="step-list">
+      <div class="step-row feature-row" *ngFor="let step of featureEngineeringSteps">
+        <div class="field">
+          <label>Step</label>
+          <select
+            [ngModel]="step.nodeName"
+            (ngModelChange)="updateFeatureStepNodeName(step, $event)"
+          >
+            <option *ngFor="let option of featureEngineeringOptions" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+
+        <div
+          class="field"
+          *ngFor="let param of getFeatureEngineeringParams(step)"
+        >
+          <ng-container *ngIf="param.param_type !== 'description'">
+            <label>{{ param.param_label }}</label>
+            <input
+              *ngIf="param.param_type === 'string'"
+              type="text"
+              [(ngModel)]="step.params[param.param_label]"
+            />
+            <input
+              *ngIf="param.param_type === 'number'"
+              type="number"
+              [(ngModel)]="step.params[param.param_label]"
+            />
+            <label *ngIf="param.param_type === 'boolean'" class="checkbox-row">
+              <input
+                type="checkbox"
+                [(ngModel)]="step.params[param.param_label]"
+              />
+              <span>Enabled</span>
+            </label>
+            <select
+              *ngIf="param.param_type === 'option'"
+              [(ngModel)]="step.params[param.param_label]"
+            >
+              <option
+                *ngFor="let option of optionValues?.[param.optionId] || []"
+                [value]="option"
+              >
+                {{ option }}
+              </option>
+            </select>
+            <textarea
+              *ngIf="param.param_type === 'list'"
+              rows="2"
+              placeholder="col1,col2,col3"
+              [(ngModel)]="step.params[param.param_label]"
+            ></textarea>
+            <textarea
+              *ngIf="param.param_type === 'map'"
+              rows="2"
+              placeholder="key:value, key2:value2"
+              [(ngModel)]="step.params[param.param_label]"
+            ></textarea>
+          </ng-container>
+        </div>
+
+        <button pButton class="icon-button" (click)="removeFeatureStep(step.id)">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <button pButton class="secondary-button" (click)="addFeatureStep()">
+      <i class="pi pi-plus"></i>
+      Add feature engineering step
+    </button>
+  </div>
+
+  <div class="section" *ngIf="currentStep === 2">
+    <div class="section-title">Scalers</div>
+ 
+    <label class="checkbox-row">
+      <input
+        type="checkbox"
+        [(ngModel)]="includeFeatureScaler"
+      />
+      <span>Include features scaler</span>
+    </label>
+    <div class="field" *ngIf="includeFeatureScaler">
+      <label>Feature scaler path</label>
+      <input
+        type="text"
+        class="text-input"
+        [(ngModel)]="featureScalerPath"
+        placeholder="models/scalers/feature_scaler.pkl"
+      />
+    </div>
+ 
+    <label class="checkbox-row">
+      <input
+        type="checkbox"
+        [(ngModel)]="includeTruthScaler"
+      />
+      <span>Include truth column scaler</span>
+    </label>
+    <div class="field" *ngIf="includeTruthScaler">
+      <label>Truth column scaler path</label>
+      <input
+        type="text"
+        class="text-input"
+        [(ngModel)]="truthScalerPath"
+        placeholder="models/scalers/truth_scaler.pkl"
+      />
+    </div>
+  </div>
+
+
+  <div class="section" *ngIf="currentStep === 3">
+    <div class="section-title">Serving</div>
+    <div class="button-row">
+      <button
+        pButton
+        class="action-button"
+        [ngClass]="{ 'is-selected': servingType === 'api' }"
+        (click)="setServingType('api')"
+      >
+        API Serving
+      </button>
+      <button
+        pButton
+        class="action-button"
+        [ngClass]="{ 'is-selected': servingType === 'batch' }"
+        (click)="setServingType('batch')"
+      >
+        Batch Serving
+      </button>
+    </div>
+  </div>
+
+  <div class="section" *ngIf="currentStep === 3 && servingType === 'api'">
+    <div class="section-title">Model Endpoint</div>
+    <div class="endpoint-row">
+      <input
+        type="text"
+        class="text-input"
+        [(ngModel)]="endpointHost"
+        placeholder="http://host"
+      />
+      <input
+        type="number"
+        class="text-input"
+        [(ngModel)]="endpointPort"
+        placeholder="8000"
+        min="1"
+      />
+      <div class="endpoint-suffix">/predict</div>
+    </div>
+  </div>
+
+  <div class="section" *ngIf="currentStep === 3 && servingType === 'batch'">
+    <div class="section-title">Model Endpoint</div>
+    <div class="endpoint-row">
+      <input
+        type="text"
+        class="text-input"
+        [(ngModel)]="endpointHost"
+        placeholder="http://host"
+      />
+      <input
+        type="number"
+        class="text-input"
+        [(ngModel)]="endpointPort"
+        placeholder="8000"
+        min="1"
+      />
+      <div class="endpoint-suffix">/predict</div>
+    </div>
+  </div>
+
+  <div class="section" *ngIf="currentStep === 3 && servingType === 'api'">
+    <div class="section-title">Output Path</div>
+    <input
+      type="text"
+      class="text-input"
+      [(ngModel)]="outputPath"
+      placeholder="serving_results/prediction.json"
+    />
+  </div>
+
+  <div class="section" *ngIf="currentStep === 3">
+    <div class="section-title">Input</div>
+    <div class="field">
+      <label>Input type</label>
+      <select
+        [ngModel]="dataCollectionNodeName"
+        (ngModelChange)="setDataCollectionNode($event)"
+      >
+        <option
+          *ngFor="let option of dataCollectionOptions"
+          [value]="option.value"
+        >
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+
+    <div class="field" *ngFor="let param of dataCollectionParams">
+      <ng-container *ngIf="param.param_type !== 'description'">
+        <label>{{ param.param_label }}</label>
+        <input
+          *ngIf="param.param_type === 'string'"
+          type="text"
+          [(ngModel)]="dataCollectionValues[param.param_label]"
+        />
+        <input
+          *ngIf="param.param_type === 'number'"
+          type="number"
+          [(ngModel)]="dataCollectionValues[param.param_label]"
+        />
+        <label *ngIf="param.param_type === 'boolean'" class="checkbox-row">
+          <input
+            type="checkbox"
+            [(ngModel)]="dataCollectionValues[param.param_label]"
+          />
+          <span>Enabled</span>
+        </label>
+        <select
+          *ngIf="param.param_type === 'option'"
+          [(ngModel)]="dataCollectionValues[param.param_label]"
+        >
+          <option
+            *ngFor="let option of optionValues?.[param.optionId] || []"
+            [value]="option"
+          >
+            {{ option }}
+          </option>
+        </select>
+      </ng-container>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button
+      pButton
+      class="secondary-button"
+      (click)="goPrev()"
+      [disabled]="currentStep === 1"
+    >
+      Back
+    </button>
+    <button
+      *ngIf="currentStep < totalSteps"
+      pButton
+      class="primary-button"
+      (click)="goNext()"
+      [disabled]="!canGoNext()"
+    >
+      Next
+    </button>
+    <button
+      *ngIf="currentStep === totalSteps"
+      pButton
+      class="primary-button"
+      (click)="createPipeline()"
+      [disabled]="!canCreate()"
+    >
+      Create Serving Pipeline
+    </button>
+    <button pButton class="secondary-button" (click)="cancel()">
+      Cancel
+    </button>
+  </div>
+</div>
