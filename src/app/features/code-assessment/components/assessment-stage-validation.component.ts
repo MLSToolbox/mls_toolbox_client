@@ -94,26 +94,32 @@ import { StageEditorCoordinatorService } from '../services/stage-editor-coordina
           </div>
         </div>
 
-        <div class="border-t border-gray-200 p-6 flex flex-col sm:flex-row gap-3 sm:justify-between">
-          <button
-            (click)="onBack()"
-            class="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center justify-center gap-2"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-            </svg>
-            Back to Upload
-          </button>
-          <button
-            (click)="openConfirmModal()"
-            class="px-6 py-3 text-sm font-medium text-white rounded-lg transition-all duration-200 hover:shadow-lg flex items-center justify-center gap-2"
-            style="background: linear-gradient(135deg, rgb(0, 32, 96) 0%, rgb(0, 50, 120) 100%);"
-          >
-            Confirm stages and continue
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-            </svg>
-          </button>
+        <div class="border-t border-gray-200 p-6">
+          <div class="flex flex-col sm:flex-row gap-3 sm:justify-between">
+            <button
+              (click)="onBack()"
+              class="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center justify-center gap-2"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+              </svg>
+              Back to Upload
+            </button>
+            <button
+              (click)="openConfirmModal()"
+              [disabled]="!hasAnalyzableFiles"
+              class="px-6 py-3 text-sm font-medium text-white rounded-lg transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              style="background: linear-gradient(135deg, rgb(0, 32, 96) 0%, rgb(0, 50, 120) 100%);"
+            >
+              Confirm stages and continue
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+              </svg>
+            </button>
+          </div>
+          <p *ngIf="!hasAnalyzableFiles" class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3">
+            Assign at least one valid stage to a file before continuing.
+          </p>
         </div>
       </div>
     </div>
@@ -190,6 +196,10 @@ export class AssessmentStageValidationComponent {
 
   get filesWithoutStageCount(): number {
     return Object.values(this.getMergedFileStages()).filter((stages) => stages.length === 0).length;
+  }
+
+  get hasAnalyzableFiles(): boolean {
+    return this.filesWithStagesCount > 0;
   }
 
   get syntaxErrorFiles(): string[] {

@@ -97,7 +97,7 @@ interface MetricType {
           <div class="flex flex-col gap-3">
             <button
               (click)="onContinue()"
-              [disabled]="!hasSelection || isAnalyzing || !hasAnalyzableFiles"
+              [disabled]="!hasSelection || isAnalyzing"
               class="w-full px-6 py-3 text-sm font-medium text-white rounded-lg transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               style="background: linear-gradient(135deg, rgb(0, 32, 96) 0%, rgb(0, 50, 120) 100%);"
             >
@@ -143,10 +143,6 @@ interface MetricType {
               </svg>
               {{ isAnalyzing ? "Starting Analysis..." : "Run Analysis" }}
             </button>
-
-            <p *ngIf="!hasAnalyzableFiles" class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-              Assign at least one valid stage to one file before running analysis.
-            </p>
 
             <button
               (click)="onBack()"
