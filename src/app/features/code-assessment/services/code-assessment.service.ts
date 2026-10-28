@@ -26,7 +26,9 @@ export class CodeAssessmentService {
     isUploading: false,
     isAnalyzing: false,
     error: null,
-    selectedMetrics: []
+    selectedMetrics: [],
+    manualFileStages: {},
+    excludedFiles: []
   };
 
   private stateSubject = new BehaviorSubject<AssessmentState>(this.INITIAL_STATE);
@@ -128,7 +130,9 @@ export class CodeAssessmentService {
           this.updateState({
             sessionId: response.data.session_id,
             uploadResponse: response.data,
-            currentStep: AssessmentStepEnum.STRUCTURE,
+            currentStep: AssessmentStepEnum.STAGE_VALIDATION,
+            manualFileStages: {},
+            excludedFiles: [],
             isUploading: false
           });
         } else {
@@ -150,6 +154,17 @@ export class CodeAssessmentService {
         return throwError(() => errorObj);
       })
     );
+  }
+
+  /**
+   * Confirm the pipeline stage validation step and advance to metric selection.
+   */
+  confirmPipelineValidation(manualFileStages: { [key: string]: string[] }): void {
+    this.updateState({
+      manualFileStages,
+      currentStep: AssessmentStepEnum.STRUCTURE,
+      error: null
+    });
   }
 
   /**

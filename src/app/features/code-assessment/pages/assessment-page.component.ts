@@ -29,13 +29,16 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
     isAnalyzing: false,
     error: null,
     selectedMetrics: [],
+    manualFileStages: {},
+    excludedFiles: [],
   };
 
   steps: AssessmentStep[] = [
     { number: 1, label: "Upload Code", completed: false, icon: "upload" },
-    { number: 2, label: "Project & Metrics", completed: false, icon: "folder" },
-    { number: 3, label: "Analysis", completed: false, icon: "activity" },
-    { number: 4, label: "Results", completed: false, icon: "check-circle" },
+    { number: 2, label: "Validate Pipeline", completed: false, icon: "check-circle" },
+    { number: 3, label: "Project & Metrics", completed: false, icon: "folder" },
+    { number: 4, label: "Analysis", completed: false, icon: "activity" },
+    { number: 5, label: "Results", completed: false, icon: "check-circle" },
   ];
 
   // Expose enum to template
@@ -74,9 +77,10 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
   private getStepName(step: number): string {
     const names: { [key: number]: string } = {
       1: "UPLOAD",
-      2: "METRICS",
-      3: "ANALYSIS",
-      4: "RESULTS",
+      2: "STAGE_VALIDATION",
+      3: "METRICS",
+      4: "ANALYSIS",
+      5: "RESULTS",
     };
     return names[step] || "UNKNOWN";
   }
@@ -115,6 +119,20 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
    */
   onBackToUpload(): void {
     this.assessmentService.setStep(AssessmentStepEnum.UPLOAD);
+  }
+
+  /**
+   * Handle back navigation to the pipeline stage validation step
+   */
+  onBackToStageValidation(): void {
+    this.assessmentService.setStep(AssessmentStepEnum.STAGE_VALIDATION);
+  }
+
+  /**
+   * Handle confirmation of the pipeline stage validation step
+   */
+  onStageValidationConfirmed(event: { manualFileStages: { [key: string]: string[] } }): void {
+    this.assessmentService.confirmPipelineValidation(event.manualFileStages);
   }
 
   /**
@@ -222,6 +240,8 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
     switch (this.state.currentStep) {
       case AssessmentStepEnum.UPLOAD:
         return "Upload your Python project as a ZIP file";
+      case AssessmentStepEnum.STAGE_VALIDATION:
+        return "Review and confirm the detected pipeline stages";
       case AssessmentStepEnum.STRUCTURE:
         return "Review project structure and select metrics";
       case AssessmentStepEnum.ANALYSIS:

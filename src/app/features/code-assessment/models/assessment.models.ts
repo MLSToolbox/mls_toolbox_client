@@ -26,6 +26,8 @@ export interface AssessmentState {
   isAnalyzing: boolean;
   error: AssessmentError | null;
   selectedMetrics: string[];
+  manualFileStages: Record<string, string[]>;
+  excludedFiles: string[];
 }
 
 export interface AssessmentError {
@@ -36,9 +38,10 @@ export interface AssessmentError {
 
 export enum AssessmentStepEnum {
   UPLOAD = 1,
-  STRUCTURE = 2,
-  ANALYSIS = 3,
-  RESULTS = 4
+  STAGE_VALIDATION = 2,
+  STRUCTURE = 3,
+  ANALYSIS = 4,
+  RESULTS = 5
 }
 
 export interface MetricOption {

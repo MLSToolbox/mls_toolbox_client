@@ -12,7 +12,7 @@ import {
   MetricDocumentation,
   MetricReference
 } from '@app/core/models';
-import { TreeStructure, ChildChild } from '@app/core/models/upload-zip.model';
+import { TreeStructure, ChildChild, AutoDetectedPipeline } from '@app/core/models/upload-zip.model';
 
 interface DetailedMessage {
   diagnosis: string;
@@ -93,7 +93,20 @@ interface FileMetricsData {
 
       <div class="flex-1 overflow-y-auto min-h-0">
         <div class="max-w-5xl mx-auto p-8 pb-16">
-          
+
+          <div
+            *ngIf="syntaxErrorFiles.length > 0"
+            class="mb-6 flex items-start gap-3 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-800"
+          >
+            <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+              <p class="font-medium">{{ syntaxErrorFiles.length }} file(s) excluded from detailed metrics due to a syntax error</p>
+              <p class="text-xs text-red-700 mt-1 font-mono">{{ syntaxErrorFiles.join(', ') }}</p>
+            </div>
+          </div>
+
           <div *ngIf="!selectedPath" class="text-center py-16">
             <div class="w-20 h-20 mx-auto rounded-full bg-blue-100 flex items-center justify-center mb-4">
               <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1267,8 +1280,13 @@ interface FileMetricsData {
 export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
   @Input() results: AnalyzeResponse | null = null;
   @Input() projectStructure: TreeStructure | null = null;
+  @Input() autoDetectedPipeline: AutoDetectedPipeline | null = null;
   @Output() newAnalysis = new EventEmitter<void>();
   @Output() exportResults = new EventEmitter<void>();
+
+  get syntaxErrorFiles(): string[] {
+    return this.autoDetectedPipeline?.syntax_error_files || [];
+  }
 
   selectedPath: string | null = null;
   selectedNodeType: 'file' | 'directory' | null = null;
