@@ -83,18 +83,28 @@
       </app-assessment-upload>
     </div>
 
-    <!-- Step 2: Project Structure & Metrics Selection -->
-    <div *ngIf="state.currentStep === StepEnum.STRUCTURE" class="flex-1 bg-gray-50 overflow-auto">
-      <app-assessment-structure
+    <!-- Step 2: Pipeline Stage Validation -->
+    <div *ngIf="state.currentStep === StepEnum.STAGE_VALIDATION" class="flex-1 bg-gray-50 overflow-auto">
+      <app-assessment-stage-validation
         [projectStructure]="state.uploadResponse?.tree_structure || null"
         [autoDetectedPipeline]="state.uploadResponse?.auto_detected_pipeline || null"
+        (confirmed)="onStageValidationConfirmed($event)"
+        (back)="onBackToUpload()">
+      </app-assessment-stage-validation>
+    </div>
+
+    <!-- Step 3: Metrics Selection -->
+    <div *ngIf="state.currentStep === StepEnum.STRUCTURE" class="flex-1 bg-gray-50 overflow-auto">
+      <app-assessment-structure
+        [autoDetectedPipeline]="state.uploadResponse?.auto_detected_pipeline || null"
+        [manualFileStages]="state.manualFileStages"
         [isAnalyzing]="state.isAnalyzing"
         (runAnalysis)="onRunAnalysis($event)"
-        (back)="onBackToUpload()">
+        (back)="onBackToStageValidation()">
       </app-assessment-structure>
     </div>
     
-    <!-- Step 3: Analysis -->
+    <!-- Step 4: Analysis -->
     <div *ngIf="state.currentStep === StepEnum.ANALYSIS" class="flex-1 flex items-center justify-center bg-gray-50 overflow-auto">
       <div class="text-center max-w-md px-8">
         <div class="mb-6">
@@ -117,11 +127,12 @@
       </div>
     </div>
 
-    <!-- Step 4: Results -->
+    <!-- Step 5: Results -->
     <div *ngIf="state.currentStep === StepEnum.RESULTS" class="flex-1 bg-gray-50 overflow-hidden">
       <app-assessment-results-final
         [results]="state.analysisResponse"
         [projectStructure]="state.uploadResponse?.tree_structure || null"
+        [autoDetectedPipeline]="state.uploadResponse?.auto_detected_pipeline || null"
         (newAnalysis)="onResetAssessment()"
         (exportResults)="onExportResults()">
       </app-assessment-results-final>

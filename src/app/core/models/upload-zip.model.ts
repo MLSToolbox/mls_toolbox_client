@@ -10,6 +10,7 @@ export interface AutoDetectedPipeline {
   files_analyzed: number;
   is_valid_pipeline: boolean;
   missing_stages: any[];
+  syntax_error_files?: string[];
 }
 
 export type DetectedStages = Record<string, StageDetection[]>;
