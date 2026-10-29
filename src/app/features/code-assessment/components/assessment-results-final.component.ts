@@ -177,14 +177,14 @@ interface FileMetricsData {
                     <!-- Score/Cohesion Badge -->
                     <div class="flex items-center gap-3">
                       <!-- Score Badge (if available) -->
-                      <div *ngIf="selectedFileData[metricId].score !== undefined" 
-                           class="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md"
+                      <div *ngIf="selectedFileData[metricId].score !== undefined"
+                           class="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md bg-gradient-to-br"
                            [ngClass]="{
-                             'bg-gradient-to-br from-red-500 to-red-700': selectedFileData[metricId].score! < 3,
-                             'bg-gradient-to-br from-orange-400 to-orange-600': selectedFileData[metricId].score! >= 3 && selectedFileData[metricId].score! < 5,
-                             'bg-gradient-to-br from-yellow-400 to-yellow-600': selectedFileData[metricId].score! >= 5 && selectedFileData[metricId].score! < 7,
-                             'bg-gradient-to-br from-green-400 to-green-600': selectedFileData[metricId].score! >= 7 && selectedFileData[metricId].score! < 9,
-                             'bg-gradient-to-br from-emerald-500 to-emerald-700': selectedFileData[metricId].score! >= 9
+                             'from-red-500 to-red-700': selectedFileData[metricId].score! < 3,
+                             'from-orange-400 to-orange-600': selectedFileData[metricId].score! >= 3 && selectedFileData[metricId].score! < 5,
+                             'from-yellow-400 to-yellow-600': selectedFileData[metricId].score! >= 5 && selectedFileData[metricId].score! < 7,
+                             'from-green-400 to-green-600': selectedFileData[metricId].score! >= 7 && selectedFileData[metricId].score! < 9,
+                             'from-emerald-500 to-emerald-700': selectedFileData[metricId].score! >= 9
                            }">
                         <div class="text-2xl font-bold text-white">
                           {{ selectedFileData[metricId].score!.toFixed(1) }}
@@ -193,15 +193,15 @@ interface FileMetricsData {
                       </div>
                       
                       <!-- Cohesion Badge (if available and no score) -->
-                      <div *ngIf="selectedFileData[metricId].score === undefined && getCohesionLevel(metricId)" 
-                           class="px-4 py-2 rounded-lg shadow-md font-bold text-white capitalize"
+                      <div *ngIf="selectedFileData[metricId].score === undefined && getCohesionLevel(metricId)"
+                           class="px-4 py-2 rounded-lg shadow-md font-bold text-white capitalize bg-gradient-to-br"
                            [ngClass]="{
-                             'bg-gradient-to-br from-emerald-500 to-emerald-700': getCohesionLevel(metricId) === 'very_high' || getCohesionLevel(metricId) === 'excellent',
-                             'bg-gradient-to-br from-green-400 to-green-600': getCohesionLevel(metricId) === 'high' || getCohesionLevel(metricId) === 'good',
-                             'bg-gradient-to-br from-yellow-400 to-yellow-600': getCohesionLevel(metricId) === 'medium' || getCohesionLevel(metricId) === 'moderate',
-                             'bg-gradient-to-br from-orange-400 to-orange-600': getCohesionLevel(metricId) === 'low',
-                             'bg-gradient-to-br from-red-500 to-red-700': getCohesionLevel(metricId) === 'very_low',
-                             'bg-gradient-to-br from-gray-600 to-gray-800': getCohesionLevel(metricId) === 'not_applicable' || getCohesionLevel(metricId) === 'non_ml_file' || getCohesionLevel(metricId) === 'small_file' || getCohesionLevel(metricId) === 'no_class'
+                             'from-emerald-500 to-emerald-700': getCohesionLevel(metricId) === 'very_high' || getCohesionLevel(metricId) === 'excellent',
+                             'from-green-400 to-green-600': getCohesionLevel(metricId) === 'high' || getCohesionLevel(metricId) === 'good',
+                             'from-yellow-400 to-yellow-600': getCohesionLevel(metricId) === 'medium' || getCohesionLevel(metricId) === 'moderate',
+                             'from-orange-400 to-orange-600': getCohesionLevel(metricId) === 'low',
+                             'from-red-500 to-red-700': getCohesionLevel(metricId) === 'very_low',
+                             'from-gray-600 to-gray-800': getCohesionLevel(metricId) === 'not_applicable' || getCohesionLevel(metricId) === 'non_ml_file' || getCohesionLevel(metricId) === 'small_file' || getCohesionLevel(metricId) === 'no_class'
                            }">
                         {{ getCohesionLevel(metricId)?.replace('_', ' ') }}
                       </div>
