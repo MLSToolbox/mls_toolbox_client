@@ -11,6 +11,7 @@ export interface AutoDetectedPipeline {
   is_valid_pipeline: boolean;
   missing_stages: any[];
   syntax_error_files?: string[];
+  non_ml_keywords_found?: Record<string, string[]>;
 }
 
 export type DetectedStages = Record<string, StageDetection[]>;

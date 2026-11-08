@@ -350,6 +350,14 @@ export class AssessmentStageValidationComponent {
           Invalid Syntax
         </span>
 
+        <span
+          *ngIf="!isDirectory && hasMixedContent"
+          class="px-2 py-0.5 text-xs font-medium bg-gray-800 text-white rounded flex-shrink-0"
+          [title]="mixedContentTitle"
+        >
+          Mixed ML/UI
+        </span>
+
         <div
           *ngIf="!isDirectory && !isEditing && getDetectedStages().length > 0"
           class="flex gap-1 flex-shrink-0"
@@ -625,6 +633,54 @@ export class TreeNodeComponent {
       default:
         return `${evidence.method}: "${evidence.value}"`;
     }
+  }
+
+  /**
+   * True only when the file has BOTH pipeline stage evidence (it's genuinely
+   * part of the ML pipeline) AND non-ML keywords/imports (GUI/web framework
+   * code). A file with non-ML indicators but no ML evidence at all isn't
+   * "mixed" - it's simply not an ML file, which this intentionally does not
+   * flag.
+   */
+  get hasMixedContent(): boolean {
+    return this.getEffectiveStages().length > 0 && this.nonMlIndicatorsForNode.length > 0;
+  }
+
+  get mixedContentTitle(): string {
+    const reasons = this.nonMlIndicatorsForNode.map((entry) => this.describeNonMlIndicator(entry));
+    return `Mixes ML code with other content: ${reasons.join('; ')}`;
+  }
+
+  private get nonMlIndicatorsForNode(): string[] {
+    const normalizedNodePath = this.normalizePath(this.node.path || this.node.name || '');
+    const map = this.detectedPipeline?.non_ml_keywords_found;
+    if (!map) {
+      return [];
+    }
+
+    const exact = map[normalizedNodePath];
+    if (exact) {
+      return exact;
+    }
+
+    for (const [filePath, found] of Object.entries(map)) {
+      if (this.pathsMatch(normalizedNodePath, this.normalizePath(filePath))) {
+        return found;
+      }
+    }
+
+    return [];
+  }
+
+  private describeNonMlIndicator(entry: string): string {
+    const [type, value] = entry.split(':');
+    if (type === 'import') {
+      return `imports "${value}"`;
+    }
+    if (type === 'keyword') {
+      return `code contains "${value}"`;
+    }
+    return entry;
   }
 
   formatStageName(stage: string): string {
