@@ -77,12 +77,12 @@ type UploadSource = File | string;
 
         <!-- Title -->
         <h2 class="text-2xl font-bold text-center mb-2" style="color: rgb(0, 32, 96);">
-          {{ isUploading ? 'Uploading...' : (uploadedFileName ? 'Source Uploaded Successfully!' : getTitleText()) }}
+          {{ getTitleText() }}
         </h2>
-        
+
         <!-- Subtitle -->
         <p class="text-center text-gray-600 mb-8">
-          {{ isUploading ? 'Please wait while we process your source' : getSubtitleText() }}
+          {{ getSubtitleText() }}
         </p>
 
         <!-- ZIP Upload Mode -->
@@ -149,7 +149,7 @@ type UploadSource = File | string;
 
         <!-- Git Repository URL Mode -->
         <div *ngIf="uploadMode === 'git'">
-          <div class="bg-white border-2 border-gray-200 rounded-xl p-8">
+          <div *ngIf="!uploadedFileName" class="bg-white border-2 border-gray-200 rounded-xl p-8">
             <label class="block text-sm font-medium text-gray-700 mb-3">
               Git Repository URL
             </label>
@@ -179,6 +179,17 @@ type UploadSource = File | string;
             <p class="text-sm text-gray-500 mt-3">
               Enter the .git URL of a public repository (must end with .git)
             </p>
+          </div>
+
+          <!-- Success state - mirrors the ZIP dropzone's success look instead
+               of leaving the URL field sitting there editable with an active
+               Clone button, as if nothing had happened. -->
+          <div *ngIf="uploadedFileName" class="border-2 border-green-500 bg-green-50 rounded-xl p-12 text-center">
+            <svg class="w-16 h-16 mx-auto text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p class="text-lg font-medium text-green-700 mb-2">{{ uploadedFileName }}</p>
+            <p class="text-sm text-gray-600 break-all">{{ gitUrl }}</p>
           </div>
         </div>
 
@@ -250,13 +261,34 @@ export class AssessmentUploadComponent {
     this.gitUrl = '';
   }
 
+  /**
+   * Single source of truth for the header title across every state (idle /
+   * uploading / success) and both upload modes - previously the template
+   * special-cased isUploading/uploadedFileName inline for the title but not
+   * for the subtitle, which is how the subtitle ended up stuck on the idle
+   * instruction even after a successful upload.
+   */
   getTitleText(): string {
-    return this.uploadMode === 'zip'
-      ? 'Upload Your Project'
-      : 'Clone Git Repository';
+    if (this.isUploading) {
+      return this.uploadMode === 'zip' ? 'Uploading...' : 'Cloning...';
+    }
+    if (this.uploadedFileName) {
+      return 'Source Uploaded Successfully!';
+    }
+    return this.uploadMode === 'zip' ? 'Upload Your Project' : 'Clone Git Repository';
   }
 
   getSubtitleText(): string {
+    if (this.isUploading) {
+      return this.uploadMode === 'zip'
+        ? 'Please wait while we process your file'
+        : 'Please wait while we clone your repository';
+    }
+    if (this.uploadedFileName) {
+      return this.uploadMode === 'zip'
+        ? 'Your project is ready - continue to pipeline validation.'
+        : 'Your repository is ready - continue to pipeline validation.';
+    }
     return this.uploadMode === 'zip'
       ? 'Drag your .zip file here or click to select'
       : 'Enter the repository URL to clone and analyze';
