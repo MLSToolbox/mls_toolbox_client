@@ -101,13 +101,6 @@ type UploadSource = File | string;
             (dragleave)="onDragLeave($event)"
             (drop)="onDrop($event)">
             
-            <!-- Upload Icon -->
-            <div *ngIf="!uploadedFileName && !isUploading" class="mb-4">
-              <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-              </svg>
-            </div>
-
             <!-- Loading State -->
             <div *ngIf="isUploading" class="mb-4">
               <div class="w-16 h-16 mx-auto relative">
@@ -124,9 +117,10 @@ type UploadSource = File | string;
               </svg>
             </div>
 
-            <!-- Text -->
-            <p class="text-lg font-medium mb-2" [ngClass]="{
-              'text-gray-700': !uploadedFileName && !isUploading,
+            <!-- Text (only when there's file-specific info to show - the idle
+                 instruction already lives in the subtitle above, so it isn't
+                 repeated here) -->
+            <p *ngIf="uploadedFileName || isUploading" class="text-lg font-medium mb-2" [ngClass]="{
               'text-green-700': uploadedFileName && !isUploading,
               'text-blue-700': isUploading
             }">
