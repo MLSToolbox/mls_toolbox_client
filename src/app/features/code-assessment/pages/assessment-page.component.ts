@@ -163,6 +163,14 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Whether the stepper should let the user click directly into `step`,
+   * regardless of whether it's before or after the current step.
+   */
+  canNavigateToStep(step: number): boolean {
+    return this.assessmentService.canNavigateToStep(step as AssessmentStepEnum);
+  }
+
+  /**
    * Clear current error
    */
   onClearError(): void {
