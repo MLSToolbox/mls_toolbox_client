@@ -78,7 +78,7 @@
     </div>
 
     <!-- Step 1: Upload -->
-    <div *ngIf="state.currentStep === StepEnum.UPLOAD" class="flex-1 flex items-center justify-center bg-gray-50 overflow-auto">
+    <div *ngIf="state.currentStep === StepEnum.UPLOAD" class="flex-1 bg-gray-50 overflow-y-auto">
       <app-assessment-upload
         [uploadedFileName]="state.uploadedFile?.name || null"
         [isUploading]="state.isUploading"
@@ -111,7 +111,8 @@
     </div>
     
     <!-- Step 4: Analysis -->
-    <div *ngIf="state.currentStep === StepEnum.ANALYSIS" class="flex-1 flex items-center justify-center bg-gray-50 overflow-auto">
+    <div *ngIf="state.currentStep === StepEnum.ANALYSIS" class="flex-1 overflow-y-auto bg-gray-50">
+      <div class="min-h-full flex items-center justify-center">
       <div class="text-center max-w-md px-8">
         <div class="mb-6">
           <div class="w-24 h-24 mx-auto rounded-full bg-blue-100 flex items-center justify-center">
@@ -130,6 +131,7 @@
             We're examining your code structure, calculating metrics, and generating insights.
           </p>
         </div>
+      </div>
       </div>
     </div>
 

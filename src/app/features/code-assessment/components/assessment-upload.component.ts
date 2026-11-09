@@ -6,7 +6,7 @@ type UploadSource = File | string;
 @Component({
   selector: 'app-assessment-upload',
   template: `
-    <div class="flex items-center justify-center py-12 px-8 bg-gray-50">
+    <div class="min-h-full flex items-center justify-center py-12 px-8 bg-gray-50">
       <div class="max-w-2xl w-full">
         <!-- Mode Selector Tabs -->
         <div class="flex justify-center mb-8">
