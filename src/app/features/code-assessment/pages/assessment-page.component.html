@@ -1,7 +1,10 @@
 <!-- Main Content -->
-<div class="flex flex-col h-screen bg-gray-50">
-  <!-- Integrated Header with Stepper -->
-  <div class="flex-shrink-0 w-full py-4 px-4 border-b border-gray-200" style="background: linear-gradient(to bottom, #f8fafc 0%, #ffffff 100%);">
+<div class="flex flex-col bg-gray-50" [ngClass]="{ 'h-[calc(100vh-64px)]': state.currentStep === StepEnum.RESULTS }">
+  <!-- Integrated Header with Stepper. Sticky (not fixed) so it rides the
+       page's own scroll - once the global 64px app header scrolls out of
+       view, this takes its place at the top instead of adding a second,
+       independent scroll container. -->
+  <div class="sticky top-0 z-10 flex-shrink-0 w-full py-4 px-4 border-b border-gray-200" style="background: linear-gradient(to bottom, #f8fafc 0%, #ffffff 100%);">
     <div class="max-w-7xl mx-auto">
       <!-- Stepper -->
       <div class="max-w-4xl mx-auto">
@@ -51,8 +54,10 @@
     </div>
   </div>
 
-  <!-- Content Area - Flex 1 to fill remaining space -->
-  <div class="flex-1 flex flex-col overflow-hidden">
+  <!-- Content Area. Only Results needs a fixed, scroll-contained height for
+       its split sidebar/detail panel layout - the other steps flow with the
+       page's own scroll. -->
+  <div class="flex flex-col" [class.flex-1]="state.currentStep === StepEnum.RESULTS" [class.overflow-hidden]="state.currentStep === StepEnum.RESULTS">
     <!-- Error Alert (Global) -->
     <div *ngIf="state.error as error" class="flex-shrink-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 w-full">
       <div class="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -78,7 +83,7 @@
     </div>
 
     <!-- Step 1: Upload -->
-    <div *ngIf="state.currentStep === StepEnum.UPLOAD" class="flex-1 bg-gray-50 overflow-y-auto">
+    <div *ngIf="state.currentStep === StepEnum.UPLOAD" class="bg-gray-50">
       <app-assessment-upload
         [uploadedFileName]="state.uploadedFile?.name || null"
         [isUploading]="state.isUploading"
@@ -90,7 +95,7 @@
     </div>
 
     <!-- Step 2: Pipeline Stage Validation -->
-    <div *ngIf="state.currentStep === StepEnum.STAGE_VALIDATION" class="flex-1 bg-gray-50 overflow-auto">
+    <div *ngIf="state.currentStep === StepEnum.STAGE_VALIDATION" class="bg-gray-50">
       <app-assessment-stage-validation
         [projectStructure]="state.uploadResponse?.tree_structure || null"
         [autoDetectedPipeline]="state.uploadResponse?.auto_detected_pipeline || null"
@@ -100,7 +105,7 @@
     </div>
 
     <!-- Step 3: Metrics Selection -->
-    <div *ngIf="state.currentStep === StepEnum.STRUCTURE" class="flex-1 bg-gray-50 overflow-auto">
+    <div *ngIf="state.currentStep === StepEnum.STRUCTURE" class="bg-gray-50">
       <app-assessment-structure
         [autoDetectedPipeline]="state.uploadResponse?.auto_detected_pipeline || null"
         [manualFileStages]="state.manualFileStages"
@@ -111,8 +116,8 @@
     </div>
     
     <!-- Step 4: Analysis -->
-    <div *ngIf="state.currentStep === StepEnum.ANALYSIS" class="flex-1 overflow-y-auto bg-gray-50">
-      <div class="min-h-full flex items-center justify-center">
+    <div *ngIf="state.currentStep === StepEnum.ANALYSIS" class="bg-gray-50">
+      <div class="min-h-[70vh] flex items-center justify-center">
       <div class="text-center max-w-md px-8">
         <div class="mb-6">
           <div class="w-24 h-24 mx-auto rounded-full bg-blue-100 flex items-center justify-center">
