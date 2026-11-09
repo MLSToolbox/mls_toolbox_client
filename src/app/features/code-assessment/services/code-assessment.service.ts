@@ -238,16 +238,42 @@ export class CodeAssessmentService {
   }
 
   /**
+   * Whether the user can jump directly to `step` right now, regardless of
+   * currentStep - i.e. whether that step's data already exists. ANALYSIS is
+   * a transient, auto-driven step (the spinner while /api/analyze is in
+   * flight) and is never a valid manual destination.
+   */
+  canNavigateToStep(step: AssessmentStepEnum): boolean {
+    const { sessionId, uploadResponse, analysisResponse } = this.currentState;
+
+    switch (step) {
+      case AssessmentStepEnum.UPLOAD:
+        return true;
+      case AssessmentStepEnum.STAGE_VALIDATION:
+      case AssessmentStepEnum.STRUCTURE:
+        return !!sessionId && !!uploadResponse;
+      case AssessmentStepEnum.ANALYSIS:
+        return false;
+      case AssessmentStepEnum.RESULTS:
+        return !!analysisResponse;
+      default:
+        return false;
+    }
+  }
+
+  /**
    * Navigate to specific step
    */
   setStep(step: AssessmentStepEnum): void {
-    const { sessionId } = this.currentState;
-
-    // Validate navigation
-    if (step > AssessmentStepEnum.UPLOAD && !sessionId) {
+    if (!this.canNavigateToStep(step)) {
+      const message = step === AssessmentStepEnum.RESULTS
+        ? 'Run an analysis first to see results'
+        : step === AssessmentStepEnum.ANALYSIS
+          ? 'Analysis cannot be navigated to directly'
+          : 'Please upload a file first';
       this.updateState({
         error: {
-          message: 'Please upload a file first',
+          message,
           code: 'NAVIGATION_ERROR'
         }
       });
