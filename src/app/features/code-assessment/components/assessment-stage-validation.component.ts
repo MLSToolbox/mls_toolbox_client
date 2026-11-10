@@ -355,7 +355,7 @@ export class AssessmentStageValidationComponent {
           class="px-2 py-0.5 text-xs font-medium bg-gray-800 text-white rounded flex-shrink-0"
           [title]="mixedContentTitle"
         >
-          Mixed ML/UI
+          Mixed Content
         </span>
 
         <div
@@ -637,10 +637,10 @@ export class TreeNodeComponent {
 
   /**
    * True only when the file has BOTH pipeline stage evidence (it's genuinely
-   * part of the ML pipeline) AND non-ML keywords/imports (GUI/web framework
-   * code). A file with non-ML indicators but no ML evidence at all isn't
-   * "mixed" - it's simply not an ML file, which this intentionally does not
-   * flag.
+   * part of the ML pipeline) AND non-ML keywords/imports (web API, UI, logs,
+   * or other utility code foreign to the pipeline). A file with non-ML
+   * indicators but no ML evidence at all isn't "mixed" - it's simply not an
+   * ML file, which this intentionally does not flag.
    */
   get hasMixedContent(): boolean {
     return this.getEffectiveStages().length > 0 && this.nonMlIndicatorsForNode.length > 0;
@@ -648,7 +648,7 @@ export class TreeNodeComponent {
 
   get mixedContentTitle(): string {
     const reasons = this.nonMlIndicatorsForNode.map((entry) => this.describeNonMlIndicator(entry));
-    return `Mixes ML code with other content: ${reasons.join('; ')}`;
+    return `Mixes ML code with non-pipeline code (web API, UI, logs, utilities): ${reasons.join('; ')}`;
   }
 
   private get nonMlIndicatorsForNode(): string[] {
