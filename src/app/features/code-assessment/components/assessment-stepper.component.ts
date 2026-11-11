@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { AssessmentStep } from '../models/assessment.models';
 
 @Component({
@@ -15,8 +15,10 @@ import { AssessmentStep } from '../models/assessment.models';
               <div 
                 class="w-14 h-14 rounded-full flex items-center justify-center font-bold text-base transition-all duration-300 relative"
                 [ngClass]="{
-                  'bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-xl shadow-blue-500/50 scale-110': step.number === currentStep,
-                  'bg-gradient-to-br from-green-400 to-green-600 text-white shadow-lg shadow-green-500/30': step.completed && step.number !== currentStep,
+                  'bg-gradient-to-br': step.number === currentStep || (step.completed && step.number !== currentStep),
+                  'text-white': step.number === currentStep || (step.completed && step.number !== currentStep),
+                  'from-blue-500 to-blue-700 shadow-xl shadow-blue-500/50 scale-110': step.number === currentStep,
+                  'from-green-400 to-green-600 shadow-lg shadow-green-500/30': step.completed && step.number !== currentStep,
                   'bg-white border-2 border-gray-300 text-gray-400': step.number > currentStep && !step.completed
                 }">
                 <!-- Pulse Animation for Current Step -->
