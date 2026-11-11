@@ -8,10 +8,24 @@
     <div class="max-w-7xl mx-auto">
       <!-- Stepper -->
       <div class="max-w-4xl mx-auto">
-        <div class="flex items-center justify-between">
-          <ng-container *ngFor="let step of steps; let i = index; let last = last">
+        <div class="relative">
+          <!-- Progress track: a single continuous bar instead of per-segment
+               lines, so advancing reads as "how much is done" rather than a
+               row of switches flipping independently. The 10%/90% endpoints
+               line up with the center of the first/last circle because the
+               row below is a 5-equal-column grid (each circle centered in
+               its own 1/5), not a variable-width flex row. -->
+          <div class="absolute top-6 left-[10%] right-[10%] h-1 bg-gray-200 rounded-full"></div>
+          <div
+            class="absolute top-6 left-[10%] h-1 rounded-full transition-all duration-700 ease-out"
+            style="background: linear-gradient(90deg, rgb(0, 32, 96), rgb(0, 71, 171));"
+            [style.width.%]="getProgressWidthPercent()">
+          </div>
+
+          <div class="relative grid grid-cols-5">
             <div
-              class="flex flex-col items-center relative group"
+              *ngFor="let step of steps"
+              class="flex flex-col items-center group"
               [class.cursor-pointer]="canNavigateToStep(step.number)"
               [class.cursor-not-allowed]="!canNavigateToStep(step.number) && step.number !== state.currentStep"
               [attr.title]="step.number === state.currentStep ? null : (canNavigateToStep(step.number) ? 'Go to ' + step.label : null)"
@@ -19,13 +33,15 @@
               <div
                 class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 relative"
                 [ngClass]="{
-                  'bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-xl shadow-blue-500/50 scale-110': step.number === state.currentStep,
-                  'bg-gradient-to-br from-green-400 to-green-600 text-white shadow-lg shadow-green-500/30': step.completed && step.number !== state.currentStep,
+                  'text-white': step.number === state.currentStep || (step.completed && step.number !== state.currentStep),
+                  'scale-110 shadow-xl': step.number === state.currentStep,
+                  'bg-gradient-to-br from-green-400 to-green-600 shadow-lg shadow-green-500/30': step.completed && step.number !== state.currentStep,
                   'bg-white border-2 border-gray-300 text-gray-400': step.number > state.currentStep && !step.completed,
                   'hover:scale-105': canNavigateToStep(step.number)
-                }">
+                }"
+                [style.background]="step.number === state.currentStep ? 'linear-gradient(135deg, rgb(0, 32, 96) 0%, rgb(0, 71, 171) 100%)' : null">
                 <span *ngIf="step.number === state.currentStep"
-                      class="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-20"></span>
+                      class="absolute inset-0 rounded-full animate-ping opacity-20" style="background: rgb(0, 32, 96);"></span>
                 <span *ngIf="!step.completed || step.number === state.currentStep" class="relative z-10">{{ step.number }}</span>
                 <svg *ngIf="step.completed && step.number !== state.currentStep"
                      class="w-6 h-6 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
@@ -35,20 +51,15 @@
               <span
                 class="text-xs font-semibold text-center mt-2 transition-all duration-300 max-w-[80px]"
                 [ngClass]="{
-                  'text-blue-700 scale-105': step.number === state.currentStep,
+                  'scale-105': step.number === state.currentStep,
                   'text-green-600': step.completed && step.number !== state.currentStep,
                   'text-gray-400': step.number > state.currentStep && !step.completed
-                }">
+                }"
+                [style.color]="step.number === state.currentStep ? 'rgb(0, 32, 96)' : null">
                 {{ step.label }}
               </span>
             </div>
-            <div *ngIf="!last" class="flex-1 h-1 mx-3 rounded-full transition-all duration-500"
-                 [ngClass]="{
-                   'bg-gradient-to-r from-blue-500 to-blue-600': step.completed,
-                   'bg-gray-200': !step.completed
-                 }">
-            </div>
-          </ng-container>
+          </div>
         </div>
       </div>
     </div>

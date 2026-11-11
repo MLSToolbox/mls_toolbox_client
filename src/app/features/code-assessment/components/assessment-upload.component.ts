@@ -90,10 +90,11 @@ type UploadSource = File | string;
           <div 
             class="border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300"
             [ngClass]="{
-              'border-gray-300 bg-white hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer': !isDragging && !uploadedFileName && !isUploading,
+              'border-gray-300': (!isDragging && !uploadedFileName && !isUploading) || isUploading,
+              'bg-white hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer': !isDragging && !uploadedFileName && !isUploading,
               'border-blue-500 bg-blue-50': isDragging && !isUploading,
               'border-green-500 bg-green-50': uploadedFileName && !isUploading,
-              'border-gray-300 bg-gray-50 cursor-not-allowed opacity-60': isUploading
+              'bg-gray-50 cursor-not-allowed opacity-60': isUploading
             }"
             [class.pointer-events-none]="isUploading"
             (click)="!isUploading && fileInput.click()"

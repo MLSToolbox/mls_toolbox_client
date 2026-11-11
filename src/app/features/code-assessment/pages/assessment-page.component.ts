@@ -171,6 +171,22 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Fill width (%) for the stepper's progress bar. The bar spans the middle
+   * 80% of the row (10%-90%) so its ends land under the center of the first
+   * and last circles regardless of container width - see the grid-cols-5
+   * layout in the template, where each circle sits centered in an equal
+   * fifth of the row.
+   */
+  getProgressWidthPercent(): number {
+    const lastStep = this.steps.length;
+    if (lastStep <= 1) {
+      return 0;
+    }
+    const fraction = (this.state.currentStep - 1) / (lastStep - 1);
+    return Math.max(0, Math.min(1, fraction)) * 80;
+  }
+
+  /**
    * Clear current error
    */
   onClearError(): void {
