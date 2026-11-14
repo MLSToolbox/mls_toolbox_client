@@ -126,6 +126,20 @@ interface FileMetricsData {
                 <div class="text-xs text-gray-600 mt-1">Packages Analizados</div>
               </div>
             </div>
+
+            <!-- Project-wide overview: all analyzed metrics at a glance,
+                 instead of only file/package counts. -->
+            <div *ngIf="allMetrics.length > 0" class="mt-8 max-w-3xl mx-auto text-left">
+              <h3 class="text-sm font-bold text-gray-700 mb-3 text-center uppercase tracking-wide">Project Overview</h3>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div *ngFor="let metric of allMetrics"
+                     class="bg-white rounded-lg border p-4 text-center"
+                     [ngClass]="getOverviewCardBorderClass(metric.score, isLevelScaleMetric(metric.analyzer_id))">
+                  <div class="text-xs font-semibold text-gray-500 mb-1">{{ metric.documentation.name }}</div>
+                  <div class="text-xl font-bold text-gray-900">{{ formatMetricScore(metric) }}</div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div *ngIf="selectedPath && selectedFileData">
@@ -214,7 +228,7 @@ interface FileMetricsData {
                              'from-yellow-400 to-yellow-600': getCohesionLevel(metricId) === 'medium' || getCohesionLevel(metricId) === 'moderate',
                              'from-orange-400 to-orange-600': getCohesionLevel(metricId) === 'low',
                              'from-red-500 to-red-700': getCohesionLevel(metricId) === 'very_low',
-                             'from-gray-600 to-gray-800': getCohesionLevel(metricId) === 'not_applicable' || getCohesionLevel(metricId) === 'non_ml_file' || getCohesionLevel(metricId) === 'small_file' || getCohesionLevel(metricId) === 'no_class'
+                             'from-gray-600 to-gray-800': getCohesionLevel(metricId) === 'not_applicable' || getCohesionLevel(metricId) === 'non_ml_file' || getCohesionLevel(metricId) === 'non_ml_package' || getCohesionLevel(metricId) === 'small_file' || getCohesionLevel(metricId) === 'no_class'
                            }">
                         {{ getCohesionLevel(metricId)?.replace('_', ' ') }}
                       </div>
@@ -424,6 +438,45 @@ interface FileMetricsData {
 
                 <!-- Key Metrics Grid -->
                 <div class="px-6 py-6">
+                  <!-- Aggregated view: this directory has no metric of its own
+                       (no package-level analyzer result), so this bubbles up
+                       a summary of the file-level results found underneath it
+                       instead of showing "no metrics data". -->
+                  <div *ngIf="selectedFileData[metricId].data.aggregated" class="space-y-4">
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+                      <div class="text-xs font-semibold text-blue-700 mb-1 uppercase tracking-wide">
+                        No package-level {{ metricId.toUpperCase() }} result for this folder
+                      </div>
+                      <p class="text-sm text-blue-900">
+                        Showing an aggregate of the {{ selectedFileData[metricId].data.file_count }} file(s) found underneath it.
+                      </p>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      <div *ngFor="let entry of getCohesionCountEntries(selectedFileData[metricId].data.cohesion_counts)"
+                           class="rounded-lg p-3 border bg-gray-50 border-gray-200 text-center">
+                        <div class="text-xs font-semibold text-gray-600 capitalize">{{ entry.label.replace('_', ' ') }}</div>
+                        <div class="text-xl font-bold text-gray-800">{{ entry.count }}</div>
+                      </div>
+                    </div>
+                    <div class="overflow-x-auto rounded-lg border border-gray-200">
+                      <table class="min-w-full text-xs">
+                        <thead class="bg-gray-50">
+                          <tr>
+                            <th class="px-3 py-2 text-left font-semibold text-gray-600">File</th>
+                            <th class="px-3 py-2 text-left font-semibold text-gray-600">Cohesion Level</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let file of selectedFileData[metricId].data.files" class="border-t border-gray-100">
+                            <td class="px-3 py-2 font-mono text-gray-700">{{ file.path }}</td>
+                            <td class="px-3 py-2 text-gray-700 capitalize">{{ (file.cohesion_level || 'N/A').replace('_', ' ') }}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <ng-container *ngIf="!selectedFileData[metricId].data.aggregated">
                   <div *ngIf="metricId === 'ccpm'" class="space-y-4">
                     <!-- Primary Metrics -->
                     <div class="grid grid-cols-2 gap-4">
@@ -449,6 +502,37 @@ interface FileMetricsData {
                         </div>
                         <div class="text-xs text-gray-600 mt-1">
                           {{ selectedFileData[metricId].data.above_nloc_threshold ? 'Above' : 'Below' }} threshold
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- CCP_i Formula Breakdown: makes the WHY behind the level visible -->
+                    <div *ngIf="selectedFileData[metricId].data.ccp_level !== null && selectedFileData[metricId].data.ccp_level !== undefined"
+                         class="bg-gradient-to-r from-slate-50 to-blue-50 rounded-lg p-4 border border-slate-200">
+                      <div class="text-xs font-semibold text-slate-600 mb-3 uppercase tracking-wide font-mono">
+                        CCP_m = 5 − MP − MS − 2·MPC = {{ selectedFileData[metricId].data.ccp_level }} / 5
+                      </div>
+                      <div class="grid grid-cols-3 gap-3">
+                        <div class="rounded-lg p-3 border text-center"
+                             [ngClass]="selectedFileData[metricId].data.mp ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'">
+                          <div class="text-xs font-semibold text-gray-600">Multi-fase (MP)</div>
+                          <div class="text-lg font-bold" [ngClass]="selectedFileData[metricId].data.mp ? 'text-red-700' : 'text-green-700'">
+                            {{ selectedFileData[metricId].data.mp ? 'Sí' : 'No' }}
+                          </div>
+                        </div>
+                        <div class="rounded-lg p-3 border text-center"
+                             [ngClass]="selectedFileData[metricId].data.ms ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'">
+                          <div class="text-xs font-semibold text-gray-600">Multi-etapa (MS)</div>
+                          <div class="text-lg font-bold" [ngClass]="selectedFileData[metricId].data.ms ? 'text-red-700' : 'text-green-700'">
+                            {{ selectedFileData[metricId].data.ms ? 'Sí' : 'No' }}
+                          </div>
+                        </div>
+                        <div class="rounded-lg p-3 border text-center"
+                             [ngClass]="selectedFileData[metricId].data.mpc ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'">
+                          <div class="text-xs font-semibold text-gray-600">Código ajeno (MPC)</div>
+                          <div class="text-lg font-bold" [ngClass]="selectedFileData[metricId].data.mpc ? 'text-red-700' : 'text-green-700'">
+                            {{ selectedFileData[metricId].data.mpc ? 'Sí' : 'No' }}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -960,18 +1044,50 @@ interface FileMetricsData {
                                'text-green-700': selectedFileData[metricId].data.metrics?.cohesion_level === 'high',
                                'text-yellow-600': selectedFileData[metricId].data.metrics?.cohesion_level === 'medium',
                                'text-orange-600': selectedFileData[metricId].data.metrics?.cohesion_level === 'low',
-                               'text-red-700': selectedFileData[metricId].data.metrics?.cohesion_level === 'very_low'
+                               'text-red-700': selectedFileData[metricId].data.metrics?.cohesion_level === 'very_low',
+                               'text-gray-700': selectedFileData[metricId].data.metrics?.cohesion_level === 'non_ml_package'
                              }">
                           {{ selectedFileData[metricId].data.metrics?.cohesion_level?.replace('_', ' ') || 'N/A' }}
                         </div>
                       </div>
                       
                       <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                        <div class="text-xs font-semibold text-blue-600 mb-1">CCPP SCORE</div>
+                        <div class="text-xs font-semibold text-blue-600 mb-1">CCP_p LEVEL</div>
                         <div class="text-2xl font-bold text-blue-700">
-                          {{ selectedFileData[metricId].data.metrics?.ccpp_score !== undefined ? (selectedFileData[metricId].data.metrics.ccpp_score * 10).toFixed(1) : 'N/A' }}
+                          {{ selectedFileData[metricId].data.metrics?.ccp_level ?? 'N/A' }}
                         </div>
-                        <div class="text-xs text-blue-600 mt-1">/ 10</div>
+                        <div class="text-xs text-blue-600 mt-1">/ 5</div>
+                      </div>
+                    </div>
+
+                    <!-- CCP_i Formula Breakdown: makes the WHY behind the level visible -->
+                    <div *ngIf="selectedFileData[metricId].data.metrics?.ccp_level !== null && selectedFileData[metricId].data.metrics?.ccp_level !== undefined"
+                         class="bg-gradient-to-r from-slate-50 to-blue-50 rounded-lg p-4 border border-slate-200">
+                      <div class="text-xs font-semibold text-slate-600 mb-3 uppercase tracking-wide font-mono">
+                        CCP_p = 5 − MP − MS − 2·MPC = {{ selectedFileData[metricId].data.metrics?.ccp_level }} / 5
+                      </div>
+                      <div class="grid grid-cols-3 gap-3">
+                        <div class="rounded-lg p-3 border text-center"
+                             [ngClass]="selectedFileData[metricId].data.metrics?.mp ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'">
+                          <div class="text-xs font-semibold text-gray-600">Multi-fase (MP)</div>
+                          <div class="text-lg font-bold" [ngClass]="selectedFileData[metricId].data.metrics?.mp ? 'text-red-700' : 'text-green-700'">
+                            {{ selectedFileData[metricId].data.metrics?.mp ? 'Sí' : 'No' }}
+                          </div>
+                        </div>
+                        <div class="rounded-lg p-3 border text-center"
+                             [ngClass]="selectedFileData[metricId].data.metrics?.ms ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'">
+                          <div class="text-xs font-semibold text-gray-600">Multi-etapa (MS)</div>
+                          <div class="text-lg font-bold" [ngClass]="selectedFileData[metricId].data.metrics?.ms ? 'text-red-700' : 'text-green-700'">
+                            {{ selectedFileData[metricId].data.metrics?.ms ? 'Sí' : 'No' }}
+                          </div>
+                        </div>
+                        <div class="rounded-lg p-3 border text-center"
+                             [ngClass]="selectedFileData[metricId].data.metrics?.mpc ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'">
+                          <div class="text-xs font-semibold text-gray-600">Código ajeno (MPC)</div>
+                          <div class="text-lg font-bold" [ngClass]="selectedFileData[metricId].data.metrics?.mpc ? 'text-red-700' : 'text-green-700'">
+                            {{ selectedFileData[metricId].data.metrics?.mpc ? 'Sí' : 'No' }}
+                          </div>
+                        </div>
                       </div>
                     </div>
 
@@ -985,7 +1101,7 @@ interface FileMetricsData {
                           {{ selectedFileData[metricId].data.metrics?.ml_modules || 0 }} with ML content
                         </div>
                       </div>
-                      
+
                       <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border border-teal-200">
                         <div class="text-xs font-semibold text-teal-600 mb-1">REFACTORING</div>
                         <div class="text-lg font-bold"
@@ -1020,253 +1136,8 @@ interface FileMetricsData {
                       </div>
                     </div>
                   </div>
+                  </ng-container>
 
-                  <div *ngIf="metricId === 'ifc_p'" class="space-y-4">
-                    <!-- Primary Metrics -->
-                    <div class="grid grid-cols-2 gap-4">
-                      <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg p-4 border border-pink-200">
-                        <div class="text-xs font-semibold text-pink-600 mb-1">COHESION LEVEL</div>
-                        <div class="text-2xl font-bold capitalize"
-                             [ngClass]="{
-                               'text-emerald-700': selectedFileData[metricId].data.cohesion_level === 'excellent',
-                               'text-green-700': selectedFileData[metricId].data.cohesion_level === 'good',
-                               'text-yellow-600': selectedFileData[metricId].data.cohesion_level === 'moderate',
-                               'text-orange-600': selectedFileData[metricId].data.cohesion_level === 'low',
-                               'text-red-700': selectedFileData[metricId].data.cohesion_level === 'very_low'
-                             }">
-                          {{ selectedFileData[metricId].data.cohesion_level?.replace('_', ' ') || 'N/A' }}
-                        </div>
-                      </div>
-
-                      <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
-                        <div class="text-xs font-semibold text-indigo-600 mb-1">IFC-P SCORE</div>
-                        <div class="text-2xl font-bold text-indigo-700">
-                          {{ selectedFileData[metricId].data.ifc_p !== null ? (selectedFileData[metricId].data.ifc_p * 10).toFixed(1) : 'N/A' }}
-                        </div>
-                        <div class="text-xs text-indigo-600 mt-1">/ 10</div>
-                      </div>
-                    </div>
-
-                    <!-- Connection Metrics -->
-                    <div class="grid grid-cols-3 gap-4">
-                      <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                        <div class="text-xs font-semibold text-blue-600 mb-1">MODULES</div>
-                        <div class="text-2xl font-bold text-blue-700">
-                          {{ selectedFileData[metricId].data.n_modules || 0 }}
-                        </div>
-                      </div>
-                      
-                      <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border border-teal-200">
-                        <div class="text-xs font-semibold text-teal-600 mb-1">POSSIBLE PAIRS</div>
-                        <div class="text-2xl font-bold text-teal-700">
-                          {{ selectedFileData[metricId].data.n_possible_pairs || 0 }}
-                        </div>
-                      </div>
-
-                      <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
-                        <div class="text-xs font-semibold text-green-600 mb-1">CONNECTED PAIRS</div>
-                        <div class="text-2xl font-bold text-green-700">
-                          {{ selectedFileData[metricId].data.n_connected_pairs || 0 }}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div *ngIf="metricId === 'lpcml'" class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                      <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
-                        <div class="text-xs font-semibold text-purple-600 mb-1">COHESION LEVEL</div>
-                        <div class="text-2xl font-bold capitalize"
-                             [ngClass]="{
-                               'text-emerald-700': selectedFileData[metricId].data.cohesion_level === 'excellent',
-                               'text-green-700': selectedFileData[metricId].data.cohesion_level === 'acceptable',
-                               'text-yellow-600': selectedFileData[metricId].data.cohesion_level === 'moderate',
-                               'text-red-700': selectedFileData[metricId].data.cohesion_level === 'poor'
-                             }">
-                          {{ selectedFileData[metricId].data.cohesion_level?.replace('_', ' ') || 'N/A' }}
-                        </div>
-                      </div>
-
-                      <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
-                        <div class="text-xs font-semibold text-indigo-600 mb-1">LPCML SCORE</div>
-                        <div class="text-2xl font-bold text-indigo-700">
-                          {{ selectedFileData[metricId].data.lpcml !== null ? selectedFileData[metricId].data.lpcml : 'N/A' }}
-                        </div>
-                        <div class="text-xs text-indigo-600 mt-1">Components</div>
-                      </div>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-4">
-                      <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                        <div class="text-xs font-semibold text-blue-600 mb-1">ELEMENTS</div>
-                        <div class="text-2xl font-bold text-blue-700">
-                          {{ selectedFileData[metricId].data.n_elements || 0 }}
-                        </div>
-                      </div>
-                      
-                      <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border border-teal-200">
-                        <div class="text-xs font-semibold text-teal-600 mb-1">COMPONENTS</div>
-                        <div class="text-2xl font-bold text-teal-700">
-                          {{ selectedFileData[metricId].data.n_components || 0 }}
-                        </div>
-                      </div>
-
-                      <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
-                        <div class="text-xs font-semibold text-green-600 mb-1">COHESION RATIO</div>
-                        <div class="text-2xl font-bold text-green-700">
-                          {{ (selectedFileData[metricId].data.cohesion_ratio * 100).toFixed(0) }}%
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div *ngIf="metricId === 'pmcr'" class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                      <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                        <div class="text-xs font-semibold text-blue-600 mb-1">COHESION LEVEL</div>
-                        <div class="text-2xl font-bold capitalize"
-                             [ngClass]="{
-                               'text-emerald-700': selectedFileData[metricId].data.cohesion_level === 'excellent',
-                               'text-green-700': selectedFileData[metricId].data.cohesion_level === 'good',
-                               'text-yellow-600': selectedFileData[metricId].data.cohesion_level === 'moderate',
-                               'text-orange-600': selectedFileData[metricId].data.cohesion_level === 'low',
-                               'text-red-700': selectedFileData[metricId].data.cohesion_level === 'very_low'
-                             }">
-                          {{ selectedFileData[metricId].data.cohesion_level?.replace('_', ' ') || 'N/A' }}
-                        </div>
-                      </div>
-
-                      <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
-                        <div class="text-xs font-semibold text-indigo-600 mb-1">PMCR SCORE</div>
-                        <div class="text-2xl font-bold text-indigo-700">
-                          {{ selectedFileData[metricId].data.pmcr !== null ? (selectedFileData[metricId].data.pmcr * 10).toFixed(1) : 'N/A' }}
-                        </div>
-                        <div class="text-xs text-indigo-600 mt-1">/ 10</div>
-                      </div>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-4">
-                      <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                        <div class="text-xs font-semibold text-blue-600 mb-1">MODULES</div>
-                        <div class="text-2xl font-bold text-blue-700">
-                          {{ selectedFileData[metricId].data.n_modules || 0 }}
-                        </div>
-                      </div>
-                      
-                      <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border border-teal-200">
-                        <div class="text-xs font-semibold text-teal-600 mb-1">POSSIBLE PAIRS</div>
-                        <div class="text-2xl font-bold text-teal-700">
-                          {{ selectedFileData[metricId].data.n_possible_pairs || 0 }}
-                        </div>
-                      </div>
-
-                      <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
-                        <div class="text-xs font-semibold text-green-600 mb-1">CONNECTED PAIRS</div>
-                        <div class="text-2xl font-bold text-green-700">
-                          {{ selectedFileData[metricId].data.n_connected_pairs || 0 }}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div *ngIf="metricId === 'pdsc'" class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                      <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
-                        <div class="text-xs font-semibold text-orange-600 mb-1">COHESION LEVEL</div>
-                        <div class="text-2xl font-bold capitalize"
-                             [ngClass]="{
-                               'text-emerald-700': selectedFileData[metricId].data.pdsc >= 0.8,
-                               'text-green-700': selectedFileData[metricId].data.pdsc >= 0.6 && selectedFileData[metricId].data.pdsc < 0.8,
-                               'text-yellow-600': selectedFileData[metricId].data.pdsc >= 0.4 && selectedFileData[metricId].data.pdsc < 0.6,
-                               'text-orange-600': selectedFileData[metricId].data.pdsc >= 0.2 && selectedFileData[metricId].data.pdsc < 0.4,
-                               'text-red-700': selectedFileData[metricId].data.pdsc < 0.2
-                             }">
-                          {{ selectedFileData[metricId].data.pdsc >= 0.8 ? 'Excellent' : 
-                             selectedFileData[metricId].data.pdsc >= 0.6 ? 'Good' :
-                             selectedFileData[metricId].data.pdsc >= 0.4 ? 'Moderate' :
-                             selectedFileData[metricId].data.pdsc >= 0.2 ? 'Low' : 'Very Low' }}
-                        </div>
-                      </div>
-
-                      <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
-                        <div class="text-xs font-semibold text-indigo-600 mb-1">PDSC SCORE</div>
-                        <div class="text-2xl font-bold text-indigo-700">
-                          {{ selectedFileData[metricId].data.pdsc !== null ? (selectedFileData[metricId].data.pdsc * 10).toFixed(1) : 'N/A' }}
-                        </div>
-                        <div class="text-xs text-indigo-600 mt-1">/ 10</div>
-                      </div>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-4">
-                      <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                        <div class="text-xs font-semibold text-blue-600 mb-1">MODULES</div>
-                        <div class="text-2xl font-bold text-blue-700">
-                          {{ selectedFileData[metricId].data.n_modules || 0 }}
-                        </div>
-                      </div>
-                      
-                      <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border border-teal-200">
-                        <div class="text-xs font-semibold text-teal-600 mb-1">POSSIBLE PAIRS</div>
-                        <div class="text-2xl font-bold text-teal-700">
-                          {{ selectedFileData[metricId].data.n_possible_pairs || 0 }}
-                        </div>
-                      </div>
-
-                      <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
-                        <div class="text-xs font-semibold text-green-600 mb-1">SHARED PAIRS</div>
-                        <div class="text-2xl font-bold text-green-700">
-                          {{ selectedFileData[metricId].data.n_shared_pairs || 0 }}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div *ngIf="metricId === 'pfp'" class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                      <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border border-teal-200">
-                        <div class="text-xs font-semibold text-teal-600 mb-1">COHESION LEVEL</div>
-                        <div class="text-2xl font-bold capitalize"
-                             [ngClass]="{
-                               'text-emerald-700': selectedFileData[metricId].data.metrics.purity_level === 'High',
-                               'text-yellow-600': selectedFileData[metricId].data.metrics.purity_level === 'Moderate',
-                               'text-red-700': selectedFileData[metricId].data.metrics.purity_level === 'Low' || selectedFileData[metricId].data.metrics.purity_level === 'Very Low'
-                             }">
-                          {{ selectedFileData[metricId].data.metrics.purity_level || 'N/A' }}
-                        </div>
-                      </div>
-
-                      <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
-                        <div class="text-xs font-semibold text-indigo-600 mb-1">PFP SCORE</div>
-                        <div class="text-2xl font-bold text-indigo-700">
-                          {{ selectedFileData[metricId].data.metrics.pfp_score !== null ? (selectedFileData[metricId].data.metrics.pfp_score * 10).toFixed(1) : 'N/A' }}
-                        </div>
-                        <div class="text-xs text-indigo-600 mt-1">/ 10</div>
-                      </div>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-4">
-                      <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                        <div class="text-xs font-semibold text-blue-600 mb-1">TOTAL MODULES</div>
-                        <div class="text-2xl font-bold text-blue-700">
-                          {{ selectedFileData[metricId].data.metrics.total_modules || 0 }}
-                        </div>
-                      </div>
-                      
-                      <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
-                        <div class="text-xs font-semibold text-purple-600 mb-1">ML MODULES</div>
-                        <div class="text-2xl font-bold text-purple-700">
-                          {{ selectedFileData[metricId].data.metrics.ml_modules || 0 }}
-                        </div>
-                      </div>
-
-                      <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200">
-                        <div class="text-xs font-semibold text-red-600 mb-1">REFACTORING</div>
-                        <div class="text-lg font-bold text-red-700">
-                          {{ selectedFileData[metricId].data.quality_indicators.needs_refactoring ? 'Required' : 'Not Required' }}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -1326,8 +1197,6 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
       const metricName = metric.documentation.name;
       const category = metric.documentation.category;
 
-      console.log(`Processing metric: ${metricId}`, metric);
-
       if (metricId === 'ccpm') {
         this.processCCPMMetric(metric as CCPMResult, metricName, category);
       } else if (metricId === 'scpm') {
@@ -1335,13 +1204,10 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
       } else if (metricId === 'fcpm') {
         this.processFCPMMetric(metric as FCPMResult, metricName, category);
       } else if (metricId === 'fcpp') {
-        console.log('Processing FCPP - packages:', (metric as FCPPResult).details?.packages);
         this.processFCPPMetric(metric as FCPPResult, metricName, category);
       } else if (metricId === 'scpp') {
-        console.log('Processing SCPP - packages:', (metric as SCPPResult).details?.packages);
         this.processSCPPMetric(metric as SCPPResult, metricName, category);
       } else if (metricId === 'ccpp') {
-        console.log('Processing CCPP - packages:', (metric as CCPPResult).details?.packages);
         this.processCCPPMetric(metric as CCPPResult, metricName, category);
       }
     });
@@ -1350,27 +1216,6 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     this.fileMetricsMap.forEach((_, path) => {
       this.pathsWithMetrics.add(path);
     });
-
-    // DEBUG: show exactly what getTotalFiles/getTotalPackages will compute
-    console.log('=== DEBUG COUNTS ===');
-    console.log('allMetrics IDs:', this.allMetrics.map(m => m.analyzer_id));
-    this.allMetrics.forEach(metric => {
-      const id = metric.analyzer_id;
-      if (id === 'ccpm' || id === 'scpm' || id === 'fcpm') {
-        const files = (metric as any).details?.files;
-        console.log(`[${id}] details.files keys:`, files ? Object.keys(files) : 'NO FILES PROP');
-        console.log(`[${id}] details.files count:`, files ? Object.keys(files).length : 0);
-        console.log(`[${id}] summary.total_files:`, (metric as any).details?.summary?.total_files);
-      }
-      if (id === 'fcpp' || id === 'scpp' || id === 'ccpp') {
-        const pkgs = (metric as any).details?.packages;
-        console.log(`[${id}] details.packages keys:`, pkgs ? Object.keys(pkgs) : 'NO PACKAGES PROP');
-        console.log(`[${id}] details.packages count:`, pkgs ? Object.keys(pkgs).length : 0);
-      }
-    });
-    console.log('fileMetricsMap size:', this.fileMetricsMap.size);
-    console.log('fileMetricsMap keys:', Array.from(this.fileMetricsMap.keys()));
-    console.log('=== END DEBUG ===');
   }
 
   processCCPMMetric(metric: CCPMResult, metricName: string, category: string): void {
@@ -1674,7 +1519,6 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
 
   processSCPPMetric(metric: SCPPResult, metricName: string, category: string): void {
     Object.entries(metric.details?.packages || {}).forEach(([packagePath, packageData]) => {
-      console.log('Processing SCPP package:', packagePath, packageData);
       const messages: string[] = [];
       const detailedMessages: DetailedMessage[] = [];
       let severity: 'error' | 'warning' | 'info' | 'success' = 'info';
@@ -1732,9 +1576,7 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
   }
 
   processCCPPMetric(metric: CCPPResult, metricName: string, category: string): void {
-    console.log('processCCPPMetric called - packages count:', Object.keys(metric.details?.packages || {}).length);
     Object.entries(metric.details?.packages || {}).forEach(([packagePath, packageData]) => {
-      console.log('Processing CCPP package:', packagePath, packageData);
       const messages: string[] = [];
       const detailedMessages: DetailedMessage[] = [];
       let severity: 'error' | 'warning' | 'info' | 'success' = 'info';
@@ -1751,10 +1593,13 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
 
         messages.push(`${msg.diagnosis || ''} ${msg.recommendation || ''}`.trim());
 
-        if (msg.severity === 'critical') {
+        // Same severity taxonomy as CCPM's rules (critical/high/medium/low/info)
+        if (msg.severity === 'critical' || msg.severity === 'high' || msg.severity === 'error') {
           severity = 'error';
-        } else if (msg.severity === 'warning' && severity !== 'error') {
+        } else if (msg.severity === 'medium' && severity !== 'error') {
           severity = 'warning';
+        } else if (msg.severity === 'low' && severity === 'info') {
+          severity = 'info';
         }
       });
 
@@ -1773,15 +1618,21 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
         } else if (cohesionLevel === 'very_low') {
           severity = 'error';
           messages.push('Very low conceptual cohesion - Package needs reorganization');
+        } else if (cohesionLevel === 'non_ml_package') {
+          severity = 'info';
+          messages.push('No pipeline stage detected in this package');
         }
       }
 
       // Use registerMetric to handle all path variations
+      // No numeric `score` here, same as CCPM: CCP_i is on a 1-5 scale, not
+      // 0-10, so this card shows the qualitative Cohesion Badge instead of
+      // the numeric Score Badge (see getCohesionLevel()). The exact CCP_i
+      // level (1-5) is still shown inside the card's Key Metrics Grid.
       this.registerMetric(packagePath, 'ccpp', {
         metricName,
         category,
         data: packageData,
-        score: packageData.metrics?.ccpp_score !== undefined ? packageData.metrics.ccpp_score * 10 : "Not Applicable",
         severity,
         messages,
         detailedMessages
@@ -1875,10 +1726,89 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     }
   }
 
+  /**
+   * A directory with no package-level analyzer result of its own (no
+   * direct entry under details.packages) used to show "no metrics data"
+   * even when files underneath it had rich module-level results. This
+   * bubbles up a summary of the file-level (ccpm/scpm/fcpm) results found
+   * anywhere beneath this node instead.
+   */
   aggregateDirectoryMetrics(node: any): FileMetricsData {
     const aggregated: FileMetricsData = {};
+    const filePaths = this.collectFilePaths(node);
+    if (filePaths.length === 0) {
+      return aggregated;
+    }
+
+    for (const metricId of ['ccpm', 'scpm', 'fcpm']) {
+      const entries: Array<{ path: string; data: any }> = [];
+      for (const path of filePaths) {
+        const fileMetrics = this.lookupFileMetrics(path);
+        const entry = fileMetrics?.[metricId];
+        if (entry) {
+          entries.push({ path, data: entry.data });
+        }
+      }
+      if (entries.length === 0) continue;
+
+      const metricMeta = this.allMetrics.find(m => m.analyzer_id === metricId);
+      const cohesionCounts: Record<string, number> = {};
+      entries.forEach(({ data }) => {
+        const level = data?.cohesion_level || 'unknown';
+        cohesionCounts[level] = (cohesionCounts[level] || 0) + 1;
+      });
+      const hasVeryLow = (cohesionCounts['very_low'] || 0) > 0;
+      const hasLow = (cohesionCounts['low'] || 0) > 0;
+      const severity: 'error' | 'warning' | 'info' | 'success' =
+        hasVeryLow ? 'error' : hasLow ? 'warning' : 'success';
+
+      aggregated[metricId] = {
+        metricName: metricMeta?.documentation.name || metricId.toUpperCase(),
+        category: metricMeta?.documentation.category || 'cohesion',
+        data: {
+          aggregated: true,
+          file_count: entries.length,
+          cohesion_counts: cohesionCounts,
+          files: entries.map(({ path, data }) => ({
+            path,
+            cohesion_level: data?.cohesion_level,
+            ccp_level: data?.ccp_level,
+          })),
+        },
+        severity,
+        messages: [`${entries.length} file(s) under this folder have ${metricId.toUpperCase()} data.`],
+        detailedMessages: [],
+      };
+    }
 
     return aggregated;
+  }
+
+  private collectFilePaths(node: any): string[] {
+    const paths: string[] = [];
+    const walk = (n: any): void => {
+      if (!n) return;
+      if (n.type === 'file' && n.path) {
+        paths.push(n.path);
+      }
+      if (n.children) {
+        n.children.forEach((child: any) => walk(child));
+      }
+    };
+    walk(node);
+    return paths;
+  }
+
+  private lookupFileMetrics(path: string): FileMetricsData | undefined {
+    let metrics = this.fileMetricsMap.get(path);
+    if (!metrics && !path.startsWith('/')) metrics = this.fileMetricsMap.get('/' + path);
+    if (!metrics && path.startsWith('/')) metrics = this.fileMetricsMap.get(path.substring(1));
+    return metrics;
+  }
+
+  getCohesionCountEntries(counts: Record<string, number> | undefined): Array<{ label: string; count: number }> {
+    if (!counts) return [];
+    return Object.entries(counts).map(([label, count]) => ({ label, count }));
   }
 
   getFileName(path: string): string {
@@ -1949,10 +1879,6 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     for (const metric of this.allMetrics) {
       if (metric.analyzer_id === 'ccpm' || metric.analyzer_id === 'scpm' || metric.analyzer_id === 'fcpm') {
         const files = (metric as any).details?.files;
-        console.log(`[getTotalFiles] metric=${metric.analyzer_id}, details keys=`, Object.keys((metric as any).details || {}));
-        console.log(`[getTotalFiles] files=`, files);
-        console.log(`[getTotalFiles] files keys=`, files ? Object.keys(files) : 'no files');
-        console.log(`[getTotalFiles] summary=`, (metric as any).details?.summary);
         if (files) return Object.keys(files).length;
       }
     }
@@ -1963,10 +1889,6 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
     for (const metric of this.allMetrics) {
       if (metric.analyzer_id === 'fcpp' || metric.analyzer_id === 'scpp' || metric.analyzer_id === 'ccpp') {
         const packages = (metric as any).details?.packages;
-        console.log(`[getTotalPackages] metric=${metric.analyzer_id}, details keys=`, Object.keys((metric as any).details || {}));
-        console.log(`[getTotalPackages] packages=`, packages);
-        console.log(`[getTotalPackages] packages keys=`, packages ? Object.keys(packages) : 'no packages');
-        console.log(`[getTotalPackages] summary=`, (metric as any).details?.summary);
         if (packages) return Object.keys(packages).length;
       }
     }
@@ -2039,6 +1961,27 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
   getMetricDescription(metricId: string): string {
     const metric = this.allMetrics.find(m => m.analyzer_id === metricId);
     return metric?.documentation?.summary || '';
+  }
+
+  /** ccpm/ccpp report CCP_i on a literal 1-5 scale, not 0-10 like every other metric. */
+  isLevelScaleMetric(metricId: string): boolean {
+    return metricId === 'ccpm' || metricId === 'ccpp';
+  }
+
+  formatMetricScore(metric: AnalysisResult): string {
+    if (this.isLevelScaleMetric(metric.analyzer_id)) {
+      return `${metric.score.toFixed(2)} / 5`;
+    }
+    return `${metric.score.toFixed(1)} / 10`;
+  }
+
+  getOverviewCardBorderClass(score: number, isLevelScale: boolean): string {
+    const normalized = isLevelScale ? ((score - 1) / 4) * 10 : score; // 1-5 -> 0-10 for a single shared threshold set
+    if (normalized >= 9) return 'border-emerald-300';
+    if (normalized >= 7) return 'border-green-200';
+    if (normalized >= 5) return 'border-yellow-200';
+    if (normalized >= 3) return 'border-orange-200';
+    return 'border-red-200';
   }
 
   getMetricDocumentation(metricId: string): MetricDocumentation | null {

@@ -44,25 +44,6 @@ export enum AssessmentStepEnum {
   RESULTS = 5
 }
 
-export interface MetricOption {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  enabled: boolean;
-  selected: boolean;
-  formula?: string;
-  ideal_range?: {
-    min?: number | null;
-    max?: number | null;
-    optimal?: string;
-    acceptable?: string;
-    warning?: string;
-  };
-  interpretation?: { [key: string]: string };
-  references?: string[];
-}
-
 export interface PipelineOverrides {
   file_stages: Record<string, string[]>;
   excluded_files: string[];

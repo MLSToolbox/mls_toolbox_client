@@ -78,21 +78,28 @@ export interface CCPMFileResult {
   unique_phases: number;
   stages_detected: string[];
   phases_detected: string[];
-  
-  // Análisis de Cohesión
-  cohesion_level: 'very_high' | 'high' | 'medium' | 'low' | 'very_low' | 'non_ml_file';
-  
+
+  // CCP_i = 5 - MP - MS - 2*MPC (paper formula). null for files excluded
+  // from scoring (non_ml_file / not_applicable - no pipeline stage at all).
+  mp: boolean | null;
+  ms: boolean | null;
+  mpc: boolean | null;
+  ccp_level: number | null;          // 1-5, null if excluded from scoring
+
+  // Análisis de Cohesión (etiqueta derivada de ccp_level, o categoría de exclusión)
+  cohesion_level: 'very_high' | 'high' | 'medium' | 'low' | 'very_low' | 'non_ml_file' | 'not_applicable';
+
   // Detalle de Funciones
   function_stages: { [funcName: string]: string[] };
-  
+
   // Contenido ML
   ml_content_only: boolean;          // true = solo código ML, false = tiene código no-ML
   non_ml_keywords_found: string[];   // Keywords no-ML encontrados
-  
-  // Métricas de Tamaño
+
+  // Métricas de Tamaño (informativo - NO afecta ccp_level, ver paper)
   nloc: number;                      // Non-comment Lines of Code
   above_nloc_threshold: boolean;     // Si excede el umbral (default: 30)
-  
+
   // Tipo de Archivo
   is_script_file: boolean;           // true si es script (sin funciones/clases)
   source: 'pipeline_metadata' | 'heuristic'; // Origen de detección de etapas
@@ -100,18 +107,19 @@ export interface CCPMFileResult {
 
 export interface CCPMSummary {
   total_files: number;
-  
-  // Contadores por nivel de cohesión
-  very_high_cohesion: number;        // 1 etapa, solo ML (SRP perfecto)
-  high_cohesion: number;             // 1 etapa con problemas menores
-  medium_cohesion: number;           // 1 fase, múltiples etapas
-  low_cohesion: number;              // Múltiples fases, solo ML
-  very_low_cohesion: number;         // Múltiples fases + código no-ML
-  
-  // Archivos especiales
-  non_ml_files: number;              // Archivos sin contenido ML
-  small_files: number;               // Archivos bajo el umbral NLOC
-  
+
+  // Contadores por nivel de cohesión (CCP_i level 5..1)
+  very_high_cohesion: number;        // ccp_level 5: 1 fase, 1 etapa, solo ML
+  high_cohesion: number;             // ccp_level 4: 1 fase, N etapas, solo ML
+  medium_cohesion: number;           // ccp_level 3: (N fases, solo ML) o (1 etapa, mezclado)
+  low_cohesion: number;              // ccp_level 2: 1 fase, N etapas, mezclado
+  very_low_cohesion: number;         // ccp_level 1: N fases, mezclado
+
+  // Archivos especiales (sin ccp_level, excluidos del promedio)
+  non_ml_files: number;              // Sin etapas detectadas y con indicios no-ML
+  not_applicable: number;            // Sin etapas detectadas, contenido ML puro
+  small_files: number;               // Archivos bajo el umbral NLOC (solo informativo)
+
   // Configuración
   scan_mode: string;                 // "pipeline_scope" | "manual_override_scope" | "empty_scope"
   nloc_threshold: number;            // Umbral NLOC (default: 30)
@@ -123,7 +131,7 @@ export interface CCPMMessage {
   category: string;
   diagnosis: string;
   recommendation: string | null;     // null si no hay recomendación
-  rule_id?: number;                  // ID de la regla aplicada (1-10)
+  rule_id?: number;                  // ID de la regla aplicada (1-6, una por combinación MP/MS/MPC)
 }
 
 
@@ -259,10 +267,6 @@ export interface FCPPResult extends AnalysisResult {
     };
   };
   messages: {
-    global?: Array<{
-      message: string;
-      level: 'error' | 'warning' | 'success' | 'info';
-    }>;
     by_package?: {
       [packagePath: string]: Array<{
         diagnosis?: string;
@@ -301,10 +305,6 @@ export interface SCPPResult extends AnalysisResult {
     };
   };
   messages: {
-    global?: Array<{
-      message: string;
-      level: 'error' | 'warning' | 'success' | 'info';
-    }>;
     by_package?: {
       [packagePath: string]: Array<{
         diagnosis?: string;
@@ -319,15 +319,19 @@ export interface CCPPResult extends AnalysisResult {
   details?: {
     summary?: {
       total_packages_analyzed?: number;
-      average_ccpp_score?: number;
-      overall_quality?: string;
+      scored_packages?: number;
+      average_ccp_level?: number;      // 1-5, promedio de los paquetes puntuables
+      overall_quality?: 'Excellent' | 'Good' | 'Fair' | 'Critical' | 'N/A';
       packages_needing_attention?: number;
       packages_with_good_purity?: number;
+      etapas_max?: number;
       purity_summary?: {
-        High?: number;
-        Moderate?: number;
-        Low?: number;
-        'Very Low'?: number;
+        very_high?: number;
+        high?: number;
+        medium?: number;
+        low?: number;
+        very_low?: number;
+        non_ml_package?: number;       // sin etapas detectadas, excluido del promedio
       };
     };
     packages?: {
@@ -335,8 +339,12 @@ export interface CCPPResult extends AnalysisResult {
         metrics?: {
           total_modules?: number;
           ml_modules?: number;
-          ccpp_score?: number;
-          cohesion_level?: string;
+          cohesion_level?: 'very_high' | 'high' | 'medium' | 'low' | 'very_low' | 'non_ml_package';
+          // CCP_i = 5 - MP - MS - 2*MPC, igual que CCPM pero a nivel paquete
+          mp?: boolean | null;
+          ms?: boolean | null;
+          mpc?: boolean | null;
+          ccp_level?: number | null;   // 1-5, null si es non_ml_package
         };
         phases_detected?: string[];
         stages_detected?: string[];
@@ -349,15 +357,12 @@ export interface CCPPResult extends AnalysisResult {
     };
   };
   messages: {
-    global?: Array<{
-      message: string;
-      level: 'error' | 'warning' | 'success' | 'info';
-    }>;
     by_package?: {
       [packagePath: string]: Array<{
         diagnosis?: string;
-        recommendation?: string;
-        severity?: 'critical' | 'warning' | 'info' | 'success';
+        recommendation?: string | null;
+        severity?: 'critical' | 'high' | 'medium' | 'low' | 'info';
+        rule_id?: number;
       }>;
     };
   };

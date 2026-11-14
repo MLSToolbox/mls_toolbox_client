@@ -13,7 +13,6 @@ import { AssessmentStepperComponent } from "./components/assessment-stepper.comp
 import { AssessmentUploadComponent } from "./components/assessment-upload.component";
 import { AssessmentStageValidationComponent, TreeNodeComponent } from "./components/assessment-stage-validation.component";
 import { AssessmentStructureComponent } from "./components/assessment-structure.component";
-import { AssessmentResultsV2Component } from "./components/assessment-results-v2.component";
 import { AssessmentResultsFinalComponent, TreeNodeClickableComponent } from "./components/assessment-results-final.component";
 
 @NgModule({
@@ -26,7 +25,6 @@ import { AssessmentResultsFinalComponent, TreeNodeClickableComponent } from "./c
     AssessmentStageValidationComponent,
     TreeNodeComponent,
     AssessmentStructureComponent,
-    AssessmentResultsV2Component,
     AssessmentResultsFinalComponent,
     TreeNodeClickableComponent
   ],

@@ -1,4 +1,5 @@
 import { AnalyzeResponse, AnalysisResult } from "@app/core/models";
+import { MODULE_METRICS, PACKAGE_METRICS } from "./metric-groups.const";
 
 type Severity = "error" | "warning" | "info" | "success";
 type CsvValue = string | number | boolean | null | undefined;
@@ -54,6 +55,11 @@ interface ModuleMetricCsvRow extends CsvRow {
   stages_detected: string;
   phases_detected: string;
   disconnected_methods_count: number | undefined;
+  // CCP_i (ccpm only, 1-5 scale - not comparable to score_0_10)
+  mp: boolean | undefined;
+  ms: boolean | undefined;
+  mpc: boolean | undefined;
+  ccp_level: number | undefined;
 }
 
 interface PackageMetricCsvRow extends CsvRow {
@@ -74,6 +80,11 @@ interface PackageMetricCsvRow extends CsvRow {
   needs_refactoring: boolean | undefined;
   stages_detected: string;
   phases_detected: string;
+  // CCP_i (ccpp only, 1-5 scale - not comparable to score_0_10)
+  mp: boolean | undefined;
+  ms: boolean | undefined;
+  mpc: boolean | undefined;
+  ccp_level: number | undefined;
 }
 
 interface IssueCsvRow extends CsvRow {
@@ -86,9 +97,6 @@ interface IssueCsvRow extends CsvRow {
   diagnosis: string;
   recommendation: string;
 }
-
-const MODULE_METRICS = new Set(["ccpm", "scpm", "fcpm"]);
-const PACKAGE_METRICS = new Set(["fcpp", "scpp", "ccpp"]);
 
 const OVERVIEW_HEADERS = [
   "session_id",
@@ -122,6 +130,10 @@ const MODULE_HEADERS = [
   "stages_detected",
   "phases_detected",
   "disconnected_methods_count",
+  "mp",
+  "ms",
+  "mpc",
+  "ccp_level",
 ];
 
 const PACKAGE_HEADERS = [
@@ -142,6 +154,10 @@ const PACKAGE_HEADERS = [
   "needs_refactoring",
   "stages_detected",
   "phases_detected",
+  "mp",
+  "ms",
+  "mpc",
+  "ccp_level",
 ];
 
 const ISSUE_HEADERS = [
@@ -263,6 +279,10 @@ function buildModuleRows(
       disconnected_methods_count:
         getNumber(fileData, "n_disconnected_methods") ??
         getStringArray(fileData, "disconnected_methods").length,
+      mp: getBoolean(fileData, "mp"),
+      ms: getBoolean(fileData, "ms"),
+      mpc: getBoolean(fileData, "mpc"),
+      ccp_level: getNumber(fileData, "ccp_level"),
     });
   }
 
@@ -310,6 +330,10 @@ function buildPackageRows(
       needs_refactoring: getBoolean(qualityIndicators, "needs_refactoring"),
       stages_detected: safeJoinArray(getStringArray(packageData, "stages_detected")),
       phases_detected: safeJoinArray(getStringArray(packageData, "phases_detected")),
+      mp: getBoolean(metricsData, "mp"),
+      ms: getBoolean(metricsData, "ms"),
+      mpc: getBoolean(metricsData, "mpc"),
+      ccp_level: getNumber(metricsData, "ccp_level"),
     });
   }
 
@@ -363,9 +387,7 @@ function getPackageScore(
   if (metricId === "scpp") {
     return scaleToTen(getNumber(packageData, "scpp"));
   }
-  if (metricId === "ccpp") {
-    return scaleToTen(getNumber(metricsData, "ccpp_score"));
-  }
+  // ccpp is on a 1-5 CCP_i scale, not 0-10 - see the ccp_level column instead.
   return undefined;
 }
 
