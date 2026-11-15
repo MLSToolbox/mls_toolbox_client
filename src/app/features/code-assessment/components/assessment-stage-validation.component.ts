@@ -367,14 +367,6 @@ export class AssessmentStageValidationComponent {
           Invalid Syntax
         </span>
 
-        <span
-          *ngIf="!isDirectory && !isEditing && getEffectiveMixedContent()"
-          class="px-2 py-0.5 text-xs font-medium bg-gray-800 text-white rounded flex-shrink-0"
-          [title]="mixedContentTitle"
-        >
-          Mixed Content{{ isMixedContentOverridden() ? ' (manual)' : '' }}
-        </span>
-
         <div
           *ngIf="!isDirectory && !isEditing && getDetectedStages().length > 0"
           class="flex gap-1 flex-shrink-0"
@@ -389,27 +381,19 @@ export class AssessmentStageValidationComponent {
           </span>
         </div>
 
+        <span
+          *ngIf="!isDirectory && !isEditing && getEffectiveMixedContent()"
+          class="px-2 py-0.5 text-xs font-medium bg-gray-800 text-white rounded flex-shrink-0 whitespace-nowrap ml-1"
+          [title]="mixedContentTitle"
+        >
+          Mixed Content{{ isMixedContentOverridden() ? ' (manual)' : '' }}
+        </span>
+
         <div
           *ngIf="!isDirectory && isEditing"
           class="flex items-center gap-1 flex-shrink-0 ml-auto"
           (click)="$event.stopPropagation()"
         >
-          <label
-            class="flex items-center gap-1.5 px-2 py-0.5 rounded cursor-pointer select-none transition-colors"
-            [ngClass]="getEffectiveMixedContent()
-              ? 'bg-gray-800 text-white'
-              : 'bg-white text-gray-500 border border-gray-300 hover:bg-gray-50'"
-            [title]="mixedContentTitle"
-          >
-            <input
-              type="checkbox"
-              [checked]="getEffectiveMixedContent()"
-              (change)="toggleMixedContent()"
-              class="rounded text-blue-600 focus:ring-blue-500 pointer-events-none"
-            />
-            <span class="text-xs font-medium">Mixed Content</span>
-          </label>
-
           <div class="relative">
             <button
               (click)="toggleStageSelector()"
@@ -467,6 +451,22 @@ export class AssessmentStageValidationComponent {
               {{ formatStageName(stage) }}
             </span>
           </div>
+
+          <label
+            class="flex items-center justify-center gap-1.5 px-2 py-0.5 rounded cursor-pointer select-none transition-colors w-32 ml-2 flex-shrink-0 whitespace-nowrap"
+            [ngClass]="getEffectiveMixedContent()
+              ? 'bg-gray-800 text-white'
+              : 'bg-white text-gray-500 border border-gray-300 hover:bg-gray-50'"
+            [title]="mixedContentTitle"
+          >
+            <input
+              type="checkbox"
+              [checked]="getEffectiveMixedContent()"
+              (change)="toggleMixedContent()"
+              class="rounded text-blue-600 focus:ring-blue-500 pointer-events-none"
+            />
+            <span class="text-xs font-medium">Mixed Content</span>
+          </label>
         </div>
       </div>
 
