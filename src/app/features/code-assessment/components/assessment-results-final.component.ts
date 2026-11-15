@@ -126,6 +126,20 @@ interface FileMetricsData {
                 <div class="text-xs text-gray-600 mt-1">Packages Analizados</div>
               </div>
             </div>
+
+            <!-- Project-wide overview: all analyzed metrics at a glance,
+                 instead of only file/package counts. -->
+            <div *ngIf="allMetrics.length > 0" class="mt-8 max-w-3xl mx-auto text-left">
+              <h3 class="text-sm font-bold text-gray-700 mb-3 text-center uppercase tracking-wide">Project Overview</h3>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div *ngFor="let metric of allMetrics"
+                     class="bg-white rounded-lg border p-4 text-center"
+                     [ngClass]="getOverviewCardBorderClass(metric.score, isLevelScaleMetric(metric.analyzer_id))">
+                  <div class="text-xs font-semibold text-gray-500 mb-1">{{ metric.documentation.name }}</div>
+                  <div class="text-xl font-bold text-gray-900">{{ formatMetricScore(metric) }}</div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div *ngIf="selectedPath && selectedFileData">
@@ -1872,6 +1886,27 @@ export class AssessmentResultsFinalComponent implements OnInit, OnChanges {
   getMetricDescription(metricId: string): string {
     const metric = this.allMetrics.find(m => m.analyzer_id === metricId);
     return metric?.documentation?.summary || '';
+  }
+
+  /** ccpm/ccpp report CCP_i on a literal 1-5 scale, not 0-10 like every other metric. */
+  isLevelScaleMetric(metricId: string): boolean {
+    return metricId === 'ccpm' || metricId === 'ccpp';
+  }
+
+  formatMetricScore(metric: AnalysisResult): string {
+    if (this.isLevelScaleMetric(metric.analyzer_id)) {
+      return `${metric.score.toFixed(2)} / 5`;
+    }
+    return `${metric.score.toFixed(1)} / 10`;
+  }
+
+  getOverviewCardBorderClass(score: number, isLevelScale: boolean): string {
+    const normalized = isLevelScale ? ((score - 1) / 4) * 10 : score; // 1-5 -> 0-10 for a single shared threshold set
+    if (normalized >= 9) return 'border-emerald-300';
+    if (normalized >= 7) return 'border-green-200';
+    if (normalized >= 5) return 'border-yellow-200';
+    if (normalized >= 3) return 'border-orange-200';
+    return 'border-red-200';
   }
 
   getMetricDocumentation(metricId: string): MetricDocumentation | null {
