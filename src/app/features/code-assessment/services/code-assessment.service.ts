@@ -28,7 +28,8 @@ export class CodeAssessmentService {
     error: null,
     selectedMetrics: [],
     manualFileStages: {},
-    excludedFiles: []
+    excludedFiles: [],
+    manualMixedContentOverrides: {}
   };
 
   private stateSubject = new BehaviorSubject<AssessmentState>(this.INITIAL_STATE);
@@ -133,6 +134,7 @@ export class CodeAssessmentService {
             currentStep: AssessmentStepEnum.STAGE_VALIDATION,
             manualFileStages: {},
             excludedFiles: [],
+            manualMixedContentOverrides: {},
             isUploading: false
           });
         } else {
@@ -159,9 +161,13 @@ export class CodeAssessmentService {
   /**
    * Confirm the pipeline stage validation step and advance to metric selection.
    */
-  confirmPipelineValidation(manualFileStages: { [key: string]: string[] }): void {
+  confirmPipelineValidation(
+    manualFileStages: { [key: string]: string[] },
+    manualMixedContentOverrides: { [key: string]: boolean } = {}
+  ): void {
     this.updateState({
       manualFileStages,
+      manualMixedContentOverrides,
       currentStep: AssessmentStepEnum.STRUCTURE,
       error: null
     });
