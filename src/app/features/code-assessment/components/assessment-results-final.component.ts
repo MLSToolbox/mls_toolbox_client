@@ -490,27 +490,27 @@ interface FileMetricsData {
                       <div class="grid grid-cols-3 gap-3">
                         <div class="rounded-lg p-3 border text-center"
                              [ngClass]="selectedFileData[metricId].data.mp ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'">
-                          <div class="text-xs font-semibold text-gray-600">Multi-fase (MP)</div>
+                          <div class="text-xs font-semibold text-gray-600">Multi-phase (MP)</div>
                           <div class="text-lg font-bold" [ngClass]="selectedFileData[metricId].data.mp ? 'text-red-700' : 'text-green-700'">
-                            {{ selectedFileData[metricId].data.mp ? 'Sí' : 'No' }}
+                            {{ selectedFileData[metricId].data.mp ? 'Yes' : 'No' }}
                           </div>
-                          <div class="text-xs text-gray-500 mt-1">{{ selectedFileData[metricId].data.unique_phases || 0 }} fase(s) única(s)</div>
+                          <div class="text-xs text-gray-500 mt-1">{{ selectedFileData[metricId].data.unique_phases || 0 }} unique phase(s)</div>
                         </div>
                         <div class="rounded-lg p-3 border text-center"
                              [ngClass]="selectedFileData[metricId].data.ms ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'">
-                          <div class="text-xs font-semibold text-gray-600">Multi-etapa (MS)</div>
+                          <div class="text-xs font-semibold text-gray-600">Multi-stage (MS)</div>
                           <div class="text-lg font-bold" [ngClass]="selectedFileData[metricId].data.ms ? 'text-red-700' : 'text-green-700'">
-                            {{ selectedFileData[metricId].data.ms ? 'Sí' : 'No' }}
+                            {{ selectedFileData[metricId].data.ms ? 'Yes' : 'No' }}
                           </div>
-                          <div class="text-xs text-gray-500 mt-1">{{ selectedFileData[metricId].data.unique_stages || 0 }} etapa(s) única(s)</div>
+                          <div class="text-xs text-gray-500 mt-1">{{ selectedFileData[metricId].data.unique_stages || 0 }} unique stage(s)</div>
                         </div>
                         <div class="rounded-lg p-3 border text-center"
                              [ngClass]="selectedFileData[metricId].data.mpc ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'">
-                          <div class="text-xs font-semibold text-gray-600">Código ajeno (MPC)</div>
+                          <div class="text-xs font-semibold text-gray-600">Non-pipeline Code (MPC)</div>
                           <div class="text-lg font-bold" [ngClass]="selectedFileData[metricId].data.mpc ? 'text-red-700' : 'text-green-700'">
-                            {{ selectedFileData[metricId].data.mpc ? 'Sí' : 'No' }}
+                            {{ selectedFileData[metricId].data.mpc ? 'Yes' : 'No' }}
                           </div>
-                          <div class="text-xs text-gray-500 mt-1">{{ selectedFileData[metricId].data.is_script_file ? 'Script file' : 'Archivo estructurado' }}</div>
+                          <div class="text-xs text-gray-500 mt-1">{{ selectedFileData[metricId].data.is_script_file ? 'Script file' : 'Structured file' }}</div>
                         </div>
                       </div>
                     </div>
@@ -518,7 +518,7 @@ interface FileMetricsData {
                     <!-- NLOC: informational only per the paper, never affects ccp_level -->
                     <div class="bg-gray-50 rounded-lg px-4 py-3 border border-gray-200 flex items-center justify-between">
                       <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                        File Size (NLOC) <span class="font-normal normal-case text-gray-400">· informativo, no afecta el nivel</span>
+                        File Size (NLOC) <span class="font-normal normal-case text-gray-400">· informational, doesn't affect the level</span>
                       </div>
                       <div class="text-right">
                         <div class="text-lg font-bold text-gray-700">{{ selectedFileData[metricId].data.nloc || 0 }}</div>
@@ -1006,25 +1006,25 @@ interface FileMetricsData {
                       <div class="grid grid-cols-3 gap-3">
                         <div class="rounded-lg p-3 border text-center"
                              [ngClass]="selectedFileData[metricId].data.metrics?.mp ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'">
-                          <div class="text-xs font-semibold text-gray-600">Multi-fase (MP)</div>
+                          <div class="text-xs font-semibold text-gray-600">Multi-phase (MP)</div>
                           <div class="text-lg font-bold" [ngClass]="selectedFileData[metricId].data.metrics?.mp ? 'text-red-700' : 'text-green-700'">
-                            {{ selectedFileData[metricId].data.metrics?.mp ? 'Sí' : 'No' }}
+                            {{ selectedFileData[metricId].data.metrics?.mp ? 'Yes' : 'No' }}
                           </div>
-                          <div class="text-xs text-gray-500 mt-1">{{ selectedFileData[metricId].data.phases_detected?.length || 0 }} fase(s) detectada(s)</div>
+                          <div class="text-xs text-gray-500 mt-1">{{ selectedFileData[metricId].data.phases_detected?.length || 0 }} detected phase(s)</div>
                         </div>
                         <div class="rounded-lg p-3 border text-center"
                              [ngClass]="selectedFileData[metricId].data.metrics?.ms ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'">
-                          <div class="text-xs font-semibold text-gray-600">Multi-etapa (MS)</div>
+                          <div class="text-xs font-semibold text-gray-600">Multi-stage (MS)</div>
                           <div class="text-lg font-bold" [ngClass]="selectedFileData[metricId].data.metrics?.ms ? 'text-red-700' : 'text-green-700'">
-                            {{ selectedFileData[metricId].data.metrics?.ms ? 'Sí' : 'No' }}
+                            {{ selectedFileData[metricId].data.metrics?.ms ? 'Yes' : 'No' }}
                           </div>
-                          <div class="text-xs text-gray-500 mt-1">{{ selectedFileData[metricId].data.stages_detected?.length || 0 }} etapa(s) detectada(s)</div>
+                          <div class="text-xs text-gray-500 mt-1">{{ selectedFileData[metricId].data.stages_detected?.length || 0 }} detected stage(s)</div>
                         </div>
                         <div class="rounded-lg p-3 border text-center"
                              [ngClass]="selectedFileData[metricId].data.metrics?.mpc ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'">
-                          <div class="text-xs font-semibold text-gray-600">Código ajeno (MPC)</div>
+                          <div class="text-xs font-semibold text-gray-600">Non-pipeline Code (MPC)</div>
                           <div class="text-lg font-bold" [ngClass]="selectedFileData[metricId].data.metrics?.mpc ? 'text-red-700' : 'text-green-700'">
-                            {{ selectedFileData[metricId].data.metrics?.mpc ? 'Sí' : 'No' }}
+                            {{ selectedFileData[metricId].data.metrics?.mpc ? 'Yes' : 'No' }}
                           </div>
                         </div>
                       </div>
@@ -1035,7 +1035,7 @@ interface FileMetricsData {
                       <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Modules</div>
                       <div class="text-sm font-bold text-gray-700">
                         {{ selectedFileData[metricId].data.metrics?.total_modules || 0 }} total
-                        <span class="font-normal text-gray-500">· {{ selectedFileData[metricId].data.metrics?.ml_modules || 0 }} con contenido ML</span>
+                        <span class="font-normal text-gray-500">· {{ selectedFileData[metricId].data.metrics?.ml_modules || 0 }} with ML content</span>
                       </div>
                     </div>
 
