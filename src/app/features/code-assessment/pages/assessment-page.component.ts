@@ -31,6 +31,7 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
     selectedMetrics: [],
     manualFileStages: {},
     excludedFiles: [],
+    manualMixedContentOverrides: {},
   };
 
   steps: AssessmentStep[] = [
@@ -131,8 +132,14 @@ export class AssessmentPageComponent implements OnInit, OnDestroy {
   /**
    * Handle confirmation of the pipeline stage validation step
    */
-  onStageValidationConfirmed(event: { manualFileStages: { [key: string]: string[] } }): void {
-    this.assessmentService.confirmPipelineValidation(event.manualFileStages);
+  onStageValidationConfirmed(event: {
+    manualFileStages: { [key: string]: string[] };
+    manualMixedContentOverrides: { [key: string]: boolean };
+  }): void {
+    this.assessmentService.confirmPipelineValidation(
+      event.manualFileStages,
+      event.manualMixedContentOverrides,
+    );
   }
 
   /**

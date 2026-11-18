@@ -174,6 +174,7 @@ interface MetricType {
 export class AssessmentStructureComponent implements OnInit {
   @Input() autoDetectedPipeline: AutoDetectedPipeline | null = null;
   @Input() manualFileStages: { [key: string]: string[] } = {};
+  @Input() manualMixedContentOverrides: { [key: string]: boolean } = {};
   @Input() isAnalyzing = false;
   @Output() runAnalysis = new EventEmitter<RunAnalysisOptions>();
   @Output() back = new EventEmitter<void>();
@@ -255,6 +256,7 @@ export class AssessmentStructureComponent implements OnInit {
         payload.pipeline_overrides = {
           file_stages: this.getManualOverrides(),
           excluded_files: [],
+          mixed_content_overrides: this.getManualMixedContentOverrides(),
         };
       }
 
@@ -312,7 +314,24 @@ export class AssessmentStructureComponent implements OnInit {
   }
 
   private get hasManualOverrides(): boolean {
-    return Object.keys(this.manualFileStages || {}).length > 0;
+    return (
+      Object.keys(this.manualFileStages || {}).length > 0 ||
+      Object.keys(this.manualMixedContentOverrides || {}).length > 0
+    );
+  }
+
+  private getManualMixedContentOverrides(): { [key: string]: boolean } {
+    const overrides: { [key: string]: boolean } = {};
+
+    Object.entries(this.manualMixedContentOverrides || {}).forEach(([file, value]) => {
+      const normalizedFile = this.normalizePath(file);
+      if (!normalizedFile) {
+        return;
+      }
+      overrides[normalizedFile] = value;
+    });
+
+    return overrides;
   }
 
   private getManualOverrides(): { [key: string]: string[] } {

@@ -464,35 +464,10 @@ interface FileMetricsData {
 
                   <ng-container *ngIf="!selectedFileData[metricId].data.aggregated">
                   <div *ngIf="metricId === 'ccpm'" class="space-y-4">
-                    <!-- Primary Metrics -->
-                    <div class="grid grid-cols-2 gap-4">
-                      <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                        <div class="text-xs font-semibold text-blue-600 mb-1">COHESION LEVEL</div>
-                        <div class="text-2xl font-bold capitalize"
-                             [ngClass]="{
-                               'text-emerald-700': selectedFileData[metricId].data.cohesion_level === 'very_high',
-                               'text-green-700': selectedFileData[metricId].data.cohesion_level === 'high',
-                               'text-yellow-600': selectedFileData[metricId].data.cohesion_level === 'medium',
-                               'text-orange-600': selectedFileData[metricId].data.cohesion_level === 'low',
-                               'text-red-700': selectedFileData[metricId].data.cohesion_level === 'very_low',
-                               'text-gray-700': selectedFileData[metricId].data.cohesion_level === 'non_ml_file' || selectedFileData[metricId].data.cohesion_level === 'small_file'
-                             }">
-                          {{ selectedFileData[metricId].data.cohesion_level?.replace('_', ' ') || 'N/A' }}
-                        </div>
-                      </div>
-                      
-                      <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200">
-                        <div class="text-xs font-semibold text-gray-600 mb-1">FILE SIZE (NLOC)</div>
-                        <div class="text-2xl font-bold text-gray-700">
-                          {{ selectedFileData[metricId].data.nloc || 0 }}
-                        </div>
-                        <div class="text-xs text-gray-600 mt-1">
-                          {{ selectedFileData[metricId].data.above_nloc_threshold ? 'Above' : 'Below' }} threshold
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- CCP_i Formula Breakdown: makes the WHY behind the level visible -->
+                    <!-- CCP_i Formula Breakdown: single source of truth for the cohesion
+                         level and its 3 binary drivers (MP/MS/MPC), each paired with the
+                         raw detail that explains it. The qualitative label already shown
+                         in the header badge above is intentionally not repeated here. -->
                     <div *ngIf="selectedFileData[metricId].data.ccp_level !== null && selectedFileData[metricId].data.ccp_level !== undefined"
                          class="bg-gradient-to-r from-slate-50 to-blue-50 rounded-lg p-4 border border-slate-200">
                       <div class="text-xs font-semibold text-slate-600 mb-3 uppercase tracking-wide font-mono">
@@ -501,57 +476,39 @@ interface FileMetricsData {
                       <div class="grid grid-cols-3 gap-3">
                         <div class="rounded-lg p-3 border text-center"
                              [ngClass]="selectedFileData[metricId].data.mp ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'">
-                          <div class="text-xs font-semibold text-gray-600">Multi-fase (MP)</div>
+                          <div class="text-xs font-semibold text-gray-600">Multi-phase (MP)</div>
                           <div class="text-lg font-bold" [ngClass]="selectedFileData[metricId].data.mp ? 'text-red-700' : 'text-green-700'">
-                            {{ selectedFileData[metricId].data.mp ? 'Sí' : 'No' }}
+                            {{ selectedFileData[metricId].data.mp ? 'Yes' : 'No' }}
                           </div>
+                          <div class="text-xs text-gray-500 mt-1">{{ selectedFileData[metricId].data.unique_phases || 0 }} unique phase(s)</div>
                         </div>
                         <div class="rounded-lg p-3 border text-center"
                              [ngClass]="selectedFileData[metricId].data.ms ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'">
-                          <div class="text-xs font-semibold text-gray-600">Multi-etapa (MS)</div>
+                          <div class="text-xs font-semibold text-gray-600">Multi-stage (MS)</div>
                           <div class="text-lg font-bold" [ngClass]="selectedFileData[metricId].data.ms ? 'text-red-700' : 'text-green-700'">
-                            {{ selectedFileData[metricId].data.ms ? 'Sí' : 'No' }}
+                            {{ selectedFileData[metricId].data.ms ? 'Yes' : 'No' }}
                           </div>
+                          <div class="text-xs text-gray-500 mt-1">{{ selectedFileData[metricId].data.unique_stages || 0 }} unique stage(s)</div>
                         </div>
                         <div class="rounded-lg p-3 border text-center"
                              [ngClass]="selectedFileData[metricId].data.mpc ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'">
-                          <div class="text-xs font-semibold text-gray-600">Código ajeno (MPC)</div>
+                          <div class="text-xs font-semibold text-gray-600">Non-pipeline Code (MPC)</div>
                           <div class="text-lg font-bold" [ngClass]="selectedFileData[metricId].data.mpc ? 'text-red-700' : 'text-green-700'">
-                            {{ selectedFileData[metricId].data.mpc ? 'Sí' : 'No' }}
+                            {{ selectedFileData[metricId].data.mpc ? 'Yes' : 'No' }}
                           </div>
+                          <div class="text-xs text-gray-500 mt-1">{{ selectedFileData[metricId].data.is_script_file ? 'Script file' : 'Structured file' }}</div>
                         </div>
                       </div>
                     </div>
 
-                    <!-- Pipeline Detection Metrics -->
-                    <div class="grid grid-cols-3 gap-4">
-                      <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
-                        <div class="text-xs font-semibold text-indigo-600 mb-1">STAGES DETECTED</div>
-                        <div class="text-2xl font-bold text-indigo-700">
-                          {{ selectedFileData[metricId].data.stages_detected?.length || 0 }}
-                        </div>
-                        <div class="text-xs text-indigo-600 mt-1">Unique: {{ selectedFileData[metricId].data.unique_stages || 0 }}</div>
+                    <!-- NLOC: informational only per the paper, never affects ccp_level -->
+                    <div class="bg-gray-50 rounded-lg px-4 py-3 border border-gray-200 flex items-center justify-between">
+                      <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        File Size (NLOC) <span class="font-normal normal-case text-gray-400">· informational, doesn't affect the level</span>
                       </div>
-
-                      <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
-                        <div class="text-xs font-semibold text-purple-600 mb-1">PHASES</div>
-                        <div class="text-2xl font-bold text-purple-700">
-                          {{ selectedFileData[metricId].data.phases_detected?.length || 0 }}
-                        </div>
-                        <div class="text-xs text-purple-600 mt-1">Unique: {{ selectedFileData[metricId].data.unique_phases || 0 }}</div>
-                      </div>
-
-                      <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border border-teal-200">
-                        <div class="text-xs font-semibold text-teal-600 mb-1">ML CONTENT</div>
-                        <div class="text-lg font-bold text-teal-700">
-                          {{ selectedFileData[metricId].data.ml_content_only ? 'Only ML' : 'Mixed' }}
-                        </div>
-                        <div class="text-xs text-teal-600 mt-1">
-                          {{ selectedFileData[metricId].data.is_script_file ? 'Script file' : 'Structured file' }}
-                        </div>
-                        <div *ngIf="selectedFileData[metricId].data.non_ml_keywords_found?.length > 0" class="text-xs text-red-600 mt-1">
-                          Non-ML: {{ selectedFileData[metricId].data.non_ml_keywords_found.length }} keywords
-                        </div>
+                      <div class="text-right">
+                        <div class="text-lg font-bold text-gray-700">{{ selectedFileData[metricId].data.nloc || 0 }}</div>
+                        <div class="text-xs text-gray-500">{{ selectedFileData[metricId].data.above_nloc_threshold ? 'Above' : 'Below' }} threshold</div>
                       </div>
                     </div>
 
@@ -1021,32 +978,12 @@ interface FileMetricsData {
 
                   <!-- CCPP (Package-level Conceptual Cohesion) -->
                   <div *ngIf="metricId === 'ccpp'" class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                      <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
-                        <div class="text-xs font-semibold text-indigo-600 mb-1">COHESION LEVEL</div>
-                        <div class="text-2xl font-bold capitalize"
-                             [ngClass]="{
-                               'text-emerald-700': selectedFileData[metricId].data.metrics?.cohesion_level === 'very_high',
-                               'text-green-700': selectedFileData[metricId].data.metrics?.cohesion_level === 'high',
-                               'text-yellow-600': selectedFileData[metricId].data.metrics?.cohesion_level === 'medium',
-                               'text-orange-600': selectedFileData[metricId].data.metrics?.cohesion_level === 'low',
-                               'text-red-700': selectedFileData[metricId].data.metrics?.cohesion_level === 'very_low',
-                               'text-gray-700': selectedFileData[metricId].data.metrics?.cohesion_level === 'non_ml_package'
-                             }">
-                          {{ selectedFileData[metricId].data.metrics?.cohesion_level?.replace('_', ' ') || 'N/A' }}
-                        </div>
-                      </div>
-                      
-                      <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                        <div class="text-xs font-semibold text-blue-600 mb-1">CCP_p LEVEL</div>
-                        <div class="text-2xl font-bold text-blue-700">
-                          {{ selectedFileData[metricId].data.metrics?.ccp_level ?? 'N/A' }}
-                        </div>
-                        <div class="text-xs text-blue-600 mt-1">/ 5</div>
-                      </div>
-                    </div>
-
-                    <!-- CCP_i Formula Breakdown: makes the WHY behind the level visible -->
+                    <!-- CCP_i Formula Breakdown: single source of truth for the cohesion
+                         level and its 3 binary drivers (MP/MS/MPC), each paired with the
+                         raw detail that explains it. The qualitative label already shown
+                         in the header badge above is intentionally not repeated here, and
+                         "needs refactoring" is dropped since it was a pure ccp_level < 3
+                         threshold with no information beyond the level itself. -->
                     <div *ngIf="selectedFileData[metricId].data.metrics?.ccp_level !== null && selectedFileData[metricId].data.metrics?.ccp_level !== undefined"
                          class="bg-gradient-to-r from-slate-50 to-blue-50 rounded-lg p-4 border border-slate-200">
                       <div class="text-xs font-semibold text-slate-600 mb-3 uppercase tracking-wide font-mono">
@@ -1055,48 +992,36 @@ interface FileMetricsData {
                       <div class="grid grid-cols-3 gap-3">
                         <div class="rounded-lg p-3 border text-center"
                              [ngClass]="selectedFileData[metricId].data.metrics?.mp ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'">
-                          <div class="text-xs font-semibold text-gray-600">Multi-fase (MP)</div>
+                          <div class="text-xs font-semibold text-gray-600">Multi-phase (MP)</div>
                           <div class="text-lg font-bold" [ngClass]="selectedFileData[metricId].data.metrics?.mp ? 'text-red-700' : 'text-green-700'">
-                            {{ selectedFileData[metricId].data.metrics?.mp ? 'Sí' : 'No' }}
+                            {{ selectedFileData[metricId].data.metrics?.mp ? 'Yes' : 'No' }}
                           </div>
+                          <div class="text-xs text-gray-500 mt-1">{{ selectedFileData[metricId].data.phases_detected?.length || 0 }} detected phase(s)</div>
                         </div>
                         <div class="rounded-lg p-3 border text-center"
                              [ngClass]="selectedFileData[metricId].data.metrics?.ms ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'">
-                          <div class="text-xs font-semibold text-gray-600">Multi-etapa (MS)</div>
+                          <div class="text-xs font-semibold text-gray-600">Multi-stage (MS)</div>
                           <div class="text-lg font-bold" [ngClass]="selectedFileData[metricId].data.metrics?.ms ? 'text-red-700' : 'text-green-700'">
-                            {{ selectedFileData[metricId].data.metrics?.ms ? 'Sí' : 'No' }}
+                            {{ selectedFileData[metricId].data.metrics?.ms ? 'Yes' : 'No' }}
                           </div>
+                          <div class="text-xs text-gray-500 mt-1">{{ selectedFileData[metricId].data.stages_detected?.length || 0 }} detected stage(s)</div>
                         </div>
                         <div class="rounded-lg p-3 border text-center"
                              [ngClass]="selectedFileData[metricId].data.metrics?.mpc ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'">
-                          <div class="text-xs font-semibold text-gray-600">Código ajeno (MPC)</div>
+                          <div class="text-xs font-semibold text-gray-600">Non-pipeline Code (MPC)</div>
                           <div class="text-lg font-bold" [ngClass]="selectedFileData[metricId].data.metrics?.mpc ? 'text-red-700' : 'text-green-700'">
-                            {{ selectedFileData[metricId].data.metrics?.mpc ? 'Sí' : 'No' }}
+                            {{ selectedFileData[metricId].data.metrics?.mpc ? 'Yes' : 'No' }}
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                      <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
-                        <div class="text-xs font-semibold text-purple-600 mb-1">MODULES</div>
-                        <div class="text-2xl font-bold text-purple-700">
-                          {{ selectedFileData[metricId].data.metrics?.total_modules || 0 }}
-                        </div>
-                        <div class="text-xs text-purple-600 mt-1">
-                          {{ selectedFileData[metricId].data.metrics?.ml_modules || 0 }} with ML content
-                        </div>
-                      </div>
-
-                      <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border border-teal-200">
-                        <div class="text-xs font-semibold text-teal-600 mb-1">REFACTORING</div>
-                        <div class="text-lg font-bold"
-                             [ngClass]="{
-                               'text-green-700': !selectedFileData[metricId].data.quality_indicators?.needs_refactoring,
-                               'text-red-700': selectedFileData[metricId].data.quality_indicators?.needs_refactoring
-                             }">
-                          {{ selectedFileData[metricId].data.quality_indicators?.needs_refactoring ? 'Needed' : 'Not needed' }}
-                        </div>
+                    <!-- Package composition: not derivable from MP/MS/MPC, kept as supporting detail -->
+                    <div class="bg-gray-50 rounded-lg px-4 py-3 border border-gray-200 flex items-center justify-between">
+                      <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Modules</div>
+                      <div class="text-sm font-bold text-gray-700">
+                        {{ selectedFileData[metricId].data.metrics?.total_modules || 0 }} total
+                        <span class="font-normal text-gray-500">· {{ selectedFileData[metricId].data.metrics?.ml_modules || 0 }} with ML content</span>
                       </div>
                     </div>
 

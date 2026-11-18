@@ -28,6 +28,7 @@ export interface AssessmentState {
   selectedMetrics: string[];
   manualFileStages: Record<string, string[]>;
   excludedFiles: string[];
+  manualMixedContentOverrides: Record<string, boolean>;
 }
 
 export interface AssessmentError {
@@ -47,6 +48,7 @@ export enum AssessmentStepEnum {
 export interface PipelineOverrides {
   file_stages: Record<string, string[]>;
   excluded_files: string[];
+  mixed_content_overrides?: Record<string, boolean>;
 }
 
 export interface RunAnalysisOptions {

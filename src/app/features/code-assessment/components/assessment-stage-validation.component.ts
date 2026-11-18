@@ -20,7 +20,7 @@ import { StageEditorCoordinatorService } from '../services/stage-editor-coordina
             <h2 class="text-xl font-bold text-gray-900">Validate Pipeline</h2>
           </div>
           <p class="text-sm text-gray-600 mt-2">
-            Review the pipeline stages detected for each file before running the analysis. Hover a stage tag to see why it was detected.
+            Review the pipeline stages detected for each file before running the analysis. Hover a stage tag to see why it was detected. Mixed content detection can produce false positives - use Edit to correct it per file.
           </p>
         </div>
 
@@ -82,7 +82,9 @@ import { StageEditorCoordinatorService } from '../services/stage-editor-coordina
                   [detectedPipeline]="autoDetectedPipeline"
                   [isEditing]="isEditingPipeline"
                   [manualStages]="manualFileStages"
+                  [manualMixedContent]="manualMixedContentOverrides"
                   (stagesChange)="onFileStagesChange($event)"
+                  (mixedContentChange)="onMixedContentChange($event)"
                 >
                 </app-tree-node>
               </ng-container>
@@ -177,12 +179,16 @@ import { StageEditorCoordinatorService } from '../services/stage-editor-coordina
 export class AssessmentStageValidationComponent {
   @Input() projectStructure: TreeStructure | null = null;
   @Input() autoDetectedPipeline: AutoDetectedPipeline | null = null;
-  @Output() confirmed = new EventEmitter<{ manualFileStages: Record<string, string[]> }>();
+  @Output() confirmed = new EventEmitter<{
+    manualFileStages: Record<string, string[]>;
+    manualMixedContentOverrides: Record<string, boolean>;
+  }>();
   @Output() back = new EventEmitter<void>();
 
   isEditingPipeline = false;
   showConfirmModal = false;
   manualFileStages: { [key: string]: string[] } = {};
+  manualMixedContentOverrides: { [key: string]: boolean } = {};
 
   constructor(private readonly stageEditor: StageEditorCoordinatorService) {}
 
@@ -221,6 +227,14 @@ export class AssessmentStageValidationComponent {
     this.manualFileStages[normalizedFile] = event.stages;
   }
 
+  onMixedContentChange(event: { file: string; mixedContent: boolean }): void {
+    const normalizedFile = this.normalizePath(event.file);
+    if (!normalizedFile) {
+      return;
+    }
+    this.manualMixedContentOverrides[normalizedFile] = event.mixedContent;
+  }
+
   openConfirmModal(): void {
     this.showConfirmModal = true;
   }
@@ -231,7 +245,10 @@ export class AssessmentStageValidationComponent {
 
   confirmAndContinue(): void {
     this.showConfirmModal = false;
-    this.confirmed.emit({ manualFileStages: this.manualFileStages });
+    this.confirmed.emit({
+      manualFileStages: this.manualFileStages,
+      manualMixedContentOverrides: this.manualMixedContentOverrides,
+    });
   }
 
   onBack(): void {
@@ -350,14 +367,6 @@ export class AssessmentStageValidationComponent {
           Invalid Syntax
         </span>
 
-        <span
-          *ngIf="!isDirectory && hasMixedContent"
-          class="px-2 py-0.5 text-xs font-medium bg-gray-800 text-white rounded flex-shrink-0"
-          [title]="mixedContentTitle"
-        >
-          Mixed Content
-        </span>
-
         <div
           *ngIf="!isDirectory && !isEditing && getDetectedStages().length > 0"
           class="flex gap-1 flex-shrink-0"
@@ -372,9 +381,17 @@ export class AssessmentStageValidationComponent {
           </span>
         </div>
 
+        <span
+          *ngIf="!isDirectory && !isEditing && getEffectiveMixedContent()"
+          class="px-2 py-0.5 text-xs font-medium bg-gray-800 text-white rounded flex-shrink-0 whitespace-nowrap ml-1"
+          [title]="mixedContentTitle"
+        >
+          Mixed Content{{ isMixedContentOverridden() ? ' (manual)' : '' }}
+        </span>
+
         <div
           *ngIf="!isDirectory && isEditing"
-          class="flex gap-1 flex-shrink-0 ml-auto"
+          class="flex items-center gap-1 flex-shrink-0 ml-auto"
           (click)="$event.stopPropagation()"
         >
           <div class="relative">
@@ -434,6 +451,22 @@ export class AssessmentStageValidationComponent {
               {{ formatStageName(stage) }}
             </span>
           </div>
+
+          <label
+            class="flex items-center justify-center gap-1.5 px-2 py-0.5 rounded cursor-pointer select-none transition-colors w-32 ml-2 flex-shrink-0 whitespace-nowrap"
+            [ngClass]="getEffectiveMixedContent()
+              ? 'bg-gray-800 text-white'
+              : 'bg-white text-gray-500 border border-gray-300 hover:bg-gray-50'"
+            [title]="mixedContentTitle"
+          >
+            <input
+              type="checkbox"
+              [checked]="getEffectiveMixedContent()"
+              (change)="toggleMixedContent()"
+              class="rounded text-blue-600 focus:ring-blue-500 pointer-events-none"
+            />
+            <span class="text-xs font-medium">Mixed Content</span>
+          </label>
         </div>
       </div>
 
@@ -445,7 +478,9 @@ export class AssessmentStageValidationComponent {
             [detectedPipeline]="detectedPipeline"
             [isEditing]="isEditing"
             [manualStages]="manualStages"
+            [manualMixedContent]="manualMixedContent"
             (stagesChange)="stagesChange.emit($event)"
+            (mixedContentChange)="mixedContentChange.emit($event)"
           >
           </app-tree-node>
         </ng-container>
@@ -460,9 +495,14 @@ export class TreeNodeComponent {
   @Input() detectedPipeline: AutoDetectedPipeline | null = null;
   @Input() isEditing = false;
   @Input() manualStages: { [key: string]: string[] } = {};
+  @Input() manualMixedContent: { [key: string]: boolean } = {};
   @Output() stagesChange = new EventEmitter<{
     file: string;
     stages: string[];
+  }>();
+  @Output() mixedContentChange = new EventEmitter<{
+    file: string;
+    mixedContent: boolean;
   }>();
 
   availableStages = [
@@ -647,8 +687,51 @@ export class TreeNodeComponent {
   }
 
   get mixedContentTitle(): string {
+    if (this.isMixedContentOverridden()) {
+      return this.getEffectiveMixedContent()
+        ? 'Manually marked as mixed content (overrides automatic detection).'
+        : 'Manually marked as NOT mixed content (overrides automatic detection).';
+    }
+    if (!this.hasMixedContent) {
+      return 'No mixed content detected. Click Edit to override if this looks wrong.';
+    }
     const reasons = this.nonMlIndicatorsForNode.map((entry) => this.describeNonMlIndicator(entry));
     return `Mixes ML code with non-pipeline code (web API, UI, logs, utilities): ${reasons.join('; ')}`;
+  }
+
+  /**
+   * The manual override for this file, if the user has set one in this
+   * session - null means "defer to the algorithm's detection".
+   */
+  getManualMixedContent(): boolean | null {
+    const normalizedNodePath = this.normalizePath(this.node.path || this.node.name || '');
+    for (const [path, value] of Object.entries(this.manualMixedContent)) {
+      if (this.pathsMatch(normalizedNodePath, this.normalizePath(path))) {
+        return value;
+      }
+    }
+    return null;
+  }
+
+  isMixedContentOverridden(): boolean {
+    return this.getManualMixedContent() !== null;
+  }
+
+  /**
+   * Mixed-content detection can produce false positives/negatives, so the
+   * manual override (when set) always wins over the algorithm's own
+   * `hasMixedContent` detection.
+   */
+  getEffectiveMixedContent(): boolean {
+    const manual = this.getManualMixedContent();
+    return manual !== null ? manual : this.hasMixedContent;
+  }
+
+  toggleMixedContent(): void {
+    this.mixedContentChange.emit({
+      file: this.node.path || this.node.name,
+      mixedContent: !this.getEffectiveMixedContent(),
+    });
   }
 
   private get nonMlIndicatorsForNode(): string[] {
@@ -757,6 +840,9 @@ export class TreeNodeComponent {
     if (!pathA || !pathB) {
       return false;
     }
-    return pathA === pathB || pathA.endsWith(pathB) || pathB.endsWith(pathA);
+    // Match on path-segment boundaries only - a plain endsWith() would wrongly
+    // match e.g. "very_high.py" against "high.py", since the former's string
+    // suffix (not path suffix) happens to contain the latter.
+    return pathA === pathB || pathA.endsWith('/' + pathB) || pathB.endsWith('/' + pathA);
   }
 }

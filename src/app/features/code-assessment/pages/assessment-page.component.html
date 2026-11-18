@@ -120,6 +120,7 @@
       <app-assessment-structure
         [autoDetectedPipeline]="state.uploadResponse?.auto_detected_pipeline || null"
         [manualFileStages]="state.manualFileStages"
+        [manualMixedContentOverrides]="state.manualMixedContentOverrides"
         [isAnalyzing]="state.isAnalyzing"
         (runAnalysis)="onRunAnalysis($event)"
         (back)="onBackToStageValidation()">
