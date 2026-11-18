@@ -71,3 +71,7 @@ Thumbs.db
 
 # Generado durante el build según el ambiente
 src/environment/environment.ts
+
+# Claude Code (local config/session files, never shared)
+.claude/
+CLAUDE.md
